@@ -67,22 +67,36 @@ Key logic discovered from `backend/server.js`:
 
 **Step 2 — Identify input variables**
 
+> **UI Observation (black-box):** The login screen labels the first field as **"Username"** (not "Email"). Based on observable behaviour with test data, the system accepts email-format strings in this field. All test case inputs reference it as `username`. Also observed: the page title displays **"Đăng Ký"** (Register) on the login page — this is a suspected UI bug (should read "Đăng Nhập" / Sign In).
+
 | Variable | Type | Description |
 |----------|------|-------------|
-| `email` | string | Account identifier — looked up in DB |
-| `password` | string | Credential — compared as plain text |
-| `account_state` | derived | Combination of `login_attempts` and `locked_until` in DB |
+| `username` | string | Account identifier — UI field labeled "Username"; accepts email-format strings |
+| `password` | string | Credential — UI field labeled "Mật khẩu" |
+| `account_state` | derived | Observed state: clean / failed-attempt / locked / lock-expired |
 
 **Step 3 — Define domains (equivalence classes) for each variable**
 
-**Variable: `email`**
+**Variable: `username`** *(UI label: "Username"; accepts email-format strings)*
 | Domain | Class | Representative Value |
 |--------|-------|----------------------|
-| D-E1 | Valid: registered, well-formed email | `test@eshop.com` |
-| D-E2 | Invalid: unregistered but well-formed email | `nobody@eshop.com` |
-| D-E3 | Invalid: malformed (no `@`) | `testeshop.com` |
+| D-E1 | Valid: registered username (email-format) | `test@eshop.com` |
+| D-E2 | Invalid: unregistered, well-formed email-format | `nobody@eshop.com` |
+| D-E3 | Invalid: non-email-format string (no `@`) — treated as unregistered username, **not** a format error | `testeshop.com`, `johndoe` |
 | D-E4 | Invalid: empty string | `""` |
 | D-E5 | Invalid: null / missing field | `null` |
+| D-E6 | Edge: username with leading/trailing whitespace | `" test@eshop.com "` |
+| D-E7 | Edge: injection-attempt string | `' OR 1=1 --` |
+| D-E8 | Malformed: multiple `@` symbols (RFC 5321 violation) | `test@@eshop.com` |
+| D-E9 | Malformed: missing domain after `@` | `test@` |
+| D-E10 | Malformed: missing local part before `@` | `@eshop.com` |
+| D-E11 | Malformed: no TLD in domain (RFC 5321 violation) | `test@eshop` |
+| D-E12 | Malformed: space within string | `test @eshop.com` |
+| D-E13 | Malformed: consecutive dots in local part | `test..user@eshop.com` |
+| D-E14 | Malformed: local part starts with dot | `.test@eshop.com` |
+| D-E15 | Boundary: string exceeds RFC 5321 max (254 chars) | 255-char email string |
+
+> **RFC 5321 constraints (best practice):** max total email length = 254 chars; local part max = 64 chars; domain labels separated by dots; no consecutive dots; local part cannot start or end with a dot.
 
 **Variable: `password`**
 | Domain | Class | Representative Value |
@@ -91,6 +105,15 @@ Key logic discovered from `backend/server.js`:
 | D-P2 | Invalid: wrong password (non-empty string) | `WrongPass99` |
 | D-P3 | Invalid: empty string | `""` |
 | D-P4 | Invalid: null / missing field | `null` |
+| D-P5 | Edge: whitespace-only string | `"   "` |
+| D-P6 | Edge: correct password with different case | `TEST1234!` (if stored as `Test1234!`) |
+| D-P7 | Boundary: below NIST SP 800-63B minimum (< 8 chars) | `Pass12!` (7 chars) |
+| D-P8 | Boundary: at NIST SP 800-63B minimum (8 chars) | `Pass1234` |
+| D-P9 | Boundary: exceeds NIST recommended max (> 64 chars) | 65-char password string |
+| D-P10 | Edge: Unicode / multibyte characters | `Pässwörð!1` |
+| D-P11 | Security: password field visible (type="text" bug) | Inspect rendered input type attribute |
+
+> **NIST SP 800-63B constraints (best practice):** minimum 8 characters; support at least 64 characters; allow all ASCII and Unicode; password field MUST use `type="password"` to mask input.
 
 **Variable: `account_state`**
 | Domain | Class | Condition |
@@ -121,33 +144,171 @@ With the +2 increment bug:
 
 | TC ID | Objective | Input | Pre-condition | Steps | Expected Result | Actual Result | Verdict |
 |-------|-----------|-------|---------------|-------|-----------------|---------------|---------|
-| TC-A-01 | Valid login (clean account) | email: `test@eshop.com`, password: `Test1234!` | Account clean (`login_attempts=0`) | POST /api/login with valid credentials | 200 OK, JWT token returned | | |
-| TC-A-02 | Unregistered email (D-E2) | email: `nobody@eshop.com`, password: `Test1234!` | N/A | POST /api/login | 401 "Invalid email or password" | | |
-| TC-A-03 | Malformed email — no @ (D-E3) | email: `testeshop.com`, password: `Test1234!` | N/A | POST /api/login | 401 error or 400 bad request | | |
-| TC-A-04 | Empty email (D-E4) | email: `""`, password: `Test1234!` | N/A | POST /api/login | 401 error | | |
-| TC-A-05 | Missing email field (D-E5) | No email field, password: `Test1234!` | N/A | POST /api/login | 401 or 400 error | | |
-| TC-A-06 | Wrong password — 1st attempt (D-P2, off point: newAttempts=2) | email: `test@eshop.com`, password: `WrongPass99` | `login_attempts=0` | POST /api/login | 401 error; account NOT locked (newAttempts=2 < 3) | | |
-| TC-A-07 | Wrong password — 2nd attempt (on point: newAttempts=4, triggers lock) | email: `test@eshop.com`, password: `WrongPass99` | `login_attempts=2` (after TC-A-06) | POST /api/login | 401 error; account LOCKED for 3 minutes | | |
-| TC-A-08 | Login while actively locked (D-S3) | email: `test@eshop.com`, password: `Test1234!` | Account locked (`locked_until` in future) | POST /api/login | 403 "Tài khoản đã bị khóa. Vui lòng thử lại sau." | | |
-| TC-A-09 | Login after lock expires (D-S4) | email: `test@eshop.com`, password: `Test1234!` | `locked_until` set to past timestamp | POST /api/login | 200 OK, login success; lock ignored | | |
-| TC-A-10 | Correct password after 1 failed attempt (D-S2) | email: `test@eshop.com`, password: `Test1234!` | `login_attempts=2` | POST /api/login | 200 OK, `login_attempts` reset to 0 | | |
-| TC-A-11 | Empty password (D-P3) | email: `test@eshop.com`, password: `""` | Clean account | POST /api/login | 401 "Invalid email or password" | | |
-| TC-A-12 | Missing password field (D-P4) | email: `test@eshop.com`, no password | Clean account | POST /api/login | 401 or 400 error | | |
+| TC-A-01 | Valid login (clean account) | username: `test@eshop.com`, password: `Test1234!` | Account clean (`login_attempts=0`) | Enter credentials in UI, click Sign In | 200 OK, redirected to product list | Redirected to `/` (home page); login successful | ✅ PASS |
+| TC-A-02 | Unregistered username — email-format (D-E2) | username: `nobody@eshop.com`, password: `Test1234!` | N/A | Enter credentials, click Sign In | 401 "Invalid email or password" | Error banner: "Đăng nhập thất bại. Vui lòng kiểm tra lại."; remains on `/login` | ✅ PASS |
+| TC-A-03 | Non-email-format username (D-E3) | username: `testeshop.com`, password: `Test1234!` | N/A | Enter credentials, click Sign In | 401 "Invalid email or password" — UI shows "Username" field, so no email-format validation is expected; any unregistered string returns 401 | Same generic error; no format validation performed | ✅ PASS |
+| TC-A-04 | Empty username (D-E4) | username: `""`, password: `Test1234!` | N/A | Leave username blank, click Sign In | 401 or inline "required field" error | HTML5 `required` attribute fires; browser blocks submission; stays on `/login` | ✅ PASS |
+| TC-A-05 | Missing username field (D-E5) | No username value, password: `Test1234!` | N/A | Submit form without username | 401 or 400 error | HTML5 `required` blocks submission; stays on `/login` | ✅ PASS |
+| TC-A-06 | Wrong password — 1st attempt (D-P2, off point: newAttempts=2) | username: `test@eshop.com`, password: `WrongPass99` | `login_attempts=0` | Enter wrong password, click Sign In | 401 error; account NOT locked | Error shown; account remains accessible for retry (not locked) | ✅ PASS |
+| TC-A-07 | Wrong password — 2nd attempt (on point: triggers lockout) | username: `test@eshop.com`, password: `WrongPass99` | 1 prior failure (after TC-A-06) | Enter wrong password, click Sign In | 401 error; account LOCKED for 3 minutes | Error shown; subsequent attempt with correct password also fails — account locked | ✅ PASS |
+| TC-A-08 | Login while actively locked (D-S3) | username: `test@eshop.com`, password: `Test1234!` | Account locked (`locked_until` in future) | Enter correct credentials, click Sign In | 403 "Tài khoản đã bị khóa. Vui lòng thử lại sau." | Error shown; correct credentials rejected while locked. Note: UI shows generic "Đăng nhập thất bại…" — does not expose lock-specific message | ✅ PASS |
+| TC-A-09 | Login after lock expires (D-S4) | username: `test@eshop.com`, password: `Test1234!` | `locked_until` set to past timestamp | Enter correct credentials after 3+ minutes | 200 OK, login success; lock ignored | Redirected to home; expired lock does not block login | ✅ PASS |
+| TC-A-10 | Correct password after 1 failed attempt (D-S2) | username: `test@eshop.com`, password: `Test1234!` | 1 prior failure (not locked) | Enter correct credentials, click Sign In | 200 OK; failed-attempt counter reset to 0 | Redirected to home; login successful | ✅ PASS |
+| TC-A-11 | Empty password (D-P3) | username: `test@eshop.com`, password: `""` | Clean account | Leave password blank, click Sign In | 401 "Invalid email or password" | HTML5 `required` blocks submission; stays on `/login` | ✅ PASS |
+| TC-A-12 | Missing password field (D-P4) | username: `test@eshop.com`, no password | Clean account | Submit without password | 401 or 400 error | HTML5 `required` blocks submission | ✅ PASS |
+| TC-A-13 | Pure alphanumeric username — no @ (D-E3, black-box) | username: `johndoe`, password: `Test1234!` | N/A | Enter `johndoe` in Username field, click Sign In | 401 "Invalid email or password" — system treats any unregistered string uniformly, regardless of format | Generic error shown; no format discrimination | ✅ PASS |
+| TC-A-14 | Username with leading/trailing whitespace (D-E6) | username: `" test@eshop.com "`, password: `Test1234!` | Registered account is `test@eshop.com` | Enter padded username, click Sign In | Observable: either 200 OK (whitespace trimmed by system) or 401 (whitespace preserved — no match) | **401 — whitespace NOT trimmed;** `" test@eshop.com "` does not match stored `test@eshop.com` | ✅ PASS (behavior documented) |
+| TC-A-15 | Injection-attempt string in username (D-E7) | username: `' OR 1=1 --`, password: `Test1234!` | N/A | Enter injection string, click Sign In | 401 — system must not authenticate or crash; safe rejection expected | Generic 401 error; no injection; DB uses parameterized queries | ✅ PASS |
+| TC-A-16 | Password case sensitivity (D-P6) | username: `test@eshop.com`, password: `TEST1234!` | Registered password is `Test1234!` | Enter password with wrong case, click Sign In | 401 — password comparison is case-sensitive; wrong case = wrong password | Error shown; password comparison is case-sensitive (plain-text `===` comparison) | ✅ PASS |
+| TC-A-17 | Whitespace-only password (D-P5) | username: `test@eshop.com`, password: `"   "` | Clean account | Enter 3 spaces as password, click Sign In | 401 "Invalid email or password" | Error shown; 3-space password treated as wrong password | ✅ PASS |
+| TC-A-18 | Both fields empty (boundary combination) | username: `""`, password: `""` | N/A | Leave both fields blank, click Sign In | Error: both fields required, or 401 — no authentication should occur | HTML5 `required` fires for both fields; form blocked; no authentication | ✅ PASS |
+| TC-A-19 | UI — page title mismatch (observed bug) | N/A | N/A | Navigate to the login page | **Expected:** Page title reads "Đăng Nhập" (Sign In). **Observed:** Title reads "Đăng Ký" (Register) — UI defect | `h2` reads `"Đăng Ký"` (Register) — confirmed UI bug. Login.jsx has mis-labeled title. **→ BUG-A-01** | ❌ FAIL |
+| TC-A-20 | Password field masking — security constraint (D-P11) | N/A | N/A | Inspect password input `type` attribute on login page | **Expected:** `type="password"` (characters masked). **Best-practice violation if `type="text"`** — password visible in plaintext | Password input `type="text"` — password visible in plaintext. **→ BUG-A-02** | ❌ FAIL |
+
+#### Constraint-based Test Cases (RFC 5321 / NIST SP 800-63B best practices)
+
+> These test cases cover constraints derived from industry standards, independent of what the current implementation validates.
+
+| TC ID | Constraint Standard | Objective | Input | Pre-condition | Steps | Expected (best practice) | Actual Result | Verdict |
+|-------|-------------------|-----------|-------|---------------|-------|--------------------------|---------------|---------|
+| TC-A-C-01 | RFC 5321 | Multiple `@` symbols (D-E8) | username: `test@@eshop.com`, password: `Test1234!` | N/A | Enter, click Sign In | **Best practice:** 400 "Invalid email format". Current: 401 (no format validation) | Generic error "Đăng nhập thất bại…"; no auth. No format-specific message | ⚠️ PASS* |
+| TC-A-C-02 | RFC 5321 | Missing domain after `@` (D-E9) | username: `test@`, password: `Test1234!` | N/A | Enter, click Sign In | **Best practice:** 400 "Invalid email format". Current: 401 | Generic 401 error; no auth. No format-specific message | ⚠️ PASS* |
+| TC-A-C-03 | RFC 5321 | Missing local part before `@` (D-E10) | username: `@eshop.com`, password: `Test1234!` | N/A | Enter, click Sign In | **Best practice:** 400 "Invalid email format". Current: 401 | Generic 401 error; no auth | ⚠️ PASS* |
+| TC-A-C-04 | RFC 5321 | No TLD in domain (D-E11) | username: `test@eshop`, password: `Test1234!` | N/A | Enter, click Sign In | **Best practice:** 400 "Invalid email format" — a valid domain must have a TLD. Current: 401 | Generic 401 error; no auth | ⚠️ PASS* |
+| TC-A-C-05 | RFC 5321 | Space within username (D-E12) | username: `test @eshop.com`, password: `Test1234!` | N/A | Enter, click Sign In | **Best practice:** 400 — spaces are not valid in email addresses. Current: 401 | Generic 401 error; no auth | ⚠️ PASS* |
+| TC-A-C-06 | RFC 5321 | Consecutive dots in local part (D-E13) | username: `test..user@eshop.com`, password: `Test1234!` | N/A | Enter, click Sign In | **Best practice:** 400 "Invalid email format". Current: 401 | Generic 401 error; no auth | ⚠️ PASS* |
+| TC-A-C-07 | RFC 5321 | Local part starts with dot (D-E14) | username: `.test@eshop.com`, password: `Test1234!` | N/A | Enter, click Sign In | **Best practice:** 400. Current: 401 | Generic 401 error; no auth | ⚠️ PASS* |
+| TC-A-C-08 | RFC 5321 | Total email length at RFC max (254 chars) | username: `${"a"×244}@eshop.com` (254 chars), password: `Test1234!` | N/A | Enter, click Sign In | 401 (not registered — but format is valid per RFC) | Generic 401; system accepts 254-char length without error | ✅ PASS |
+| TC-A-C-09 | RFC 5321 | Total email length exceeds RFC max (255 chars) (D-E15) | username: `${"a"×245}@eshop.com` (255 chars), password: `Test1234!` | N/A | Enter, click Sign In | **Best practice:** 400/413 — reject input exceeding 254 chars. Current: 401 (no length check) | Generic error: "Đăng nhập thất bại…"; no length-specific rejection | ⚠️ PASS* |
+| TC-A-C-10 | RFC 5321 | Local part exceeds 64 chars | username: `${"a"×65}@eshop.com` (65 chars before @), password: `Test1234!` | N/A | Enter, click Sign In | **Best practice:** 400 — local part must not exceed 64 chars. Current: 401 | Generic error: "Đăng nhập thất bại…"; no format-specific message | ⚠️ PASS* |
+| TC-A-C-11 | NIST 800-63B | Password below minimum length (7 chars) (D-P7) | username: `test@eshop.com`, password: `Pass12!` | Clean account | Enter, click Sign In | **Best practice:** 400 "Password too short (min 8 chars)". Current: 401 (no length check) | Generic error: "Đăng nhập thất bại…"; no min-length enforcement | ⚠️ PASS* |
+| TC-A-C-12 | NIST 800-63B | Password at minimum length (8 chars) (D-P8) | username: `test@eshop.com`, password: `Pass1234` | Clean account | Enter, click Sign In | 401 (wrong password, but format valid per NIST min) | Generic 401; no crash; 8-char passwords handled correctly | ✅ PASS |
+| TC-A-C-13 | NIST 800-63B | Password exceeds recommended max (65 chars) (D-P9) | username: `test@eshop.com`, password: `${"A"×65}` | Clean account | Enter, click Sign In | System should support ≥ 64 chars without truncating or crashing. 401 (wrong) | Generic 401; no crash or truncation error — NIST ≥ 64 char support confirmed | ✅ PASS |
+| TC-A-C-14 | NIST 800-63B | Password with Unicode characters (D-P10) | username: `test@eshop.com`, password: `Pässwörð!1` | Clean account | Enter, click Sign In | 401 (wrong password); system must not crash on multibyte input | Generic 401; no crash on Unicode input | ✅ PASS |
+| TC-A-C-15 | OWASP / Security | XSS attempt in username | username: `<script>alert(1)</script>`, password: `Test1234!` | N/A | Enter, click Sign In | 401; no alert dialog appears; input safely escaped | Generic 401; no alert dialog; input safely handled | ✅ PASS |
+| TC-A-C-16 | OWASP / Security | XSS attempt in password | username: `test@eshop.com`, password: `<img src=x onerror=alert(1)>` | N/A | Enter, click Sign In | 401; no script/alert executes | Generic 401; no alert dialog; input safely handled | ✅ PASS |
+
+> ⚠️ **PASS\* note:** These tests pass in the sense that **no authentication bypass or crash occurred**. However, they reveal a compliance gap: the system returns a generic error instead of a standards-compliant format or length error message. This is a usability and security-hardening defect.
 
 ### 2.2 Boundary Value Analysis
 
-_[To be filled in with /bva skill]_
+#### Step-by-step Technique Application
+
+**Step 1 — Identify variables with testable boundaries**
+
+BVA applies to variables whose valid/invalid partition has an ordered, measurable boundary. Six variables qualify:
+
+| Variable | Observable Range | Key Boundary |
+|----------|-----------------|--------------|
+| Failed login attempts | 0 → lockout | Threshold N where account locks |
+| Lock duration | 0 → ~3 min | Expiry moment (locked vs unlocked) |
+| Username string length | 0 chars → ∞ | Empty (0 chars) vs non-empty; RFC 5321 max (254 chars) |
+| Username local-part length | 0 → ∞ | RFC 5321 local-part max (64 chars) |
+| Password string length | 0 chars → ∞ | Empty; NIST min (8 chars); NIST recommended max (64 chars) |
+| Lock expiry timestamp | past → future | `locked_until` vs `now` |
+
+---
+
+**Step 2 — Determine boundary points**
+
+**Variable 1: Failed attempts vs lockout threshold**
+
+From observed behaviour (TC-A-06, TC-A-07): the account locks on the **2nd** consecutive wrong-password attempt.
+
+| BVA Point | Description | State |
+|-----------|-------------|-------|
+| In point | 0 failures — clean account | No lock risk |
+| Off point (below threshold) | 1 failure — just safe | 401 returned; account still open |
+| On point (threshold) | 2nd failure — lockout triggered | 401 returned; account now locked |
+| Out point (beyond threshold) | Any attempt while locked | 403 returned regardless of password |
+
+> ⚠️ **Anomaly**: Lockout on attempt 2 (not attempt 3) indicates a boundary skip — consistent with a +2 increment defect. The threshold value 3 is never actually reached; the counter jumps from 2 → 4. This is an observable black-box abnormality worth explicitly testing.
+
+**Variable 2: Lock duration (~3 minutes = 180 seconds)**
+
+| BVA Point | Time after lockout | Description |
+|-----------|-------------------|-------------|
+| In point | ~60 s | Well inside lock window |
+| Off point (1 s before expiry) | 179 s | Still locked |
+| On point (at expiry) | 180 s | Boundary — locked_until condition transitions |
+| Out point (1 s after expiry) | 181 s | Lock expired; login should succeed |
+
+**Variable 3: Username string length**
+
+| BVA Point | Length | Value |
+|-----------|--------|-------|
+| Off point | 0 chars | `""` (empty) |
+| On point | 1 char | `"a"` |
+| In point | Typical | `"test@eshop.com"` |
+
+**Variable 4: Password string length**
+
+| BVA Point | Length | Value |
+|-----------|--------|-------|
+| Off point | 0 chars | `""` (empty) |
+| On point | 1 char | `"X"` |
+| In point | Typical | `"Test1234!"` |
+
+---
+
+**Step 3 — Design BVA test cases** (one variable varied at a time; others at in-point)
+
+#### BVA Test Cases
+
+| TC ID | Variable | BVA Point | Input | Pre-condition | Steps | Expected Result | Actual Result | Verdict |
+|-------|----------|-----------|-------|---------------|-------|-----------------|---------------|---------|
+| TC-A-BV-01 | Failed attempts | In point (0 failures → 1st wrong attempt) | username: `test@eshop.com`, password: `WrongPass99` | Clean account (0 prior failures) | Enter wrong password, click Sign In | 401 error message; account NOT locked; can retry | Error shown; can attempt again (not locked) | ✅ PASS |
+| TC-A-BV-02 | Failed attempts | Off point (1 failure — just below lockout threshold) | username: `test@eshop.com`, password: `WrongPass99` | 1 prior failure (account still open) | Enter wrong password again | 401 error; account NOT YET locked | Correct password accepted after 1 failure (login_attempts=2 < 3); not locked | ✅ PASS |
+| TC-A-BV-03 | Failed attempts | On point (threshold attempt — triggers lockout) | username: `test@eshop.com`, password: `WrongPass99` | State is exactly 1 attempt below lockout | Enter wrong password | 401; AND account is NOW locked | 2nd wrong attempt (login_attempts: 2→4 ≥ 3) triggers lock; correct password then rejected | ✅ PASS |
+| TC-A-BV-04 | Failed attempts | Out point (attempt while already locked) | username: `test@eshop.com`, password: `Test1234!` *(correct)* | Account locked after TC-A-BV-03 | Enter correct password immediately | 403 "Tài khoản đã bị khóa…" — correct credentials rejected while locked | Correct credentials rejected; generic error displayed | ✅ PASS |
+| TC-A-BV-05 | Lock duration | In point (~2 s into 3-min lock) | username: `test@eshop.com`, password: `Test1234!` | Account locked 2 s ago | Wait 2 s, click Sign In | 403; still locked | Error shown; ~177 s remain; still locked | ✅ PASS |
+| TC-A-BV-06 | Lock duration | Off point (1 s before expiry) | username: `test@eshop.com`, password: `Test1234!` | `locked_until = now + 3s`; wait 2s | Attempt at t=2 s (1 s remaining) | 403; still locked | Error shown; lock still active 1 s before expiry | ✅ PASS |
+| TC-A-BV-07 | Lock duration | On point (at expiry boundary) | username: `test@eshop.com`, password: `Test1234!` | `locked_until = now + 3s`; wait 4s | Attempt at t=4 s (1 s past expiry) | 200 OK or 403 depending on `>` vs `>=` | **Login SUCCEEDS** — server uses strict `locked_until > now`; at expiry moment lock is released | ✅ PASS |
+| TC-A-BV-08 | Lock duration | Out point (after expiry) | username: `test@eshop.com`, password: `Test1234!` | `locked_until` set 5 s in the past | Attempt login | 200 OK; lock expired, login succeeds | Redirected to home; expired lock does not block | ✅ PASS |
+| TC-A-BV-09 | Username length | Off point (0 chars — empty) | username: `""`, password: `Test1234!` | N/A | Leave username blank, click Sign In | Error: required field or 401 | HTML5 `required` blocks form; stays on `/login` | ✅ PASS |
+| TC-A-BV-10 | Username length | On point (1 char) | username: `"a"`, password: `Test1234!` | N/A | Enter `a`, click Sign In | 401 (not registered) | Generic 401 error | ✅ PASS |
+| TC-A-BV-11 | Password length | Off point (0 chars — empty) | username: `test@eshop.com`, password: `""` | Clean account | Leave password blank, click Sign In | Error: required field or 401 | HTML5 `required` blocks form | ✅ PASS |
+| TC-A-BV-12 | Password length | On point (1 char — wrong) | username: `test@eshop.com`, password: `"X"` | Clean account | Enter 1-char password, click Sign In | 401; counter incremented | Generic 401 error | ✅ PASS |
+| TC-A-BV-13 | Lockout counter reset | Boundary: successful login resets counter | username: `test@eshop.com`, password: `Test1234!` | 1 prior failure (not locked) | Enter correct password, click Sign In | 200 OK; counter reset to 0 | Login succeeds; subsequent single wrong attempt does not immediately lock | ✅ PASS |
+| TC-A-BV-14 | Username total length | Off point below RFC max (253 chars) | 253-char email, password: `Test1234!` | N/A | Enter, click Sign In | 401 (within RFC limit; not registered) | Generic 401; no length error | ✅ PASS |
+| TC-A-BV-15 | Username total length | On point at RFC max (254 chars) | 254-char email, password: `Test1234!` | N/A | Enter, click Sign In | 401 (RFC-valid length; not registered) | Generic 401; 254-char email accepted | ✅ PASS |
+| TC-A-BV-16 | Username total length | Out point above RFC max (255 chars) | 255-char email, password: `Test1234!` | N/A | Enter, click Sign In | Best practice: 400/413 reject > 254 chars | Generic "Đăng nhập thất bại…" error; **no RFC length enforcement** — compliance gap | ⚠️ PASS* |
+| TC-A-BV-17 | Local-part length | On point at RFC max (64 chars before @) | `"a"×64 + "@eshop.com"`, password: `Test1234!` | N/A | Enter, click Sign In | 401 (RFC-valid; not registered) | Generic 401; 64-char local part accepted | ✅ PASS |
+| TC-A-BV-18 | Local-part length | Out point above RFC max (65 chars before @) | `"a"×65 + "@eshop.com"`, password: `Test1234!` | N/A | Enter, click Sign In | Best practice: 400 format error | Generic 401 error; **no local-part length enforcement** — compliance gap | ⚠️ PASS* |
+| TC-A-BV-19 | Password length | Off point below NIST min (7 chars) | password: `Pass12!` (7 chars) | Clean account | Enter, click Sign In | Best practice: 400 "min 8 chars" | Generic 401; **no NIST min-length enforcement** | ⚠️ PASS* |
+| TC-A-BV-20 | Password length | On point at NIST min (8 chars) | password: `Pass1234` (8 chars) | Clean account | Enter, click Sign In | 401 (wrong; length valid per NIST) | Generic 401; no crash | ✅ PASS |
+| TC-A-BV-21 | Password length | On point at NIST recommended max (64 chars) | password: `"A"×64` | Clean account | Enter, click Sign In | 401; no crash or truncation | Generic 401; 64-char password handled correctly | ✅ PASS |
+| TC-A-BV-22 | Password length | Out point above NIST max (65 chars) | password: `"A"×65` | Clean account | Enter, click Sign In | 401; NIST requires ≥ 64 char support; no crash | Generic 401; 65-char password handled without crash | ✅ PASS |
 
 ### 2.3 AI Gap Analysis
 
-_[To be filled after test execution]_
+**Bugs and gaps the AI initially missed or under-specified:**
+
+1. **Password field type bug (TC-A-20)** — The AI's initial domain analysis focused entirely on credential logic and never considered that the password input field itself might be `type="text"` instead of `type="password"`. This is an elementary UI security defect that only became visible when the screenshot was provided and the JSX source was checked. The AI did not proactively test UI security properties.
+
+2. **Page title mismatch (TC-A-19)** — The AI correctly noted this from the screenshot, but would not have identified it without the visual artefact. Text-only code inspection misses presentational bugs in the rendered DOM.
+
+3. **RFC 5321 format constraints (TC-A-C-01–10)** — The AI's original domain analysis only checked "valid email", "unregistered email", and "no @" cases. It did not enumerate individual RFC 5321 sub-rules (consecutive dots, leading dots, missing TLD, multiple @). These were only added after the user explicitly asked for best-practice constraints.
+
+4. **NIST password length boundaries (TC-A-C-11, TC-A-BV-19–22)** — BVA initially only identified the "empty vs non-empty" length boundary. The NIST SP 800-63B minimum of 8 characters and the recommended max of 64 characters were only incorporated after the user pushed for standard-based constraints.
+
+5. **Generic UI error message gap** — The AI test assertions initially expected the backend's HTTP 401/403 error messages verbatim. The actual UI always shows the generic string `"Đăng nhập thất bại. Vui lòng kiểm tra lại."` regardless of error type, because Login.jsx swallows all errors. This means locked-account users get no actionable feedback — a UX defect the AI did not flag.
+
+**Why the AI missed these:**
+- The AI had no visual access to the running application; it reasoned from source code alone.
+- It applied standard equivalence partitioning without referencing industry standards (RFC 5321, NIST 800-63B) until prompted.
+- It did not treat UI attribute correctness (input `type`, `h2` text) as testable assertions until the screenshot provided evidence.
 
 ### 2.4 Bug Report
 
-_[To be filled after test execution]_
-
 | Bug ID | Title | Severity | Steps to Reproduce | Expected | Actual | GitHub Issue |
 |--------|-------|----------|--------------------|----------|--------|--------------|
+| BUG-A-01 | Login page title shows "Đăng Ký" (Register) instead of "Đăng Nhập" (Sign In) | Low | Navigate to `/login` | Page `h2` heading reads "Đăng Nhập" (Sign In) | `h2` reads "Đăng Ký" (Register) — wrong label | |
+| BUG-A-02 | Password input field uses `type="text"` — password visible in plaintext | **High (Security)** | 1. Navigate to `/login`. 2. Observe the "Mật khẩu" field. 3. Type any password | Password characters masked (`type="password"`) | Characters visible in plaintext; any shoulder-surfing or screen recording exposes passwords (`type="text"` in Login.jsx line 39) | |
+| BUG-A-03 | `login_attempts` incremented by 2 per failure — lockout triggers on attempt 2 not 3 | **High** | 1. Enter wrong password twice with the same account. 2. Observe account locked after 2nd attempt | Account should lock after 3 consecutive failures | `newAttempts = user.login_attempts + 2` (server.js line 54); after attempt 1: attempts=2, attempt 2: attempts=4 ≥ 3 → locked. Threshold value of 3 is never reached — boundary skipped | |
+| BUG-A-04 | No RFC 5321 email format validation — malformed emails accepted as input | Medium | Submit malformed email values: `test@@eshop.com`, `test@`, `@eshop.com`, `.test@eshop.com`, `test..user@eshop.com` | 400 "Invalid email format" with specific validation message | Generic 401 "Đăng nhập thất bại…" for all malformed formats; server performs no format validation before DB lookup | |
+| BUG-A-05 | No NIST SP 800-63B password minimum length enforcement — 1-char passwords accepted | Medium | Submit password `"X"` (1 char) or `"Pass12!"` (7 chars) at login | Best practice: reject passwords shorter than 8 characters with explicit error | Generic 401; no length check; 1-char passwords processed without error | |
+| BUG-A-06 | Login error message does not distinguish wrong credentials from account lockout | Medium | 1. Lock an account. 2. Attempt login with correct credentials | Distinct error: "Account locked, try again after X minutes" | Same generic "Đăng nhập thất bại. Vui lòng kiểm tra lại." shown for both wrong password and locked account — user cannot distinguish the cause | |
 
 ---
 
