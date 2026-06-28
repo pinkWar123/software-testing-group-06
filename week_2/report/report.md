@@ -446,7 +446,85 @@ Key observations from `backend/server.js` and `frontend-mobile/App.js`:
 
 ### 3.2 Boundary Value Analysis
 
-_[To be filled]_
+#### Step-by-step Technique Application
+
+**Step 1 — Identify variables with testable boundaries**
+
+BVA applies to variables whose valid/invalid partition has an ordered, measurable boundary. Four variables qualify:
+
+| Variable | Observable Range | Key Boundary |
+|----------|-----------------|--------------|
+| `quantity` (mobile `normalizeQuantity`) | Any integer → normalised | `parsed > 0` threshold; `parseInt()` truncation of floats |
+| `quantity` (server-side, no upper cap) | 1 → ∞ (server accepts all) | Minimum valid (1); extreme large values causing total overflow |
+| `total_amount` at checkout | Any integer (no server check) | `> 0` is the expected valid threshold; 0 and negatives are edge cases |
+| `shipping_address` length | 0 chars → ∞ | Empty (0 chars) vs non-empty (1 char); extremely long strings |
+
+---
+
+**Step 2 — Determine boundary points**
+
+**Variable 1: `quantity` — mobile `normalizeQuantity()` (`parseInt(value) > 0 ? parsed : 1`)**
+
+| BVA Point | Value | Expected normalised result |
+|-----------|-------|---------------------------|
+| Out point (negative) | `-1` | `parseInt("-1") = -1`, not > 0 → normalised to `1` |
+| Off point (just below threshold) | `0` | `parseInt("0") = 0`, not > 0 → normalised to `1` |
+| On point (threshold) | `1` | `parseInt("1") = 1`, > 0 → accepted as `1` |
+| In point (typical valid) | `5` | accepted as `5` |
+| Float truncation | `1.5` | `parseInt("1.5") = 1` → normalised to `1` |
+| Float below 1 | `0.9` | `parseInt("0.9") = 0`, not > 0 → normalised to `1` |
+
+**Variable 2: `quantity` — server-side (no upper cap)**
+
+| BVA Point | Value | Description |
+|-----------|-------|-------------|
+| Off point (below min) | `0` | Invalid; server accepts (no validation) |
+| On point (min valid) | `1` | Minimum meaningful quantity |
+| In point | `5` | Normal use |
+| Upper extreme | `999999` | No server cap — accepted; cart total may become very large |
+| Integer overflow edge | `2147483647` | INT_MAX — server/JS number handling edge |
+
+**Variable 3: `total_amount` at checkout**
+
+| BVA Point | Value | Expected |
+|-----------|-------|----------|
+| Out point (negative) | `-1` | Invalid; server should reject → but currently **accepts** (bug) |
+| Off point (zero — just below valid) | `0` | Invalid; server should reject → but currently **accepts** (bug) |
+| On point (minimum valid) | `1` | Smallest valid order amount |
+| In point (typical) | `200000` | Normal checkout amount |
+
+**Variable 4: `shipping_address` length**
+
+| BVA Point | Length | Value |
+|-----------|--------|-------|
+| Off point | 0 chars | `""` (empty — invalid) |
+| On point | 1 char | `"A"` (minimal valid — debatable) |
+| In point | Typical | `"123 Le Loi, Q1, TP.HCM"` |
+| Upper edge | > 500 chars | 501-char string — no length cap defined |
+
+---
+
+**Step 3 — Design BVA test cases**
+
+#### BVA Test Cases
+
+| TC ID | Variable | BVA Point | Input | Pre-condition | Steps | Expected Result | Actual Result | Verdict |
+|-------|----------|-----------|-------|---------------|-------|-----------------|---------------|---------|
+| TC-B-BV-01 | quantity (mobile) | Out point — negative input | Quantity input = `-1` in mobile UI | Logged in | Enter `-1`, tap "Add to cart" | `normalizeQuantity`: `-1` not > 0 → item added with `quantity=1` | | |
+| TC-B-BV-02 | quantity (mobile) | Off point — zero input | Quantity input = `0` in mobile UI | Logged in | Enter `0`, tap "Add to cart" | `normalizeQuantity`: `0` not > 0 → item added with `quantity=1` | | |
+| TC-B-BV-03 | quantity (mobile) | On point — minimum valid | Quantity input = `1` in mobile UI | Logged in | Enter `1`, tap "Add to cart" | `parseInt("1")=1 > 0` → item added with `quantity=1` (accepted as-is) | | |
+| TC-B-BV-04 | quantity (mobile) | Float truncation — `1.5` | Quantity input = `"1.5"` in mobile UI | Logged in | Enter `1.5`, tap "Add to cart" | `parseInt("1.5")=1 > 0` → item added with `quantity=1` | | |
+| TC-B-BV-05 | quantity (mobile) | Float truncation — `0.9` (below 1) | Quantity input = `"0.9"` in mobile UI | Logged in | Enter `0.9`, tap "Add to cart" | `parseInt("0.9")=0`, not > 0 → normalised to `quantity=1` | | |
+| TC-B-BV-06 | quantity (server) | On point — minimum valid (API) | `{..., quantity:1}` | Logged in | POST /api/cart | 200; item accepted with `quantity=1` | | |
+| TC-B-BV-07 | quantity (server) | Off point — zero (API) | `{..., quantity:0}` | Logged in | POST /api/cart | **No server validation: 200 accepted with quantity=0** — confirms BUG-B-01 | | |
+| TC-B-BV-08 | quantity (server) | Upper extreme — 999,999 | `{..., quantity:999999}` | Logged in | POST /api/cart | Server accepts; cart total = `price × 999999` — no overflow protection | | |
+| TC-B-BV-09 | total_amount | On point — minimum valid (1) | `{total_amount:1, shipping_address:"addr"}` | Cart has items | POST /api/checkout | 200; order created (debatable: should this be valid? — but server accepts) | | |
+| TC-B-BV-10 | total_amount | Off point — zero | `{total_amount:0, shipping_address:"addr"}` | Cart has items | POST /api/checkout | **No server validation: 200 accepted with total=0** — confirms BUG-B-02 | | |
+| TC-B-BV-11 | total_amount | Out point — negative | `{total_amount:-100, shipping_address:"addr"}` | Cart has items | POST /api/checkout | **No server validation: 200 accepted with total=-100** — confirms BUG-B-02 | | |
+| TC-B-BV-12 | shipping_address | Off point — empty string (0 chars) | `{total_amount:200000, shipping_address:""}` | Cart has items | POST /api/checkout | Should reject (400) — empty address not deliverable | | |
+| TC-B-BV-13 | shipping_address | On point — 1 char | `{total_amount:200000, shipping_address:"A"}` | Cart has items | POST /api/checkout | Minimal acceptance; single character is functionally invalid but tests the boundary | | |
+| TC-B-BV-14 | shipping_address | In point — typical | `{total_amount:200000, shipping_address:"123 Le Loi, Q1, TP.HCM"}` | Cart has items | POST /api/checkout | 200; order created successfully | | |
+| TC-B-BV-15 | shipping_address | Upper edge — 501 chars | `{total_amount:200000, shipping_address:"A"×501}` | Cart has items | POST /api/checkout | No defined server cap — likely accepted; length limit should be documented | | |
 
 ### 3.3 AI Gap Analysis
 
