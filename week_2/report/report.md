@@ -337,9 +337,10 @@ Key observations from `backend/server.js` and `frontend-mobile/App.js`:
 | Variable | Type | Source |
 |----------|------|--------|
 | `quantity` | integer (string in UI) | User input in cart |
-| `price` | integer | Taken from product data |
-| `total_amount` | integer | Passed at checkout |
+| `price` | integer | Taken from product data — but **fully user-controllable via API** since POST /api/cart pushes any body object with no server-side validation |
+| `total_amount` | integer | Passed at checkout — **not server-verified** against actual cart contents |
 | `shipping_address` | string | User input at checkout |
+| `auth_state` | derived | Observed state: authenticated (valid token) / unauthenticated (no/invalid token) |
 
 **Step 3 — Define domains for each variable**
 
@@ -352,6 +353,19 @@ Key observations from `backend/server.js` and `frontend-mobile/App.js`:
 | D-Q4 | Invalid: non-integer string | `"abc"`, `"one"` |
 | D-Q5 | Invalid: float/decimal | `1.5`, `0.9` |
 | D-Q6 | Invalid: empty / null | `""`, `null` |
+| D-Q7 | Edge: extremely large integer | `999999`, `2147483647` (INT_MAX) |
+
+> ⚠️ **Note on server behaviour:** POST /api/cart has **no server-side quantity validation**. D-Q2 through D-Q6 are all *accepted* by the server — these tests confirm the bug, they do not test rejection.
+
+**Variable: `price` (POST /api/cart body — user-controllable via API)**
+| Domain | Class | Representative |
+|--------|-------|----------------|
+| D-PR1 | Valid: positive integer | `100000`, `500000` |
+| D-PR2 | Invalid: zero price | `0` |
+| D-PR3 | Invalid: negative price | `-100000` |
+| D-PR4 | Invalid: non-numeric | `"free"` |
+
+> ⚠️ **Security note:** Since the server pushes any body object directly, a client can supply an arbitrary `price` value (e.g., `1`). The cart total is then calculated as `price × quantity` — enabling price manipulation.
 
 **Variable: `total_amount` (POST /api/checkout)**
 | Domain | Class | Representative |
@@ -362,19 +376,31 @@ Key observations from `backend/server.js` and `frontend-mobile/App.js`:
 | D-T4 | Invalid: non-numeric | `"abc"` |
 | D-T5 | Invalid: null / missing | `null` |
 
+> ⚠️ **Note on server behaviour:** POST /api/checkout does **not verify** `total_amount` against the cart's computed total. Any numeric value is accepted.
+
 **Variable: `shipping_address` (POST /api/checkout)**
 | Domain | Class | Representative |
 |--------|-------|----------------|
 | D-A1 | Valid: non-empty string | `"123 Le Loi, Q1, TP.HCM"` |
 | D-A2 | Invalid: empty string | `""` |
 | D-A3 | Invalid: null / missing | `null` |
+| D-A4 | Edge: very long string (> 500 chars) | 501-char address string |
+| D-A5 | Security: XSS payload | `"<script>alert(1)</script>"` |
+
+**Variable: `auth_state` (all cart/checkout endpoints)**
+| Domain | Class | Representative |
+|--------|-------|----------------|
+| D-Auth1 | Valid: authenticated user | User logged in; valid session token present |
+| D-Auth2 | Invalid: unauthenticated | No token / expired token |
 
 **Step 4 — Identify boundary points**
 
 | Variable | Boundary | On Point | Off Point | In Point | Out Point |
 |----------|----------|----------|-----------|----------|-----------|
 | `quantity` (mobile normalizeQuantity: `> 0`) | `parsed > 0` | `1` (just valid) | `0` (just invalid → normalized to 1) | `5` | `-1` |
-| `total_amount` at checkout | `> 0` | `1` | `0` | `100000` | `-1` |
+| `quantity` (extreme upper) | No server upper limit defined | `999999` (accepted) | N/A | `5` | N/A (no cap) |
+| `total_amount` at checkout | `> 0` (no server enforcement) | `1` | `0` | `100000` | `-1` |
+| `shipping_address` length | Non-empty required | `1 char` | `0 chars` (`""`) | `"123 Le Loi"` | `null` |
 
 **Step 5 — Design test cases**
 
@@ -386,16 +412,37 @@ Key observations from `backend/server.js` and `frontend-mobile/App.js`:
 |-------|-----------|-------|---------------|-------|-----------------|---------------|---------|
 | TC-B-01 | Add item with valid quantity (D-Q1, in point) | `{id:1, name:"X", price:100000, quantity:5}` | Logged in | POST /api/cart | 200 "Added to cart"; cart has item with quantity=5 | | |
 | TC-B-02 | Add item with quantity=1 (on point, min valid) | `{..., quantity:1}` | Logged in | POST /api/cart | 200; quantity=1 accepted | | |
-| TC-B-03 | Add item with quantity=0 (off point, D-Q2) | `{..., quantity:0}` | Logged in | POST /api/cart | Should reject (400) or treat as invalid | | |
-| TC-B-04 | Add item with negative quantity (D-Q3) | `{..., quantity:-1}` | Logged in | POST /api/cart | Should reject (400) | | |
+| TC-B-03 | Add item with quantity=0 (off point, D-Q2) — **bug revelation** | `{..., quantity:0}` | Logged in | POST /api/cart | **Server has no validation: 200 accepted, item added with quantity=0** — this confirms a server-side input validation bug → **BUG-B-01** | | |
+| TC-B-04 | Add item with negative quantity (D-Q3) — **bug revelation** | `{..., quantity:-1}` | Logged in | POST /api/cart | **Server has no validation: 200 accepted, item added with quantity=-1** — cart total becomes negative → **BUG-B-01** | | |
 | TC-B-05 | Add item with non-integer quantity string (D-Q4, mobile) | Quantity input = `"abc"` in mobile UI | Logged in, on product detail | Tap "Add to cart" | Mobile normalizes to 1; item added with quantity=1 | | |
 | TC-B-06 | Add item with float quantity (D-Q5, mobile) | Quantity input = `"1.5"` | Logged in | Tap "Add to cart" | Mobile: `parseInt("1.5")=1`, item added with quantity=1 | | |
 | TC-B-07 | Checkout with valid total_amount (D-T1) | `{total_amount:200000, shipping_address:"123 Le Loi"}` | Cart has items | POST /api/checkout | 200, order created with `status=pending` | | |
-| TC-B-08 | Checkout with total_amount=0 (off point, D-T2) | `{total_amount:0, shipping_address:"123 Le Loi"}` | Cart has items | POST /api/checkout | Should reject; order with 0 total should be invalid | | |
-| TC-B-09 | Checkout with negative total_amount (D-T3) | `{total_amount:-1, shipping_address:"123 Le Loi"}` | Cart has items | POST /api/checkout | Should reject (400) | | |
-| TC-B-10 | Checkout with empty shipping_address (D-A2) | `{total_amount:200000, shipping_address:""}` | Cart has items | POST /api/checkout | Should reject (400) — address required | | |
-| TC-B-11 | Checkout with arbitrary total_amount (bypasses UI) | `{total_amount:1, shipping_address:"addr"}` | Cart has items worth 500,000 | POST /api/checkout directly (API) | Server accepts any value — no cart-total verification | | |
-| TC-B-12 | Add same product twice (quantity accumulation) | Add product id=1 twice with qty=3 each | Cart empty | 2× POST /api/cart | Cart shows product id=1 with quantity=6 | | |
+| TC-B-08 | Checkout with total_amount=0 (off point, D-T2) — **bug revelation** | `{total_amount:0, shipping_address:"123 Le Loi"}` | Cart has items | POST /api/checkout | **Server does not validate total_amount: 200 accepted, order created with total=0** → **BUG-B-02** | | |
+| TC-B-09 | Checkout with negative total_amount (D-T3) — **bug revelation** | `{total_amount:-1, shipping_address:"123 Le Loi"}` | Cart has items | POST /api/checkout | **Server does not validate total_amount: 200 accepted, order created with total=-1** → **BUG-B-02** | | |
+| TC-B-10 | Checkout with empty shipping_address (D-A2) | `{total_amount:200000, shipping_address:""}` | Cart has items | POST /api/checkout | Should reject (400) — address is a required field; empty string is not a valid delivery address | | |
+| TC-B-11 | Checkout with arbitrary total_amount — price manipulation bypass | `{total_amount:1, shipping_address:"addr"}` | Cart has items worth 500,000 | POST /api/checkout directly (API) | **Server accepts any value — no cart-total verification** → **BUG-B-02** | | |
+| TC-B-12 | Add same product twice — duplicate entry behaviour | Add product id=1 twice with qty=3 each | Cart empty | 2× POST /api/cart | **Server uses push() — cart array contains TWO separate entries for id=1 (each with qty=3), not one merged entry with qty=6** → **BUG-B-04** | | |
+| TC-B-13 | GET cart when empty | No body | Logged in, cart has no items | GET /api/cart | 200 with empty array `[]`; no error | | |
+| TC-B-14 | Add item to cart without authentication (D-Auth2) | `{id:1, name:"X", price:100000, quantity:1}` | Not logged in / no token | POST /api/cart | 401 Unauthorized — cart requires authentication | | |
+| TC-B-15 | Checkout without authentication (D-Auth2) | `{total_amount:200000, shipping_address:"123 Le Loi"}` | Not logged in / no token | POST /api/checkout | 401 Unauthorized — checkout requires authentication | | |
+| TC-B-16 | Checkout with empty cart | `{total_amount:0, shipping_address:"123 Le Loi"}` | Logged in, cart is empty | POST /api/checkout | Should reject (400) — cannot create order from empty cart | | |
+| TC-B-17 | Checkout with null shipping_address (D-A3) | `{total_amount:200000, shipping_address:null}` | Cart has items | POST /api/checkout | Should reject (400) — null address must be rejected | | |
+| TC-B-18 | Add item with manipulated price = 0 (D-PR2) — **security** | `{id:1, name:"X", price:0, quantity:1}` | Logged in | POST /api/cart | **Server accepts price=0; cart total computed as 0×1=0; item acquired for free** → **BUG-B-05** | | |
+| TC-B-19 | Add item with negative price (D-PR3) — **security** | `{id:1, name:"X", price:-50000, quantity:1}` | Logged in | POST /api/cart | **Server accepts negative price; cart total goes negative** → **BUG-B-05** | | |
+| TC-B-20 | Cart total calculation accuracy | Add item `{price:150000, quantity:3}` and item `{price:75000, quantity:2}` | Logged in, cart empty | 2× POST /api/cart, then GET /api/cart | Cart total = `(150000×3) + (75000×2) = 600000`; verify `cart.reduce()` is correct | | |
+| TC-B-21 | Add item with extremely large quantity (D-Q7, upper edge) | `{..., quantity:2147483647}` | Logged in | POST /api/cart | Server should reject or cap; if accepted, cart total may overflow → edge behaviour documented | | |
+| TC-B-22 | XSS injection in shipping_address (D-A5) — **security** | `{total_amount:200000, shipping_address:"<script>alert(1)</script>"}` | Cart has items | POST /api/checkout | 200 or 400; no script executes; input safely stored/escaped | | |
+
+#### Constraint-based Test Cases (OWASP / Security)
+
+> These test cases cover security constraints derived from OWASP Top 10 and general API security best practices.
+
+| TC ID | Constraint | Objective | Input | Pre-condition | Steps | Expected (best practice) | Actual Result | Verdict |
+|-------|-----------|-----------|-------|---------------|-------|--------------------------|---------------|---------|
+| TC-B-C-01 | OWASP A04 (Insecure Design) | Price manipulation via crafted POST body | `{id:1, name:"Laptop", price:1, quantity:1}` | Logged in; actual product price = 15,000,000 | POST /api/cart with price=1; then POST /api/checkout with total_amount=1 | **Best practice:** server should source `price` from the product database, not the request body. Order should be rejected or corrected. **Current:** server accepts price=1 from client → **BUG-B-05** | | |
+| TC-B-C-02 | OWASP A04 (Insecure Design) | Total amount bypass at checkout | Cart with items totalling 500,000; POST checkout with `total_amount:1` | Logged in; cart has items | POST /api/checkout directly with manipulated `total_amount` | **Best practice:** server should compute total from cart contents and reject mismatched `total_amount`. **Current:** any value accepted → **BUG-B-02** | | |
+| TC-B-C-03 | OWASP A07 (Auth Failures) | Cart access without valid session | No auth token | N/A | GET /api/cart with no token | **Best practice:** 401 Unauthorized | | |
+| TC-B-C-04 | OWASP A03 (Injection) | XSS attempt in product name stored via cart | `{id:1, name:"<img src=x onerror=alert(1)>", price:100, quantity:1}` | Logged in | POST /api/cart, then GET /api/cart; render cart in UI | **Best practice:** no script/alert executes; name safely escaped in rendering | | |
 
 ### 3.2 Boundary Value Analysis
 
