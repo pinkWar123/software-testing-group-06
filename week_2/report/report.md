@@ -528,7 +528,28 @@ BVA applies to variables whose valid/invalid partition has an ordered, measurabl
 
 ### 3.3 AI Gap Analysis
 
-_[To be filled after test execution]_
+**Bugs and gaps the AI initially missed or under-specified:**
+
+1. **`price` as an attacker-controlled input (TC-B-18, TC-B-19, TC-B-C-01)** — The original domain analysis listed `price` as "taken from product data", implying it was a trusted value. In reality, since `POST /api/cart` pushes any body object directly, `price` is fully user-controllable. The AI did not flag this as a security-sensitive input variable. A malicious client can supply `price:1` for any product, reducing the cart total to negligible amounts.
+
+2. **`total_amount` bypass at checkout (TC-B-11, TC-B-C-02)** — TC-B-11 was present but framed as a curiosity ("server accepts any value"). The AI did not escalate this as a critical security defect. The checkout endpoint performs no server-side reconciliation between the submitted `total_amount` and the computed cart total — this allows a client to check out a full cart for `total_amount:1`, constituting a price manipulation vulnerability.
+
+3. **Authentication enforcement on cart/checkout endpoints (TC-B-14, TC-B-15, TC-B-C-03)** — The original test suite contained no test cases for unauthenticated access to `GET /api/cart`, `POST /api/cart`, or `POST /api/checkout`. Whether these endpoints properly reject unauthenticated requests is untested — a fundamental access-control gap.
+
+4. **Duplicate product entries not merged (TC-B-12 correction)** — The original expected result for TC-B-12 stated "Cart shows product id=1 with quantity=6", implying the server merges duplicate entries. The actual code (`push()` to array) creates two separate entries. The AI generated an incorrect expected result by assuming cart-merge behaviour that does not exist in the implementation.
+
+5. **Empty cart checkout (TC-B-16)** — The original test suite had no test for submitting a checkout request when the cart is empty. This is a basic functional boundary (can an order with zero items be created?) that was entirely omitted.
+
+6. **Cart persistence boundary (BUG-B-03)** — The AI identified in Step 1 that the cart is stored in-memory (`userCarts` object). However, no test case was written to validate or document this behaviour. The implication — that all cart data is lost on server restart — is a reliability defect that should be explicitly tested and reported.
+
+7. **XSS injection surface in cart data (TC-B-22, TC-B-C-04)** — Neither the product name field in the cart body nor the `shipping_address` field were tested for XSS payloads. The AI's initial analysis focused only on numeric validation and did not treat string fields as injection targets.
+
+8. **`shipping_address` length boundary** — The original BVA table only identified boundaries for `quantity` and `total_amount`. No length boundary was considered for `shipping_address`, despite it being a free-form text field with no defined maximum length.
+
+**Why the AI missed these:**
+- It analysed the source code for validation logic and stopped at confirming "no validation exists" — without then deriving the *security impact* of that absence (price manipulation, auth bypass testing).
+- It assumed standard e-commerce behaviour (cart quantity merging, server-side price sourcing) rather than testing the actual implementation's behaviour.
+- It did not apply OWASP's Insecure Design (A04) lens to the API design, which would have immediately flagged that `price` must never be client-supplied.
 
 ### 3.4 Bug Report
 

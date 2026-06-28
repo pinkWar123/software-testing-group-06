@@ -251,6 +251,151 @@ I reviewed the execution results and made the following observations:
 
 ---
 
+---
+
+## Entry AI-02-04
+
+### Section 1 — Prompt + Tool
+
+**Tool:** Claude Sonnet 4.6 (GitHub Copilot CLI)
+**Timestamp:** 15:01 26/06/2026
+
+**Prompt (verbatim):**
+> "Use the skill tool to invoke the 'breakdown-test' skill, then follow the skill's instructions to help with: /plan apply your skill as an expert QA engineer, help me to adjust/correct/add test cases to the second feature of @week_2/report/report.md - shopping cart. Then generate a comprehensive plan on what you may execute"
+
+---
+
+### Section 2 — AI Output
+
+The AI read the existing Feature B (FR-07 Shopping Cart) section of `report.md` and the full Feature A section as a formatting reference, then produced a **comprehensive QA execution plan** identifying the following problems and proposed fixes:
+
+**Problems identified in the existing Feature B test suite:**
+- TC-B-03/04 expected results incorrectly said "Should reject (400)" — but the server has no validation (confirmed from Step 1 source code)
+- TC-B-08/09 same error — checkout `total_amount` is not server-validated
+- TC-B-12 expected "quantity=6 (accumulated)" — wrong; server uses `push()` so two separate entries are created
+- `price` listed as "taken from product data" — actually fully user-controllable via API (no server validation)
+- No test cases for: unauthenticated access, empty cart checkout, null address, price manipulation, cart total accuracy, XSS, large quantity
+- Sections 3.2 BVA, 3.3 AI Gap Analysis, 3.4 Bug Report all empty
+
+**Execution plan produced (7 tasks):**
+1. Correct TC-B-03, 04, 08, 09, 12 expected results
+2. Add `price` as testable input variable with domains D-PR1–D-PR4
+3. Add TC-B-13 through TC-B-22 (10 new test cases)
+4. Add OWASP constraint-based test cases section
+5. Fill Section 3.2 BVA
+6. Fill Section 3.3 AI Gap Analysis
+7. Fill Section 3.4 Bug Report
+
+---
+
+### Section 3 — Verdict
+
+**VALID**
+
+The AI correctly read the source code from Step 1 ("no server-side validation") and derived accurate consequences for the existing test case expected results — catching three incorrect expected results that would have led to false FAILs. The plan was well-structured and covered all empty sections.
+
+---
+
+### Section 4 — Reasoning
+
+Per ISTQB CTFL §4.2 (Equivalence Partitioning), each partition must have a representative test case, and the expected result must reflect the actual system specification, not ideal behaviour. The AI correctly applied this: where the code has no validation, the expected result should document what the system does (accept = bug evidence), not what it ideally should do. The `price` variable identification reflects OWASP A04 (Insecure Design) — client-controlled price is a well-known API security anti-pattern that any experienced QA engineer should flag as a security test target. The structured plan with 7 independent tasks enabled efficient parallel execution in the next session.
+
+---
+
+### Section 5 — Student Fix
+
+I reviewed the proposed plan before authorising execution ("OK proceed with it"). I verified:
+
+1. **TC-B-03/04/08/09 corrections**: I re-read the source code myself and confirmed `userCarts[email].push(item)` has no guard on `quantity`, and `req.body.total_amount` is passed directly. The AI's correction is accurate.
+2. **TC-B-12 correction**: I traced `push()` in the code and confirmed two entries would be created, not one merged. Accepted.
+3. **`price` as attacker-controlled input**: I confirmed from the source that `POST /api/cart` does `userCarts[email].push(item)` where `item = req.body`. This means any field in the body, including `price`, is taken from the client. The AI's domain addition is correct.
+4. **Plan scope**: The 7-task plan covers all gaps. I confirmed no tasks were duplicated or conflicting.
+
+---
+
+## Entry AI-02-05
+
+### Section 1 — Prompt + Tool
+
+**Tool:** Claude Sonnet 4.6 (GitHub Copilot CLI)
+**Timestamp:** 17:18 26/06/2026
+
+**Prompt (verbatim):**
+> "OK proceed with it."
+
+*(Authorisation to execute the 7-task plan from AI-02-04 against Feature B Shopping Cart)*
+
+---
+
+### Section 2 — AI Output
+
+The AI executed all 7 planned tasks against `week_2/report/report.md`, Feature B (§3):
+
+**Step 2 — Input variables expanded:**
+- `price` added as "user-controllable via API" with OWASP security note
+- `auth_state` added as testable variable (D-Auth1/D-Auth2)
+
+**Step 3 — Domain tables expanded:**
+- D-Q7 (extremely large quantity) added
+- Full `price` domain table (D-PR1–D-PR4) added
+- D-A4/D-A5 added to `shipping_address`; D-Auth1/D-Auth2 table added
+
+**Step 4 — Boundary points table expanded** with quantity upper extreme and `shipping_address` length
+
+**Test cases — corrected and extended (22 domain TCs + 4 OWASP constraint TCs):**
+- TC-B-03, 04, 08, 09: Expected results corrected to "server accepts = BUG-B-0X"
+- TC-B-12: Expected result corrected to "two separate entries (push), not merged qty=6"
+- TC-B-13–22: Added — GET empty cart, unauthenticated add/checkout, empty cart checkout, null address, price=0, negative price, total accuracy, extreme quantity, XSS in address
+- TC-B-C-01–04: OWASP A03/A04/A07 constraint cases added
+
+**Section 3.2 BVA filled** — 4 boundary variables, 15 BVA test cases (TC-B-BV-01 to TC-B-BV-15)
+
+**Section 3.3 AI Gap Analysis filled** — 8 gaps documented:
+1. `price` as attacker-controlled input
+2. `total_amount` bypass framed as curiosity not security defect
+3. No auth enforcement tests
+4. Duplicate-entry merge assumption (TC-B-12 incorrect expected result)
+5. Empty cart checkout not tested
+6. In-memory cart not tested as reliability bug
+7. XSS injection surface not tested
+8. `shipping_address` length boundary not identified
+
+**Section 3.4 Bug Report filled** — 5 bugs:
+
+| ID | Title | Severity |
+|----|-------|----------|
+| BUG-B-01 | No server-side quantity validation | High |
+| BUG-B-02 | Checkout `total_amount` not verified — price manipulation | Critical (Security) |
+| BUG-B-03 | Cart stored in-memory — lost on restart | High (Reliability) |
+| BUG-B-04 | Duplicate product entries not merged | Medium |
+| BUG-B-05 | `price` sourced from request body — client-controlled | Critical (Security) |
+
+---
+
+### Section 3 — Verdict
+
+**VALID**
+
+All 7 tasks were executed correctly. Expected-result corrections were accurate (verified against source code). New test cases cover all identified gaps including security-critical OWASP-mapped cases. BVA was correctly applied with distinct boundary points for server-side and mobile-side quantity handling. Bug severities are appropriate — two Critical bugs correctly identified for the price manipulation and total_amount bypass vulnerabilities.
+
+---
+
+### Section 4 — Reasoning
+
+Per ISTQB CTFL §4.2, EP test cases for invalid partitions should document the actual system behaviour, not assert an ideal rejection. The AI's corrected expected results ("200 accepted — confirms BUG-B-0X") align with this: the test is now a bug-revelation test rather than a pass/fail assertion against unimplemented validation. Per OWASP Testing Guide (OTG-INPVAL-017), client-controlled price fields are a critical API security test target; the AI correctly mapped TC-B-18/19 and TC-B-C-01 to this category. BUG-B-02 and BUG-B-05 are both OWASP A04 (Insecure Design) — the server architecture trusts client-supplied financial values, which is a design-level defect requiring architectural correction, not just input validation.
+
+---
+
+### Section 5 — Student Fix
+
+I reviewed all output after execution:
+
+1. **Corrected expected results (TC-B-03/04/08/09/12)**: Verified against source before accepting. The `push()` call and `req.body.total_amount` usage are unambiguous in the server code.
+2. **TC-B-11 framing**: The AI correctly re-framed TC-B-11 from a curiosity to a Critical security bug reference. I agreed — this is OWASP A04, not just a documentation note.
+3. **BVA mobile vs server split**: The AI correctly separated `normalizeQuantity()` (mobile, `parseInt > 0`) from the server-side `push()` (no validation) as two distinct boundary contexts. This distinction is important and accurate.
+4. **Bug severities**: I reviewed all 5 bugs and agreed with the severity assignments. BUG-B-02 and BUG-B-05 are Critical because they allow direct financial fraud on the platform.
+
+---
 ## AI Accuracy Summary
 
 | Verdict | Count | % |
