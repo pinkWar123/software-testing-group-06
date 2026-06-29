@@ -608,6 +608,34 @@ Endpoints:
 - `POST /api/apply-coupon` — user applies coupon (public)
 - `GET /api/coupons` — list all coupons (requires auth)
 
+**Step 1b — Understand the feature from the Admin UI (Quản lý Mã Giảm Giá)**
+
+The admin coupon management page exposes:
+
+**Create form fields (top section):**
+
+| UI Field | Maps to | UI Control | Default | Constraint from UI |
+|----------|---------|------------|---------|-------------------|
+| Mã coupon | `code` | Text input | (empty) | Required; placeholder "VD: SAVE10" |
+| Loại | `type` | **Dropdown** | Phần trăm (%) | Constrained to 2 options: "Phần trăm (%)" and "Cố định" — **invalid types cannot be entered via UI** |
+| Giá trị % / Giá trị | `discount_value` | Number input | (empty) | Placeholder "Giá trị % (VD: 10)" for percent type — UI expects **integer 10 for 10%**, confirming the integer-vs-decimal bug is a backend issue, not UI confusion |
+| (min order) | `min_order_amount` | Number input | 0 | Defaults to 0 |
+| Hết hạn | `expired_at` | Date picker | (empty) | Format **dd/mm/yyyy** (locale-specific); browser date picker may prevent certain inputs |
+| Giới hạn/người | `max_uses_per_user` | Number input | 1 | Defaults to 1 |
+| Tạo mã | (submit) | Orange button | — | Submits the create form |
+
+**Coupon list table (bottom section):**
+
+Columns: **Mã** | **Loại** | **Giá trị** | **Đơn tối thiểu** | **Hết hạn** | **Giới hạn/người** | **Hành động (Xóa)**
+
+Key UI observations:
+- Expired coupon (`EXPIRED`) displays **"Hết hạn" in red** instead of the raw date — UI applies a visual status indicator.
+- The **Xóa** (Delete) button is rendered in red per row; no visible confirmation dialog.
+- Table updates are expected to reflect immediately after create/delete actions.
+- The `apply-coupon` flow is **not present in this admin UI** — it occurs on the storefront.
+
+**Impact on test strategy:** Because the type field is a dropdown, TC-C-12 (invalid type `"cashback"`) is **API-only and cannot be reproduced via UI**. UI test coverage must focus on form validation, date picker edge cases, table rendering, and the visual expiry indicator.
+
 Coupon schema (`database.js`):
 ```
 code TEXT UNIQUE, type TEXT DEFAULT 'percent',
@@ -630,66 +658,114 @@ For admin CREATE coupon:
 
 | Variable | Type | Constraint |
 |----------|------|-----------|
-| `code` | TEXT UNIQUE | Must be unique |
-| `type` | TEXT | Should be `'percent'` or `'fixed'` |
-| `discount_value` | INTEGER | Positive number; % type buggy |
-| `min_order_amount` | INTEGER | ≥ 0 |
-| `expired_at` | DATETIME | Future date |
+| `code` | TEXT UNIQUE | Must be unique; non-empty |
+| `type` | TEXT | Must be `'percent'` or `'fixed'`; **no server-side validation** |
+| `discount_value` | INTEGER | Positive number; **percent type stores integer (e.g. 10) not decimal (0.10) — critical bug** |
+| `min_order_amount` | INTEGER | ≥ 0; defaults to 0 |
+| `expired_at` | DATETIME | Future date recommended; no future-date enforcement |
 | `max_uses_per_user` | INTEGER | ≥ 1; defaults to 1 |
+| `auth_state` | derived | Admin-authenticated / non-admin / unauthenticated |
 
 For apply-coupon:
 
-| Variable | Domains |
-|----------|---------|
-| `code` | valid active code, invalid/inactive code |
-| `total_amount` | > min_order_amount (valid), = min_order_amount (boundary!), < min_order_amount |
-| expiry date | future (valid), past (invalid) |
-| usage count | < max (valid), = max (boundary, invalid), > max |
+| Variable | Type | Constraint |
+|----------|------|-----------|
+| `code` | TEXT | Valid active code; invalid/inactive/non-existent |
+| `total_amount` | INTEGER | Must be `> min_order_amount` (strict `>`; not `>=`) |
+| `user_id` | INTEGER | Authenticated user |
+| expiry state | derived | `expired_at >= now` (valid); past (expired) |
+| usage state | derived | `usage_count < max_uses_per_user` (valid); `= max` (on-point, blocked) |
 
 **Step 3 — Define domains**
+
+**Variable: `code` (admin CREATE)**
+| Domain | Class | Representative |
+|--------|-------|----------------|
+| D-C1 | Valid: unique non-empty string | `"NEWCODE"`, `"SUMMER25"` |
+| D-C2 | Invalid: duplicate code | `"SAVE10"` (already exists) |
+| D-C3 | Invalid: empty string | `""` |
+| D-C4 | Edge: code with whitespace | `"  SAVE10  "` |
+| D-C5 | Security: SQL injection payload | `"' OR 1=1 --"` |
+
+**Variable: `type` (admin CREATE)**
+| Domain | Class | Representative |
+|--------|-------|----------------|
+| D-T1 | Valid: `"percent"` | `"percent"` |
+| D-T2 | Valid: `"fixed"` | `"fixed"` |
+| D-T3 | Invalid: unsupported type | `"cashback"`, `"voucher"`, `""` |
+| D-T4 | Invalid: null/missing | `null` |
+
+**Variable: `discount_value` (admin CREATE)**
+
+> **UI context:** The form shows the placeholder "Giá trị % (VD: 10)" for percent type, confirming users are expected to enter **1–100 integer** for percentage. For fixed type, value is in VND (e.g., 50000). The number input does not visually restrict range — negative and zero values can be typed.
+
+| Domain | Class | Representative | UI-testable? |
+|--------|-------|----------------|-------------|
+| D-D1 | Valid: positive integer (fixed type, in VND) | `50000`, `100000` | ✅ Enter in number field |
+| D-D2 | Valid: integer 1–100 (percent type, means N%) — **but backend formula is buggy** | `10` (means 10%), `100` (means 100%) | ✅ Enter in number field |
+| D-D3 | Invalid: zero | `0` — no discount | ✅ Enter 0 in number field |
+| D-D4 | Invalid: negative | `-50000` | ✅ Try entering negative in number field |
+| D-D5 | Invalid: over 100 for percent type | `101` | ✅ Enter 101 in number field |
+| D-D6 | Invalid: null/missing | (empty field, submit) | ✅ Leave field blank and click Tạo mã |
+
+
+**Variable: `min_order_amount` (admin CREATE)**
+| Domain | Class | Representative |
+|--------|-------|----------------|
+| D-MO1 | Valid: zero (default — no minimum) | `0` |
+| D-MO2 | Valid: positive integer | `300000` |
+| D-MO3 | Invalid: negative | `-100` |
+
+**Variable: `expired_at` (admin CREATE)**
+
+> **UI context:** The UI shows a date picker with format **dd/mm/yyyy**. Browser date pickers may or may not prevent selecting past dates — this is browser-dependent and must be tested. The backend stores the date without time, so the expiry resolves to `00:00:00` on the given day.
+
+| Domain | Class | Representative | UI-testable? |
+|--------|-------|----------------|-------------|
+| D-EX1 | Valid: future datetime | `"2099-12-31"` | ✅ Select via date picker |
+| D-EX2 | Boundary: today's date | current date | ✅ Select today's date via picker |
+| D-EX3 | Invalid: past date — **server does not block creation** | `"2020-01-01"` | ✅ Try selecting past date via picker (browser may block) |
+| D-EX4 | Invalid: null/missing | (empty date field, submit) | ✅ Leave date field blank and click Tạo mã |
 
 **Variable: `total_amount` vs `min_order_amount` (apply-coupon)**
 | Domain | Class | Note |
 |--------|-------|------|
 | D-M1 | Valid: `total_amount > min_order_amount` | `total=300001`, `min=300000` |
-| D-M2 | Boundary: `total_amount = min_order_amount` | `total=300000`, `min=300000` — rejected (strict `>`) |
+| D-M2 | Boundary: `total_amount = min_order_amount` | `total=300000`, `min=300000` — **rejected** (strict `>`) |
 | D-M3 | Invalid: `total_amount < min_order_amount` | `total=299999`, `min=300000` |
+| D-M4 | Edge: `min_order_amount = 0` (no minimum) | Any positive total accepted |
 
-**Variable: expiry (`expired_at`)**
+**Variable: expiry (`expired_at`) at apply-coupon**
 | Domain | Class | Representative |
 |--------|-------|----------------|
-| D-X1 | Valid: future date | `2099-12-31` |
-| D-X2 | Boundary: today/same day | current date |
-| D-X3 | Invalid: past date | `2020-01-01` |
+| D-X1 | Valid: future date | `"2099-12-31"` |
+| D-X2 | Boundary: today/same day | current date (check: `>= now` means today still valid) |
+| D-X3 | Invalid: past date | `"2020-01-01"` |
 
 **Variable: `usage_count` vs `max_uses_per_user`**
 | Domain | Class | Representative |
 |--------|-------|----------------|
 | D-U1 | Valid: `usage_count < max_uses_per_user` | count=0, max=1 |
-| D-U2 | Boundary (on): `usage_count = max_uses_per_user` | count=1, max=1 → rejected |
+| D-U2 | On-point (blocked): `usage_count = max_uses_per_user` | count=1, max=1 → rejected |
 | D-U3 | Over: `usage_count > max_uses_per_user` | count=2, max=1 |
 
-**Variable: `code` (admin CREATE)**
-| Domain | Class |
-|--------|-------|
-| D-C1 | Valid: unique code string | `"NEWCODE"` |
-| D-C2 | Invalid: duplicate code | `"SAVE10"` (already exists) |
-| D-C3 | Invalid: empty string | `""` |
-
-**Variable: `type` (admin CREATE)**
-| Domain | Class |
-|--------|-------|
-| D-T1 | Valid: `"percent"` |
-| D-T2 | Valid: `"fixed"` |
-| D-T3 | Invalid: unsupported type | `"cashback"`, `""` |
+**Variable: `auth_state` (admin CREATE/DELETE, GET /api/coupons)**
+| Domain | Class | Representative |
+|--------|-------|----------------|
+| D-Auth1 | Valid: admin-authenticated | Admin user with valid token |
+| D-Auth2 | Invalid: regular user (non-admin) | Regular user token |
+| D-Auth3 | Invalid: unauthenticated | No token |
 
 **Step 4 — Identify boundary points**
 
 | Variable | Boundary condition | On point | Off point | In point | Out point |
 |----------|-------------------|----------|-----------|----------|-----------|
-| `total_amount` vs `min_order_amount=300000` | `total > min` | `300001` | `300000` (rejected) | `500000` | `299999` |
-| `expired_at` vs now | `expiry >= now` | today's date | yesterday | `2099-12-31` | `2020-01-01` |
-| `usage_count` vs `max_uses_per_user=1` | `count >= max` → block | count=1 | count=0 (still allowed) | count=0 | count=2 |
+| `total_amount` vs `min_order_amount=300000` | `total > min` (strict) | `300001` (accepted) | `300000` (rejected — strict `>`) | `500000` | `299999` |
+| `expired_at` vs now | `expiry >= now` | today's date (still valid) | yesterday (expired, rejected) | `"2099-12-31"` | `"2020-01-01"` |
+| `usage_count` vs `max_uses_per_user=1` | `count >= max` → block | count=1 (blocked) | count=0 (still allowed) | count=0 | count=2 |
+| `discount_value` (percent type — UI range 1–100) | `1 ≤ value ≤ 100` | `1` (minimum), `100` (maximum) | `0` (no discount), `101` (over max) | `10` | `-1` |
+| `min_order_amount` | `>= 0` | `0` (no minimum — accepted) | N/A | `300000` | `-1` |
+| `max_uses_per_user` | `>= 1` | `1` (minimum) | `0` (invalid — should reject) | `3` | `-1` |
 
 **Step 5 — Design test cases**
 
@@ -700,31 +776,227 @@ For apply-coupon:
 | TC ID | Objective | Input | Pre-condition | Steps | Expected Result | Actual Result | Verdict |
 |-------|-----------|-------|---------------|-------|-----------------|---------------|---------|
 | TC-C-01 | Create coupon with unique code (D-C1) | `{code:"TEST50", type:"fixed", discount_value:50000, min_order_amount:200000, expired_at:"2099-12-31", max_uses_per_user:1}` | Admin logged in | POST /api/admin/coupons | 200 "Coupon created" | | |
-| TC-C-02 | Create coupon with duplicate code (D-C2) | `{code:"SAVE10", ...}` | `SAVE10` already exists | POST /api/admin/coupons | 500 error (UNIQUE constraint violated) | | |
-| TC-C-03 | Apply coupon with total > min_order (D-M1, in point) | `{code:"SAVE10", total_amount:300001, user_id:1}` | SAVE10 exists, min=300000 | POST /api/apply-coupon | 200, discount applied | | |
-| TC-C-04 | Apply coupon with total = min_order (D-M2, off point) | `{code:"SAVE10", total_amount:300000, user_id:1}` | SAVE10 exists, min=300000 | POST /api/apply-coupon | Error: minimum order not met (strict `>`) | | |
+| TC-C-02 | Create coupon with duplicate code (D-C2) — **error quality** | `{code:"SAVE10", ...}` | `SAVE10` already exists | POST /api/admin/coupons | **Best practice: 409 Conflict** with descriptive error. Current: **500 Internal Server Error** (UNIQUE constraint violation surfaces as unhandled server crash) → **BUG-C-02** | | |
+| TC-C-03 | Apply coupon with total > min_order (D-M1, in point) | `{code:"SAVE10", total_amount:300001, user_id:1}` | SAVE10 exists, active, not expired, 0 uses, min=300000 | POST /api/apply-coupon | 200, discount applied | | |
+| TC-C-04 | Apply coupon with total = min_order (D-M2, off point — strict `>`) | `{code:"SAVE10", total_amount:300000, user_id:1}` | SAVE10 exists, min=300000 | POST /api/apply-coupon | Error: minimum order not met (strict `>` means `= min` is rejected) → **BUG-C-04** (arguably should use `>=`) | | |
 | TC-C-05 | Apply coupon with total < min_order (D-M3, out point) | `{code:"SAVE10", total_amount:299999, user_id:1}` | SAVE10 exists, min=300000 | POST /api/apply-coupon | Error: minimum order not met | | |
-| TC-C-06 | Apply expired coupon (D-X3) | `{code:"EXPIRED", total_amount:200000, user_id:1}` | EXPIRED coupon `expired_at=2020-01-01` | POST /api/apply-coupon | Error: coupon expired | | |
-| TC-C-07 | Apply valid coupon first use (D-U1, in point) | `{code:"SAVE10", total_amount:500000, user_id:1}` | 0 prior uses, max=1 | POST /api/apply-coupon | 200, discount applied | | |
-| TC-C-08 | Apply coupon at max usage limit (D-U2, on point) | `{code:"SAVE10", total_amount:500000, user_id:1}` | 1 prior use, max=1 | POST /api/apply-coupon | Error: usage limit reached | | |
-| TC-C-09 | Apply percent coupon — observe discount_value bug | `{code:"SAVE10", total_amount:500000, user_id:1}` | SAVE10 discount_value=10 (integer) | POST /api/apply-coupon | Bug: `final = 500000 * (1-10) = -4,500,000` instead of 450,000 | | |
-| TC-C-10 | Apply fixed coupon correctly | `{code:"BIGBUY", total_amount:600000, user_id:1}` | BIGBUY: fixed 50000 off, min=500000 | POST /api/apply-coupon | 200, final_amount = 550,000 | | |
-| TC-C-11 | Delete existing coupon | `id` of created coupon | Admin logged in | DELETE /api/admin/coupons/:id | 200 "Coupon deleted" | | |
-| TC-C-12 | Create coupon with invalid type (D-T3) | `{code:"BAD1", type:"cashback", ...}` | Admin logged in | POST /api/admin/coupons | Should reject invalid type; no validation → silently stored (bug) | | |
-| TC-C-13 | Apply VIP100 coupon — multiple uses (max=2) | `{code:"VIP100", total_amount:400000, user_id:1}` | 0 prior uses, max=2 | Apply twice | First and second application succeed; third rejected | | |
+| TC-C-06 | Apply expired coupon (D-X3) | `{code:"EXPIRED", total_amount:500000, user_id:1}` | EXPIRED coupon has `expired_at="2020-01-01"` | POST /api/apply-coupon | Error: coupon expired | | |
+| TC-C-07 | Apply valid coupon — first use (D-U1, in point) | `{code:"SAVE10", total_amount:500000, user_id:1}` | 0 prior uses, max=1 | POST /api/apply-coupon | 200, discount applied; usage_count incremented to 1 | | |
+| TC-C-08 | Apply coupon at max usage limit (D-U2, on point — blocked) | `{code:"SAVE10", total_amount:500000, user_id:1}` | usage_count=1, max=1 | POST /api/apply-coupon | Error: usage limit reached | | |
+| TC-C-09 | Apply percent coupon — integer discount_value bug | `{code:"SAVE10", total_amount:500000, user_id:1}` | SAVE10: type=percent, discount_value=10 | POST /api/apply-coupon | **Bug: formula `500000 * (1 - 10) = -4,500,000`** — negative final amount; should be `500000 * (1 - 0.10) = 450,000` → **BUG-C-01** | | |
+| TC-C-10 | Apply fixed coupon correctly (D-T2) | `{code:"BIGBUY", total_amount:600000, user_id:1}` | BIGBUY: type=fixed, discount_value=50000, min=500000 | POST /api/apply-coupon | 200; final_amount = 550,000 (fixed type is correct) | | |
+| TC-C-11 | Delete existing coupon (admin) | `id` of an existing coupon | Admin logged in | DELETE /api/admin/coupons/:id | 200 "Coupon deleted"; coupon no longer listable | | |
+| TC-C-12 | Create coupon with invalid type (D-T3) — **bug revelation** | `{code:"BAD1", type:"cashback", discount_value:10, expired_at:"2099-12-31"}` | Admin logged in | POST /api/admin/coupons | **Best practice: 400 "Invalid type"**. Current: silently stored with `type="cashback"` — no server-side type validation → **BUG-C-03** | | |
+| TC-C-13 | Apply coupon — third attempt exceeds max (max_uses_per_user=2) | `{code:"VIP100", total_amount:400000, user_id:1}` | 0 prior uses, max=2 | Apply 3 times | First and second: 200 accepted; **third: error "usage limit reached"** | | |
+| TC-C-14 | Create coupon without admin authentication (D-Auth3) | `{code:"HACK1", type:"fixed", discount_value:50000, ...}` | Not logged in / no token | POST /api/admin/coupons | 401 Unauthorized — admin endpoint requires authentication | | |
+| TC-C-15 | Apply coupon with inactive code (`is_active=0`) | `{code:"OLDCODE", total_amount:500000, user_id:1}` | OLDCODE exists but `is_active=0` | POST /api/apply-coupon | Error: coupon not found or inactive — lookup uses `WHERE is_active = 1` | | |
+| TC-C-16 | Apply non-existent coupon code | `{code:"DOESNOTEXIST", total_amount:500000, user_id:1}` | No coupon with this code | POST /api/apply-coupon | Error: coupon not found (404 or business error) | | |
+| TC-C-17 | Apply coupon on exact expiry day (D-X2 boundary) | `{code:"TODAY", total_amount:500000, user_id:1}` | TODAY coupon: `expired_at = today's date 00:00:00` | POST /api/apply-coupon | Server uses `>= now` — if today's date at midnight is >= current time, coupon is valid; test documents exact boundary behaviour | | |
+| TC-C-18 | Create coupon with `discount_value=0` (D-D3) | `{code:"ZERO", type:"fixed", discount_value:0, ...}` | Admin logged in | POST /api/admin/coupons | Should reject (400) — a zero-discount coupon is meaningless; or accept with warning | | |
+| TC-C-19 | Create coupon with negative `discount_value` (D-D4) | `{code:"NEG1", type:"fixed", discount_value:-50000, ...}` | Admin logged in | POST /api/admin/coupons | Should reject (400) — negative discount would add to the total | | |
+| TC-C-20 | Apply percent coupon with correct decimal `discount_value=0.10` | `{code:"CORRECT10", total_amount:500000, user_id:1}` | CORRECT10: type=percent, discount_value=0.10 (stored as float, if SQLite allows) | POST /api/apply-coupon | 200; `500000 * (1 - 0.10) = 450,000` — documents correct workaround for BUG-C-01 | | |
+| TC-C-21 | Security — SQL injection in coupon code | `{code:"' OR 1=1 --", total_amount:500000, user_id:1}` | N/A | POST /api/apply-coupon | 404 or error; no unintended coupon matched; no crash; parameterized queries protect DB | | |
+| TC-C-22 | Create coupon with empty code (D-C3) | `{code:"", type:"fixed", discount_value:50000, ...}` | Admin logged in | POST /api/admin/coupons | Should reject (400) — empty code is not a valid coupon identifier | | |
+| TC-C-23 | List coupons without authentication (D-Auth3) | No token | N/A | GET /api/coupons | 401 Unauthorized — listing coupons requires authentication | | |
+
+---
+
+#### UI vs API-Only Classification
+
+The following table audits all existing TC-C-xx test cases and classifies them based on executability from the admin UI shown in the screenshot.
+
+| TC ID | UI-Executable? | Reason |
+|-------|---------------|--------|
+| TC-C-01 | ✅ **Correct for UI** | Fill form → click "Tạo mã" → verify row in table |
+| TC-C-02 | ✅ **Correct for UI** | Type duplicate code → click submit → verify error displayed |
+| TC-C-03 | ❌ **API-only** | Apply-coupon flow has no UI in the admin panel |
+| TC-C-04 | ❌ **API-only** | Apply-coupon flow; not in admin UI |
+| TC-C-05 | ❌ **API-only** | Apply-coupon flow; not in admin UI |
+| TC-C-06 | ❌ **API-only** | Apply-coupon flow; not in admin UI |
+| TC-C-07 | ❌ **API-only** | Apply-coupon flow; not in admin UI |
+| TC-C-08 | ❌ **API-only** | Apply-coupon flow; not in admin UI |
+| TC-C-09 | ❌ **API-only** | Apply-coupon flow; not in admin UI |
+| TC-C-10 | ❌ **API-only** | Apply-coupon flow; not in admin UI |
+| TC-C-11 | ✅ **Correct for UI** | Click "Xóa" button → verify row disappears from table |
+| TC-C-12 | ❌ **REMOVE from UI test plan** | Type is a **dropdown** — only "Phần trăm (%)" and "Cố định" are selectable; invalid type `"cashback"` is not enterable via UI. Remains as API-only test. |
+| TC-C-13 | ❌ **API-only** | Apply-coupon flow; not in admin UI |
+| TC-C-14 | ⚠️ **Reframe for UI** | Should test: navigate to admin URL without login → expect redirect to login page |
+| TC-C-15 | ❌ **API-only** | Apply inactive coupon; no apply-coupon UI in admin panel |
+| TC-C-16 | ❌ **API-only** | Apply non-existent code; not in admin UI |
+| TC-C-17 | ❌ **API-only** | Apply-coupon boundary test; not in admin UI |
+| TC-C-18 | ✅ **Correct for UI** | Enter `0` in discount_value number field → verify form rejects |
+| TC-C-19 | ✅ **Correct for UI** | Enter `-50000` in discount_value number field → verify form rejects |
+| TC-C-20 | ❌ **REMOVE** | Decimal `0.10` workaround is API-only; the UI always collects integers |
+| TC-C-21 | ✅ **Correct for UI** | Type injection payload in code text field → verify no crash, correct error |
+| TC-C-22 | ✅ **Correct for UI** | Leave code field empty → click submit → verify validation message |
+| TC-C-23 | ❌ **API-only** | Unauthenticated GET /api/coupons is API-level |
+
+**Summary: Remove TC-C-12 and TC-C-20 from UI test plan. Reframe TC-C-14. All apply-coupon tests (TC-C-03 to TC-C-10, TC-C-13, TC-C-15 to TC-C-17) remain valid as API tests only.**
+
+---
+
+#### UI Test Cases
+
+The following test cases are executable via the admin UI (Quản lý Mã Giảm Giá) based on the observed form and table.
+
+| TC ID | Objective | Input / Action | Pre-condition | Steps | Expected Result | Actual Result | Verdict |
+|-------|-----------|----------------|---------------|-------|-----------------|---------------|---------|
+| TC-C-UI-01 | Submit create form with all fields empty | (Leave all fields blank) | Admin logged in, on coupon management page | Click "Tạo mã" without filling any field | Form shows required-field validation error(s); no API call made; no new row added to table | | |
+| TC-C-UI-02 | Submit create form with code field empty only | Type=Phần trăm, value=10, date=2099-12-31, max_uses=1; code blank | Admin logged in | Leave Mã coupon blank; fill other fields; click "Tạo mã" | Error message on code field: "Mã không được để trống" or similar; form not submitted | | |
+| TC-C-UI-03 | Type dropdown only allows valid options | Inspect dropdown | Admin logged in | Click the Loại dropdown; observe all available options | Only "Phần trăm (%)" and "Cố định" are listed; no other type can be selected | | |
+| TC-C-UI-04 | Switch type from Phần trăm to Cố định — verify label/placeholder updates | Select "Cố định" in dropdown | Admin logged in | Select "Phần trăm (%)" first; observe placeholder "Giá trị % (VD: 10)"; switch to "Cố định"; observe placeholder change | Placeholder updates to indicate fixed amount (e.g., "Giá trị (VD: 50000)") or label reflects fixed type | | |
+| TC-C-UI-05 | Create percent coupon with discount_value = 100 (BVA on-point max) | code=MAX100, type=Phần trăm, value=100, date=2099-12-31, min=0, max_uses=1 | Admin logged in | Fill form with value=100; click "Tạo mã" | Coupon created successfully and appears in table as "100%" value; or validation rejects (form should clarify valid range) | | |
+| TC-C-UI-06 | Create percent coupon with discount_value = 101 (BVA off-point over max) | code=OVER101, type=Phần trăm, value=101, date=2099-12-31, min=0, max_uses=1 | Admin logged in | Enter 101 in value field; click "Tạo mã" | Form should reject with error: "Giá trị phần trăm phải từ 1 đến 100" or similar validation | | |
+| TC-C-UI-07 | Create percent coupon with discount_value = 0 (BVA off-point below min) (D-D3) | code=ZERO, type=Phần trăm, value=0, date=2099-12-31, min=0, max_uses=1 | Admin logged in | Enter 0 in value field; click "Tạo mã" | Form should reject: a 0% discount coupon is meaningless; expect validation error | | |
+| TC-C-UI-08 | Create coupon with negative discount_value (D-D4) | code=NEG1, value=-10 (if number input allows) | Admin logged in | Try entering -10 in number field; click "Tạo mã" | Form rejects negative value via HTML5 `min` attribute or server-side validation error displayed | | |
+| TC-C-UI-09 | Select past date via date picker (D-EX3) | code=PAST1, date=yesterday or 2020-01-01 | Admin logged in | Attempt to select a past date in the date picker | Browser date picker should prevent past-date selection **or** form accepts it but server creates coupon with past expiry (no creation-time validation → potential usability bug) | | |
+| TC-C-UI-10 | Create coupon with max_uses_per_user = 0 (BVA off-point) | code=ZERO2, max_uses=0 | Admin logged in | Enter 0 in Giới hạn/người field; click "Tạo mã" | Should reject — 0 uses means coupon can never be used; expect validation error | | |
+| TC-C-UI-11 | Verify expired coupon displays "Hết hạn" in red in table | Existing EXPIRED coupon with past `expired_at` | Coupon with past expiry exists in DB | Load coupon management page | Expired coupon row shows **"Hết hạn" in red** in the Hết hạn column; active coupons show their date normally | | |
+| TC-C-UI-12 | Verify newly created coupon appears immediately in table | code=NEWTEST, type=Cố định, value=50000, date=2099-12-31, min=100000, max_uses=1 | Admin logged in | Fill form and click "Tạo mã" | Success message shown; new row appears in table with correct Mã, Loại="Cố định", Giá trị=50,000đ, Đơn tối thiểu=100,000đ, Hết hạn=2099-12-31, Giới hạn/người=1 lần | | |
+| TC-C-UI-13 | Delete coupon via Xóa button — verify removal | Existing coupon (e.g., BIGBUY) | Admin logged in; coupon exists in table | Click the red "Xóa" button for a coupon row | Coupon row is removed from table; either a confirmation dialog appears first, or deletion is immediate; verify via page reload | | |
+| TC-C-UI-14 | XSS in coupon code field — verify safe rendering in table (UI version of TC-C-C-02) | code=`<script>alert(1)</script>`, type=Cố định, value=1, date=2099-12-31 | Admin logged in | Type XSS payload in Mã coupon field; click "Tạo mã" | Coupon created (API accepts); table renders the code as **literal text**, no script executes; browser alert does NOT fire | | |
+| TC-C-UI-15 | Navigate to admin coupon page without login — verify redirect (reframe of TC-C-14) | (No auth session) | Logged out / session expired | Directly navigate to the coupon management URL | Browser redirects to login page; admin page content not shown to unauthenticated user | | |
+| TC-C-UI-16 | Create coupon with duplicate code — verify error message on UI (UI version of TC-C-02) | code="BIGBUY" (already exists) | Admin logged in; BIGBUY exists | Fill form with code=BIGBUY; click "Tạo mã" | Error displayed to user: "Mã coupon đã tồn tại" or similar; form not cleared; no server crash visible to user — currently the backend returns 500, so the UI may show a generic error → **BUG-C-02** | | |
+
+
+
+> These test cases cover constraints derived from OWASP Top 10 and general access-control best practices.
+
+| TC ID | Constraint | Objective | Input | Pre-condition | Steps | Expected (best practice) | Actual Result | Verdict |
+|-------|-----------|-----------|-------|---------------|-------|--------------------------|---------------|---------|
+| TC-C-C-01 | OWASP A01 (Broken Access Control) | Regular user creates coupon | `{code:"HACK", type:"fixed", discount_value:100000, ...}` | Logged in as regular user (non-admin) | POST /api/admin/coupons with regular user token | **Best practice:** 403 Forbidden — admin endpoint must check role. | | |
+| TC-C-C-02 | OWASP A03 (Injection) | XSS in coupon code stored and rendered | `{code:"<script>alert(1)</script>", ...}` | Admin logged in | Create coupon; then render coupon list in UI | **Best practice:** no script executes; code value safely escaped in rendering | | |
+| TC-C-C-03 | OWASP A04 (Insecure Design) | Percent discount formula produces negative amount | Apply percent coupon with `discount_value=10` | Coupon exists | POST /api/apply-coupon | **Best practice:** `final_amount >= 0` always; formula must use decimal (0.10) not integer (10) → **BUG-C-01** | | |
 
 ### 4.2 Boundary Value Analysis
 
-_[To be filled]_
+#### Step-by-step Technique Application
+
+**Step 1 — Identify variables with testable boundaries**
+
+| Variable | Observable Range | Key Boundary |
+|----------|-----------------|--------------|
+| `total_amount` vs `min_order_amount` | Any positive integer | Strict `>` threshold — `= min` is rejected |
+| `usage_count` vs `max_uses_per_user` | 0 → ∞ | `count >= max` triggers block; `= max` is the on-point |
+| `expired_at` vs current time | Past → Future | `>= now` is valid; exact expiry moment is the critical boundary |
+| `discount_value` (percent type) | 0 → 100 (intended) | 0 (no discount), 100 (full discount); integer vs decimal format bug |
+| `min_order_amount` | 0 → ∞ | 0 (no minimum — default); negative should be rejected |
+| `max_uses_per_user` | 1 → ∞ | 1 (minimum meaningful); 0 should be rejected |
+
+---
+
+**Step 2 — Determine boundary points**
+
+**Variable 1: `total_amount` vs `min_order_amount=300000` (strict `>`)**
+
+| BVA Point | Value | Description |
+|-----------|-------|-------------|
+| Out point (well below) | `299000` | Clearly invalid |
+| Off point (just below) | `299999` | 1 below minimum — rejected |
+| On point (equal — rejected due to strict `>`) | `300000` | Rejected; `300000 > 300000` is false → **BUG-C-04** |
+| In point (just above) | `300001` | Accepted; `300001 > 300000` is true |
+| In point (typical) | `500000` | Normal valid order |
+
+**Variable 2: `usage_count` vs `max_uses_per_user=1`**
+
+| BVA Point | State | Description |
+|-----------|-------|-------------|
+| In point (clean) | count=0 | No prior uses — allowed |
+| Off point (last allowed use) | count=0 → apply → count becomes 1 | First use succeeds; count now at limit |
+| On point (blocked) | count=1, max=1 | `count >= max` → rejected |
+| Out point (beyond) | count=2, max=1 | Already over limit — rejected |
+
+**Variable 3: `expired_at` vs current time (`>= now`)**
+
+| BVA Point | Value | Description |
+|-----------|-------|-------------|
+| Out point (well past) | `"2020-01-01"` | Clearly expired |
+| Off point (yesterday) | yesterday's date | Expired — `yesterday >= now` is false |
+| On point (today) | today's date (00:00:00) | `today >= now` — may be valid depending on time-of-day; boundary is time-sensitive |
+| In point | `"2099-12-31"` | Clearly valid |
+
+**Variable 4: `discount_value` for `percent` type (integer vs decimal bug + UI range)**
+
+> **UI context:** The UI form collects an integer in the range 1–100 for percent type (placeholder "VD: 10"). This means the UI-visible boundary is `[1, 100]`, not unbounded. The backend bug is that `discount_value=10` (meaning 10%) is used as `1 - 10 = -9` in the formula instead of `1 - 0.10 = 0.90`.
+
+| BVA Point | Value | Computed result with buggy formula `total * (1 - value)` | UI-testable? |
+|-----------|-------|----------------------------------------------------------|-------------|
+| Off point (below min — no effect) | `0` | `total * (1 - 0) = total` — no discount | ✅ Enter 0 in form → expect validation error |
+| On point (minimum — 1%) | `1` | `total * (1 - 1) = 0` — **100% discount bug!** intended: 99% of total = 495,000 | ✅ Enter 1 in form; apply via API → observe bug |
+| Typical input | `10` | `total * (1 - 10) = total * (-9)` — **negative amount (BUG-C-01)** | ✅ Enter 10 in form; apply via API → observe bug |
+| On point (maximum — 100%) | `100` | `total * (1 - 100) = total * (-99)` — **catastrophically negative** | ✅ Enter 100 in form → check if UI rejects |
+| Off point (over max) | `101` | Would be `total * (1 - 101) = total * (-100)` | ✅ Enter 101 in form → expect validation error |
+
+---
+
+**Step 3 — Design BVA test cases**
+
+#### BVA Test Cases
+
+| TC ID | Variable | BVA Point | Input | Pre-condition | Steps | Expected Result | Actual Result | Verdict |
+|-------|----------|-----------|-------|---------------|-------|-----------------|---------------|---------|
+| TC-C-BV-01 | total_amount vs min | Out point (299,000) | `{code:"SAVE10", total_amount:299000}` | SAVE10: min=300000 | POST /api/apply-coupon | Error: minimum order not met | | |
+| TC-C-BV-02 | total_amount vs min | Off point (299,999 — 1 below) | `{code:"SAVE10", total_amount:299999}` | SAVE10: min=300000 | POST /api/apply-coupon | Error: minimum order not met | | |
+| TC-C-BV-03 | total_amount vs min | On point (300,000 = min — strict `>` rejects) | `{code:"SAVE10", total_amount:300000}` | SAVE10: min=300000 | POST /api/apply-coupon | **Error: rejected** — `300000 > 300000` is false; best practice would accept (use `>=`) → BUG-C-04 | | |
+| TC-C-BV-04 | total_amount vs min | In point (300,001 — just above) | `{code:"SAVE10", total_amount:300001}` | SAVE10: min=300000 | POST /api/apply-coupon | 200; discount applied | | |
+| TC-C-BV-05 | usage_count vs max | Off point — 0 uses (allowed) | `{code:"ONCE", total_amount:500000}` | usage_count=0, max=1 | POST /api/apply-coupon | 200; discount applied; count → 1 | | |
+| TC-C-BV-06 | usage_count vs max | On point — 1 use, max=1 (blocked) | `{code:"ONCE", total_amount:500000}` | usage_count=1, max=1 | POST /api/apply-coupon | Error: usage limit reached | | |
+| TC-C-BV-07 | usage_count vs max | Out point — 2 uses, max=1 | `{code:"ONCE", total_amount:500000}` | usage_count=2, max=1 | POST /api/apply-coupon | Error: usage limit exceeded | | |
+| TC-C-BV-08 | expired_at | Off point — yesterday (expired) | `{code:"YEST", total_amount:500000}` | `expired_at=yesterday` | POST /api/apply-coupon | Error: coupon expired | | |
+| TC-C-BV-09 | expired_at | On point — today's date (boundary) | `{code:"TODAY", total_amount:500000}` | `expired_at=today 00:00:00` | POST /api/apply-coupon | `>= now` at time of test — may be valid or expired; documents time-sensitive boundary behaviour | | |
+| TC-C-BV-10 | expired_at | In point — far future | `{code:"FAR", total_amount:500000}` | `expired_at="2099-12-31"` | POST /api/apply-coupon | 200; valid coupon | | |
+| TC-C-BV-11 | discount_value (percent — UI off-point 0) | Off point below min (0 = no discount) | UI: enter 0 in value field; create coupon | Admin logged in | Fill form value=0; click "Tạo mã" | Form should reject (validation error); if accepted: API stores value=0 — no discount, silently meaningless | | |
+| TC-C-BV-12 | discount_value (percent — UI on-point min 1) | On point minimum (1 = 1% intended) — **triggers backend bug** | UI: enter 1; create → apply via API | Admin logged in | Create coupon with value=1; then POST /api/apply-coupon total=500000 | **Bug: `500000 * (1-1) = 0`** — order total wiped; intended: 1% off = 495,000 → BUG-C-01 | | |
+| TC-C-BV-13 | discount_value (percent bug — typical 10) | Typical in-point (10 = 10% intended) | UI: enter 10; create → apply via API | Admin logged in | Create coupon with value=10; apply to total=500000 | **Bug: `500000 * (1-10) = -4,500,000`** — negative final amount → BUG-C-01 | | |
+| TC-C-BV-16 | discount_value (percent — UI on-point max 100) | On point maximum (100 = 100%) | UI: enter 100 in value field | Admin logged in | Fill form with value=100; click "Tạo mã" | Form should either reject (over valid range) or accept — if accepted and applied: `total * (1-100) = total * (-99)` catastrophically negative | | |
+| TC-C-BV-17 | discount_value (percent — UI off-point 101) | Off point over max (101 = invalid) | UI: enter 101 in value field | Admin logged in | Fill form with value=101; click "Tạo mã" | Form validation must reject — 101% is not a valid percentage | | |
+| TC-C-BV-14 | min_order_amount (CREATE) | On point — zero (default, no minimum) | `{code:"FREE", min_order_amount:0, ...}` | Admin logged in | POST /api/admin/coupons | 200 accepted; coupon usable on any order amount | | |
+| TC-C-BV-15 | max_uses_per_user (CREATE) | Off point — zero (invalid) | UI: enter 0 in Giới hạn/người field; click "Tạo mã" | Admin logged in | Enter 0 in number field; submit | Should reject (400 or form validation) — 0 uses means coupon can never be used | | |
 
 ### 4.3 AI Gap Analysis
 
-_[To be filled after test execution]_
+**Bugs and gaps the AI initially missed or under-specified:**
+
+1. **Percent discount formula — integer vs decimal (TC-C-09, TC-C-BV-12/13)** — The original test suite noted the bug as an aside ("stores integer (e.g., 10), should be 0.10"). However, it only included one test (TC-C-09) to observe it. The AI did not enumerate the full cascade of consequences: `discount_value=1` wipes the entire order total; `discount_value=10` produces a *negative* final amount. BVA across the range (0, 1, 10, 100) exposes how catastrophically the formula fails at every meaningful input.
+
+2. **Strict `>` vs `>=` on `min_order_amount` (TC-C-04, TC-C-BV-03)** — The original Step 1 correctly identified the strict `>`. However, no test case clearly labelled this as a functional defect. Using strict `>` instead of `>=` means an order *exactly* at the minimum amount is rejected — counterintuitive business logic that disadvantages customers at the stated minimum.
+
+3. **Unhandled `UNIQUE` constraint returning 500 (TC-C-02, TC-C-UI-16)** — The original expected result simply said "500 error" as if this were correct behaviour. A `UNIQUE` constraint violation is a predictable application error that should be caught and returned as 400/409. Exposing a raw SQLite constraint error as a 500 is both a UX defect and an information disclosure risk (internal schema details may leak). From the UI, this manifests as a generic or cryptic error message instead of a user-friendly "Mã coupon đã tồn tại".
+
+4. **No server-side type validation (TC-C-12)** — The original test noted "no validation → silently stored" but did not enumerate the *runtime consequence*: if an unsupported type (e.g., `"cashback"`) is stored, the `apply-coupon` discount calculation skips both branches and likely returns an undefined or 0 discount — a silent failure mode. **Importantly, this is only reproducible via the API** — the UI dropdown constrains type to valid values.
+
+5. **Admin authentication enforcement (TC-C-14 → TC-C-UI-15, TC-C-C-01)** — No test for unauthenticated or non-admin access to the admin coupon page. TC-C-14 was specified as an API test but should also exist as a UI test (TC-C-UI-15): navigating directly to the admin URL without a session should redirect to login, not show the page.
+
+6. **`expired_at` boundary is time-of-day sensitive (TC-C-17, TC-C-BV-09)** — The comparison is `new Date(coupon.expired_at) >= new Date()`. If `expired_at` stores only a date (e.g., `"2026-06-26"`) without a time component, the stored value becomes `2026-06-26T00:00:00`. A coupon meant to expire "today" may be invalid for most of the day. **From the UI, the date picker uses dd/mm/yyyy without time input — so all coupons created for "today" will expire at midnight, making them immediately invalid for same-day use.**
+
+7. **`discount_value=0` and `max_uses_per_user=0` not rejected on CREATE (TC-C-UI-07, TC-C-UI-10, TC-C-BV-15)** — The original domain analysis did not define these as invalid inputs. Creating a coupon with `discount_value=0` or `max_uses_per_user=0` should be rejected at creation time, not silently accepted. Both are now added as UI test cases.
+
+8. **Percent discount UI range boundary not tested (TC-C-BV-16, TC-C-BV-17) — NEW** — The original BVA treated `discount_value` as unbounded. The UI placeholder "VD: 10" and the nature of percentages establish an expected range of 1–100. Test cases for value=100 (maximum boundary) and value=101 (off-point over maximum) were missing and have been added.
+
+9. **UI-specific test coverage was entirely absent — NEW** — All original TC-C-xx and TC-C-BV-xx tests targeted the REST API directly. No tests validated:
+   - Form submission with empty/invalid fields (TC-C-UI-01, TC-C-UI-02)
+   - Dropdown constraint enforcement (TC-C-UI-03)
+   - Visual expiry indicator "Hết hạn" in red (TC-C-UI-11)
+   - Table state after create/delete operations (TC-C-UI-12, TC-C-UI-13)
+   - Date picker behaviour for past dates (TC-C-UI-09)
+   - XSS rendering safety in the table (TC-C-UI-14)
+
+10. **TC-C-12 and TC-C-20 should be removed from the UI test plan — NEW** — TC-C-12 (invalid type "cashback") is only achievable via direct API calls since the UI uses a constrained dropdown. TC-C-20 (decimal `0.10` workaround) is an API-level concern — the UI always collects integer values for percent type. Both remain valid as API regression tests but are not UI-executable.
+
+**Why the AI missed these:**
+- It stopped analysis at "no validation exists" for most fields without exploring downstream effects.
+- It did not apply boundary analysis to `discount_value` — treating it as a simple integer input rather than a value embedded in an arithmetic formula where integer vs decimal has severe consequences.
+- Access-control testing (admin role enforcement) was not part of the original test suite scope despite the `/admin/` route prefix being an explicit signal.
+- **It never analysed the UI at all** — all test cases were derived from API source code only. Inspecting the UI reveals form-level constraints (dropdown, number inputs, date picker) that reduce some test cases and add entirely new categories.
 
 ### 4.4 Bug Report
 
 | Bug ID | Title | Severity | Steps to Reproduce | Expected | Actual | GitHub Issue |
 |--------|-------|----------|--------------------|----------|--------|--------------|
+| BUG-C-01 | Percent coupon `discount_value` treated as integer multiplier — produces negative final amount | **Critical** | Create coupon: `{type:"percent", discount_value:10}`. Apply to order total=500,000. | `final = 500000 * (1 - 0.10) = 450,000` | `final = 500000 * (1 - 10) = -4,500,000` — negative order total. Formula in server.js uses stored integer directly instead of dividing by 100. Any `discount_value >= 1` produces `final <= 0`. | |
+| BUG-C-02 | Duplicate coupon code causes unhandled 500 Internal Server Error | **Medium** | POST /api/admin/coupons with a `code` that already exists in the database. | 409 Conflict with message "Coupon code already exists" | SQLite `UNIQUE` constraint error propagates as 500 — raw database error exposed to client | |
+| BUG-C-03 | No server-side validation of `type` field — arbitrary types silently stored | **Medium** | POST /api/admin/coupons with `{type:"cashback", ...}`. Apply the created coupon. | 400 "Invalid coupon type — must be 'percent' or 'fixed'" | Coupon stored with `type="cashback"`; apply-coupon logic silently falls through both `if/else` branches — undefined discount behaviour at runtime | |
+| BUG-C-04 | `min_order_amount` uses strict `>` — orders exactly equal to minimum are rejected | **Low** | Create coupon with `min_order_amount=300000`. Apply with `total_amount=300000`. | Coupon should apply (order meets the stated minimum) | Error: minimum order not met — `300000 > 300000` is false; customers at exactly the threshold are incorrectly rejected | |
 
 ---
 

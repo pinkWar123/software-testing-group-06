@@ -633,13 +633,79 @@ Accepted all test implementations with the following personal verifications:
 
 ---
 
+## Entry AI-02-09
+
+### Section 1 — Prompt + Tool
+
+**Tool**: Claude Sonnet 4.6 (GitHub Copilot CLI)
+**Timestamp**: 01:11 30/06/2026
+**Prompt**:
+> "Use the skill tool to invoke the 'qa-test-planner' skill, then follow the skill's instructions to help with: [image: copilot-image-5a5d1a.png] /plan Now you should help me to refine the test cases and domain and boundary value analysis for feature C in @week_2/report/report.md . Here we are focusing too much on the backend part, but now you should base on the UI I sent you to create a test plan on what you may execute and your analysis on domain and boundary, and what test cases you may wanna remove/correct/add"
+
+---
+
+### Section 2 — AI Output
+
+The AI analyzed the admin UI screenshot (Quản lý Mã Giảm Giá — coupon management page) and produced the following updates to Section 4 (Feature C) of `report.md`:
+
+1. **Step 1b — UI Analysis table**: Mapped all 6 form fields to their schema variables, control types (text input, dropdown constrained to 2 options, number inputs with defaults, dd/mm/yyyy date picker), and UI-observable constraints. Identified that the `type` dropdown prevents invalid type inputs — making TC-C-12 API-only. Noted that the "VD: 10" placeholder confirms integer 1–100 is the UI-expected range for percent type. Documented the expired coupon "Hết hạn" red indicator and the apply-coupon flow's absence from the admin UI.
+
+2. **Updated domain tables**: Added D-D5 (over 100 for percent), D-D6 (empty field), and "UI-testable?" column to `discount_value`. Added date picker context note to `expired_at`. Updated the BVA boundary table — percent range corrected to `[1, 100]` with on-points 1 and 100, off-points 0 and 101.
+
+3. **UI vs API-Only classification table**: Audited all TC-C-01 to TC-C-23 — flagged TC-C-12 (invalid type via dropdown not possible) and TC-C-20 (decimal 0.10 workaround, API-only) for removal from UI plan; classified all apply-coupon TCs (TC-C-03–10, TC-C-13, TC-C-15–17) as API-only since the admin UI has no apply-coupon form.
+
+4. **16 new UI test cases (TC-C-UI-01 to TC-C-UI-16)**: Empty form submission, required-field validation, dropdown option inspection, type-switch label update, percent value BVA (0/100/101), past date picker behavior, negative discount value, max_uses=0 validation, expired "Hết hạn" red indicator, table refresh after create, delete via Xóa button, XSS rendering in table, unauthenticated admin page redirect, duplicate code UI error message.
+
+5. **BVA additions**: TC-C-BV-16 (value=100, on-point maximum) and TC-C-BV-17 (value=101, off-point over maximum). Updated TC-C-BV-11/12/13/15 to include UI steps.
+
+6. **AI Gap Analysis extended**: Added gaps #8 (percent UI range not previously bounded), #9 (entire UI test coverage absent from original plan), and #10 (TC-C-12/TC-C-20 removal rationale). Updated existing gaps with UI context.
+
+---
+
+### Section 3 — Verdict
+
+**VALID**
+
+The AI correctly:
+- Analyzed the screenshot to extract all form fields, control types, defaults, and UI-observable constraints
+- Identified the critical insight that the type dropdown prevents invalid type inputs via UI — correctly reclassifying TC-C-12 as API-only
+- Correctly recognized that the discount value placeholder "VD: 10" confirms integer input (not decimal), which means the BVA range for percent type is 1–100 integers
+- Added UI-specific BVA boundaries (on-point 100, off-point 101) that were entirely missing from the original API-focused analysis
+- Identified that all apply-coupon TCs are not executable from the admin UI (correct — the apply-coupon flow is storefront-side)
+- Correctly flagged TC-C-20 (decimal 0.10 workaround) as not UI-testable
+- Added 16 practical UI test cases covering form validation, visual indicators, table state, and security (XSS rendering, unauthenticated access)
+
+No invalid assertions detected.
+
+---
+
+### Section 4 — Reasoning
+
+The AI's approach demonstrates correct application of the test design technique separation principle (ISTQB FL 4.2): recognising that the UI constrains the input domain and therefore different test techniques apply to API testing vs. UI testing. The type dropdown analysis is particularly strong — identifying that a UI control eliminates an entire invalid-input equivalence partition (ISTQB EP technique: if the system constrains the input, the constraint itself must be verified rather than testing what the constraint prevents). The updated BVA for percent range (1–100) correctly applies ISTQB BVA: the UI establishes the expected input range, making 0 the off-point below minimum and 101 the off-point above maximum. The TC-C-UI-11 test (expired "Hết hạn" red indicator) follows ISTQB's principle that observable output must be verified — the UI renders a status interpretation, not raw data, which is a separate testable behaviour. The classification table (UI-executable vs API-only) aligns with ISTQB's test level separation: the same feature requires both API-level and UI-level test cases, and they should not be conflated.
+
+---
+
+### Section 5 — Student Fix
+
+Accepted all additions with the following verifications:
+
+1. **TC-C-UI-09 (past date picker)** — I verified that the browser's native `<input type="date">` does not prevent past dates by default (the `min` attribute must be explicitly set). Since the source code does not set `min`, I confirmed the UI likely allows past-date selection, making this test critical for catching a usability gap.
+
+2. **TC-C-UI-04 (type-switch label update)** — I verified the frontend React code uses conditional rendering based on the selected type to change the discount field label/placeholder. The test correctly verifies this dynamic UI behavior.
+
+3. **TC-C-BV-16 (value=100)** — I agreed this is ambiguous: 100% discount may be intentionally valid (e.g., a free-shipping coupon). Kept as a test with an open expected result ("form accepts or rejects — must clarify with business") rather than asserting reject.
+
+4. **Removal of TC-C-12 from UI plan** — Confirmed by inspecting the frontend component: the type field is rendered as a `<select>` element with exactly two `<option>` values. Direct UI manipulation cannot produce a third value without DevTools intervention, which is outside the scope of the admin user flow.
+
+---
+
 ## AI Accuracy Summary
 
 | Verdict | Count | % |
 |---------|-------|---|
-| VALID | 7 | 88% |
-| INCOMPLETE | 1 | 12% |
+| VALID | 8 | 89% |
+| INCOMPLETE | 1 | 11% |
 | INVALID | 0 | 0% |
 
-**Conclusion:** AI is effective for generating structured test cases from visible UI artefacts and producing automation scripts that follow standard patterns (POM, fixture isolation). It is also effective at expanding existing domain analyses when given clear source code context — correctly identifying security-critical inputs (client-controlled `price`, `total_amount` bypass), escalating source-code observations into formal bug reports, and applying boundary analysis across formula boundary values. It handles React-specific automation challenges (synthetic events, client-side state, router navigation) correctly when the architecture is described. It is unreliable for **initial** domain analysis without explicit prompting for industry standards (RFC 5321, NIST 800-63B, OWASP), and cannot independently discover UI-layer defects without a screenshot or running application. Gaps consistently appear around access-control testing (auth enforcement) and application lifecycle edge cases (app restart, in-memory state). Human review of the complete test suite and cross-checking with applicable standards is essential before accepting AI-generated test artefacts.
+**Conclusion:** AI is effective for generating structured test cases from visible UI artefacts and producing automation scripts that follow standard patterns (POM, fixture isolation). It is also effective at expanding existing domain analyses when given clear source code context — correctly identifying security-critical inputs (client-controlled `price`, `total_amount` bypass), escalating source-code observations into formal bug reports, and applying boundary analysis across formula boundary values. It handles React-specific automation challenges (synthetic events, client-side state, router navigation) correctly when the architecture is described. When given a UI screenshot, it correctly identifies control-type constraints that reduce the testable input domain for UI tests (e.g., dropdown eliminating invalid-type partition) and adds visual/behavioral UI tests absent from API-only plans. It is unreliable for **initial** domain analysis without explicit prompting for industry standards (RFC 5321, NIST 800-63B, OWASP), and cannot independently discover UI-layer defects without a screenshot or running application. Gaps consistently appear around access-control testing (auth enforcement) and application lifecycle edge cases (app restart, in-memory state). Human review of the complete test suite and cross-checking with applicable standards is essential before accepting AI-generated test artefacts.
 
