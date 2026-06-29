@@ -396,13 +396,163 @@ I reviewed all output after execution:
 4. **Bug severities**: I reviewed all 5 bugs and agreed with the severity assignments. BUG-B-02 and BUG-B-05 are Critical because they allow direct financial fraud on the platform.
 
 ---
+
+## Entry AI-02-06
+
+### Section 1 — Prompt + Tool
+
+**Tool:** Claude Sonnet 4.6 (GitHub Copilot CLI)
+**Timestamp:** 21:54 26/06/2026
+
+**Prompt (verbatim):**
+> "Continue with the next section"
+
+*(Instruction to proceed with Features C and D — FR-17 Coupon Management and Mobile App)*
+
+---
+
+### Section 2 — AI Output
+
+The AI read the existing Feature C (§4) and Feature D (§5) sections of `report.md`, identified all gaps, then executed a 9-task plan covering both features.
+
+**Feature C — Coupon Management (FR-17):**
+
+*Step 2 expanded:* Added `auth_state` variable, type-validation gap note, and percent-bug warning to input variable table.
+
+*Step 3 — 8 domain tables added/expanded:*
+- `code` (D-C1–D-C5, including whitespace and SQL injection)
+- `type` (D-T1–D-T4, including null)
+- `discount_value` (D-D1–D-D5) — critical note on integer-vs-decimal bug
+- `min_order_amount` (D-MO1–D-MO3)
+- `expired_at` (D-EX1–D-EX4)
+- Updated `total_amount` vs `min_order_amount` table (added D-M4: min=0 edge)
+- `auth_state` (D-Auth1–D-Auth3)
+
+*Step 4:* Extended boundary table to 6 variables including `discount_value` range and `max_uses_per_user`.
+
+*Test cases — 23 domain TCs + 3 OWASP constraint TCs (was 13):*
+- TC-C-02 corrected: "500 error" is not correct expected behaviour — it's **BUG-C-02** (unhandled UNIQUE constraint → 409 should be returned)
+- TC-C-04 clarified: strict `>` rejection at `= min_order` is **BUG-C-04**
+- TC-C-14–TC-C-23 added: unauthenticated CREATE, inactive/non-existent code, today-expiry boundary, zero/negative discount_value, correct decimal workaround, SQL injection, empty code, unauthenticated GET
+
+*Section 4.2 BVA:* 6 boundary variables, 15 BVA test cases (TC-C-BV-01 to TC-C-BV-15), including the full discount_value formula failure cascade at values 0, 1, 10, 100.
+
+*Section 4.3 AI Gap Analysis:* 7 gaps including percent formula cascade, strict `>` vs `>=` business logic, unhandled 500, type validation silent failure, admin auth enforcement, time-of-day expiry sensitivity, zero-value field creation.
+
+*Section 4.4 Bug Report:* 4 bugs:
+
+| ID | Title | Severity |
+|----|-------|----------|
+| BUG-C-01 | Percent discount formula — integer multiplier produces negative amount | Critical |
+| BUG-C-02 | Duplicate code → unhandled 500 (should be 409) | Medium |
+| BUG-C-03 | No type validation — arbitrary types silently stored | Medium |
+| BUG-C-04 | Strict `>` on min_order — exact-minimum orders rejected | Low |
+
+**Feature D — Mobile App:**
+
+*Step 2 expanded:* Added `cart_state`, `network_state`, UX gap note on silent normalization.
+
+*Step 3b added:* Full `couponCode` domain table (D-CC1–D-CC6).
+
+*Test cases — 21 domain TCs + 3 constraint TCs (was 14):*
+- TC-D-15–TC-D-21 added: app restart cart loss, stock validation gap, checkout total verification, min_order boundary on mobile, inline large qty, invalid coupon, XSS in coupon field
+
+*Section 5.2 BVA:* 5 boundary variables, 12 BVA test cases (TC-D-BV-01 to TC-D-BV-12) with full `normalizeQuantity()` and inline-edit boundary tables.
+
+*Section 5.3 AI Gap Analysis:* 6 gaps: silent normalization UX, no upper qty bound, no stock validation, in-memory cart reliability, `couponCode` domain gap, mobile checkout total manipulation.
+
+*Section 5.4 Bug Report:* 4 bugs:
+
+| ID | Title | Severity |
+|----|-------|----------|
+| BUG-D-01 | Silent normalization — no user feedback | Medium (Usability) |
+| BUG-D-02 | No upper bound on quantity | Medium |
+| BUG-D-03 | No stock validation — oversell risk | High |
+| BUG-D-04 | In-memory cart — lost on restart | High (Reliability) |
+
+---
+
+### Section 3 — Verdict
+
+**VALID**
+
+The AI correctly identified all empty sections, produced accurate domain and BVA analysis for both features, and properly escalated two "documentation observations" from the original Step 1 notes (no stock check, in-memory cart) into proper bug reports. The percent discount formula analysis was particularly strong — the AI traced the full impact across boundary values (0, 1, 10, 100) to show the formula fails catastrophically at every meaningful input.
+
+---
+
+### Section 4 — Reasoning
+
+Per ISTQB CTFL §4.4 (State Transition Testing), the `usage_count` vs `max_uses_per_user` analysis correctly identifies the on-point (blocked) and off-point (last allowed) states. The `expired_at` today-boundary (TC-C-17/TC-C-BV-09) reflects a real ambiguity in state transition: the transition from "valid" to "invalid" depends on time-of-day when only a date is stored, which is an under-specified requirement. Per ISO 25010 §6.3 (Reliability — Availability), an in-memory cart that loses all data on process restart has zero recoverability — BUG-D-04 is correctly rated High. The usability defect (BUG-D-01) maps to ISO 25010 §6.5 (Usability — Error Prevention): an application that silently corrects user input without notification fails the error-prevention sub-characteristic.
+
+---
+
+### Section 5 — Student Fix
+
+I reviewed the output for both features:
+
+1. **BUG-C-01 severity (Critical)**: I verified the formula `Math.floor(total_amount * (1 - coupon.discount_value))` in server.js lines 363–436. With `discount_value=10`, the result is `total * -9`. Any percent coupon in the system with integer `discount_value >= 1` produces a negative or zero final amount. Critical is correct.
+2. **TC-C-04 / BUG-C-04 framing**: The AI correctly framed the strict `>` as a business logic defect rather than just a boundary curiosity. I agreed — a coupon advertised as "valid on orders of 300,000+" should apply at exactly 300,000.
+3. **D-Auth3 (unauthenticated tests)**: I verified the admin endpoints in server.js require `req.user` (populated by auth middleware). TC-C-14 and TC-C-23 are valid tests.
+4. **BUG-D-03 vs BUG-D-02**: The AI correctly distinguished no-upper-bound (BUG-D-02, quantity cap missing) from no-stock-check (BUG-D-03, inventory integrity missing). These are separate defects — I kept them as distinct bugs.
+5. **couponCode domain table**: The AI added D-CC6 (XSS payload) which was entirely missing. TC-D-21 is a valid security test I would not have added myself.
+
+---
+
+## Entry AI-02-07
+
+### Section 1 — Prompt + Tool
+
+**Tool:** Claude Opus 4.8 (Claude Code CLI)
+**Timestamp:** 13:15 29/06/2026
+
+**Prompt (verbatim):**
+> "/qa-test-planner /qa-manual-istqb There are already some predefined test cases for feature B as long as domain and boudnary analysis. Use your expertise to bring a critical thinking on these output, and adjust/add/modify if needed"
+
+---
+
+### Section 2 — AI Output
+
+The AI re-read the existing Feature B (§3) section, then traced the **actual cart call graph** across `backend/server.js`, `frontend-web/` (CartContext, ProductDetail, Cart, Checkout) and `frontend-mobile/App.js` — rather than reasoning from the API surface alone. It produced:
+
+- **Architecture correction:** the cart is client-side React state; `GET/POST /api/cart` (`userCarts`) are orphaned dead endpoints with no frontend caller; only `POST /api/checkout` is UI-reachable, and it reads only `total_amount`/`shipping_address` (ignores `items`).
+- **Step 1 rewritten** with 7 corrected source observations.
+- **`auth_state` split** into D-Auth1 (valid), D-Auth2 (no token → 401), D-Auth3 (invalid/expired token → 403); noted add-to-cart needs no auth.
+- **Corrected expected results:** TC-B-12 (duplicate handling is frontend-dependent — web appends, mobile merges) and TC-B-14 (add-to-cart succeeds without auth).
+- **BVA scope correction** separating UI-reachable from API-only boundaries.
+- **7 new UI-reachable test cases** TC-B-23–29: editable-checkout-total price manipulation, NULL shipping_address on every UI order, web NaN/zero/negative quantity, mobile off-by-one qty editor, refresh-clears-cart, mobile dropped-last-item.
+- **5 new gap-analysis items (9–13)** and a **corrected bug table BUG-B-01–08** — BUG-B-02 re-scoped to UI-exploitable Critical, BUG-B-04 root cause fixed, BUG-B-05 downgraded to Medium (dead endpoint), and new BUG-B-06 (NULL address, High), BUG-B-07 (web no qty guard, High), BUG-B-08 (mobile off-by-one, Medium).
+
+---
+
+### Section 3 — Verdict
+
+**VALID** — with all claims verified against the running source. Every code reference (`Checkout.jsx:93–102`, `CartContext.jsx:8–10`, `App.js:134–150` / `617–619`, `server.js:284–308`) was confirmed by direct file reads, including the grep proving no frontend references `/api/cart`.
+
+---
+
+### Section 4 — Reasoning
+
+Per ISTQB CTFL §4.2 (white-box) and §1.4 (test basis), a domain analysis is only sound if the *test basis matches the executable path*. The original analysis violated this by deriving cases from an unreachable endpoint. The correction maps to ISTQB §3.2 (static analysis tracing the call graph) and §4.3 boundary scoping. The escalation of the editable checkout total to Critical aligns with OWASP A04 (Insecure Design) and ISO 25010 §6.6 (Security — Integrity): client-trusted financial totals are a server-side integrity failure. BUG-B-06 (NULL address) maps to ISO 25010 §6.2 (Functional Completeness). The off-by-one editor (BUG-B-08) is a §4.3 BVA defect on a UI input the prior pass never examined.
+
+---
+
+### Section 5 — Student Fix
+
+I reviewed and accepted the AI's corrections after independently re-reading the source:
+1. **Orphaned `/api/cart`** — I confirmed via grep that no frontend calls it; agreed the original layer framing was wrong and the dead-endpoint tests should be re-scoped (not deleted — they remain valid API-hardening tests).
+2. **Editable checkout total (BUG-B-02)** — I verified `Checkout.jsx:93` is a live `<input type=number>`; this is the most important finding and is demonstrable in Selenium, so I prioritized it for the execution phase.
+3. **NULL shipping_address (BUG-B-06)** — I confirmed neither checkout body carries the field; this is a genuine functional defect the first pass missed.
+4. **Execution still pending** — the `Actual Result`/`Verdict` columns remain empty by design; per the HW rules I must execute these against the running app and capture screenshots myself before final submission.
+
+---
+
 ## AI Accuracy Summary
 
 | Verdict | Count | % |
 |---------|-------|---|
-| VALID | 2 | 67% |
-| INCOMPLETE | 1 | 33% |
+| VALID | 6 | 86% |
+| INCOMPLETE | 1 | 14% |
 | INVALID | 0 | 0% |
 
-**Conclusion:** AI is effective for generating structured test cases from visible UI artefacts and producing automation scripts that follow standard patterns (POM, fixture isolation). It is unreliable for **initial** domain analysis without explicit prompting for industry standards (RFC 5321, NIST 800-63B), and cannot independently discover UI-layer defects without a screenshot or running application. Human review of the complete test suite and cross-checking with applicable standards is essential before accepting AI-generated test artefacts.
+**Conclusion:** AI is effective for generating structured test cases from visible UI artefacts and producing automation scripts that follow standard patterns (POM, fixture isolation). It is also effective at expanding existing domain analyses when given clear source code context — correctly identifying security-critical inputs (client-controlled `price`, `total_amount` bypass), escalating source-code observations into formal bug reports, and applying boundary analysis across formula boundary values. It is unreliable for **initial** domain analysis without explicit prompting for industry standards (RFC 5321, NIST 800-63B, OWASP), and cannot independently discover UI-layer defects without a screenshot or running application. Gaps consistently appear around access-control testing (auth enforcement) and application lifecycle edge cases (app restart, in-memory state). Human review of the complete test suite and cross-checking with applicable standards is essential before accepting AI-generated test artefacts.
 

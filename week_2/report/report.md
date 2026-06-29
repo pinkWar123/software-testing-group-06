@@ -320,17 +320,22 @@ From observed behaviour (TC-A-06, TC-A-07): the account locks on the **2nd** con
 
 **Step 1 — Understand the feature from source code**
 
-Endpoints:
-- `GET /api/cart` — returns in-memory cart for current user
-- `POST /api/cart` — pushes any body object directly into cart array (no server-side validation)
-- `POST /api/checkout` — creates order with `total_amount` and `shipping_address`
+> **⚠️ Critical architecture correction (added after source re-review):** The shopping cart is **entirely client-side React state**, held in `frontend-web/src/context/CartContext.jsx` and `frontend-mobile/App.js` (`useState`). The backend endpoints `GET/POST /api/cart` (`userCarts` object, `server.js:284–294`) are **orphaned — no frontend ever calls them** (verified: zero `api/cart` references exist in any frontend). Only `POST /api/checkout` is reached from the UI. This invalidates the original framing that treated `/api/cart` as "the cart"; those tests are now scoped as **API-only / dead-endpoint** tests.
 
-Key observations from `backend/server.js` and `frontend-mobile/App.js`:
-1. **Server-side cart has NO validation** — any `quantity`, `price`, even negative values are accepted.
-2. Cart is **in-memory** (`userCarts` object) — resets on server restart.
-3. The mobile app's `normalizeQuantity()` does client-side normalization: `parseInt(value) > 0 ? parsed : 1`.
-4. Cart total: `cart.reduce((total, item) => total + item.price * item.quantity, 0)`.
-5. `checkout` accepts any `total_amount` value — no server-side verification against cart contents.
+**Endpoints actually reachable from the UI:**
+- `POST /api/checkout` — creates an order. Reads **only** `total_amount` and `shipping_address` from the body (`server.js:297–308`); the `items` array clients send is **ignored**.
+
+**Orphaned endpoints (no UI caller — API-surface tests only):**
+- `GET /api/cart`, `POST /api/cart` — `userCarts[userId].push(req.body)`; no validation, in-memory.
+
+**Key observations (corrected against the real call graph):**
+1. **Cart total is computed client-side** (`cartTotal = cart.reduce((t,i)=>t+i.price*i.quantity,0)`) and **sent verbatim** to checkout. The server never recomputes or verifies it.
+2. **The checkout total is a user-editable `<input type="number">`** on web (`Checkout.jsx:14,93–102`) → price manipulation is exploitable through the **normal UI**, not just crafted API calls.
+3. **Neither web nor mobile sends `shipping_address`** at checkout (web body `{items,total_amount,coupon_id}`; mobile identical) → every UI-created order stores `shipping_address = NULL`. Address domain/BVA tests are therefore **API-only**.
+4. Web `addToCart` **appends** with no merge (`CartContext.jsx:8–10`); mobile `addToCart` **merges** duplicates by id (`App.js:134–150`) → duplicate handling is **inconsistent across clients**.
+5. Web `ProductDetail` adds with bare `parseInt(quantity)` and **no NaN/`>0` guard** (`ProductDetail.jsx:27`); mobile has `normalizeQuantity` = `Number.isFinite(parsed) && parsed>0 ? parsed : 1`. Web is the weaker path.
+6. Mobile inline cart-qty editor uses `... ? parsed + 1 : 1` (`App.js:617–619`) — an **off-by-one** that adds 1 to whatever the user types.
+7. Mobile checkout sends `items: cart.length>1 ? cart.slice(0,-1) : cart` — silently **drops the last item** (latent; server ignores `items`).
 
 **Step 2 — Identify input variables**
 
@@ -387,11 +392,14 @@ Key observations from `backend/server.js` and `frontend-mobile/App.js`:
 | D-A4 | Edge: very long string (> 500 chars) | 501-char address string |
 | D-A5 | Security: XSS payload | `"<script>alert(1)</script>"` |
 
-**Variable: `auth_state` (all cart/checkout endpoints)**
-| Domain | Class | Representative |
-|--------|-------|----------------|
-| D-Auth1 | Valid: authenticated user | User logged in; valid session token present |
-| D-Auth2 | Invalid: unauthenticated | No token / expired token |
+**Variable: `auth_state` (checkout only — add-to-cart is client-side and needs no auth)**
+| Domain | Class | Representative | Server response (`authenticateToken`, server.js:100–110) |
+|--------|-------|----------------|------|
+| D-Auth1 | Valid: authenticated user | Valid Bearer token | proceeds |
+| D-Auth2 | Invalid: no token / missing header | `Authorization` absent | **401 Unauthorized** |
+| D-Auth3 | Invalid: malformed / expired token | `Bearer garbage` | **403 Forbidden** (not 401) |
+
+> **Correction:** the original merged "no token / expired token" into one 401 class. The middleware returns **401 for a missing token** but **403 for an invalid/expired one** — two distinct boundaries. Also, **adding to cart requires no authentication at all** (pure client state); auth applies only at checkout.
 
 **Step 4 — Identify boundary points**
 
@@ -421,9 +429,9 @@ Key observations from `backend/server.js` and `frontend-mobile/App.js`:
 | TC-B-09 | Checkout with negative total_amount (D-T3) — **bug revelation** | `{total_amount:-1, shipping_address:"123 Le Loi"}` | Cart has items | POST /api/checkout | **Server does not validate total_amount: 200 accepted, order created with total=-1** → **BUG-B-02** | | |
 | TC-B-10 | Checkout with empty shipping_address (D-A2) | `{total_amount:200000, shipping_address:""}` | Cart has items | POST /api/checkout | Should reject (400) — address is a required field; empty string is not a valid delivery address | | |
 | TC-B-11 | Checkout with arbitrary total_amount — price manipulation bypass | `{total_amount:1, shipping_address:"addr"}` | Cart has items worth 500,000 | POST /api/checkout directly (API) | **Server accepts any value — no cart-total verification** → **BUG-B-02** | | |
-| TC-B-12 | Add same product twice — duplicate entry behaviour | Add product id=1 twice with qty=3 each | Cart empty | 2× POST /api/cart | **Server uses push() — cart array contains TWO separate entries for id=1 (each with qty=3), not one merged entry with qty=6** → **BUG-B-04** | | |
+| TC-B-12 | Add same product twice — duplicate behaviour (UI) | Add product id=1 twice with qty=3 each via the UI | Cart empty | Add to cart ×2 | **Frontend-dependent (corrected):** Web `CartContext.addToCart` appends → **two entries (3 + 3)**; Mobile `addToCart` merges by id → **one entry qty=6**. Inconsistent across clients → **BUG-B-04**. Root cause is *frontend* cart logic, not server `push()` | | |
 | TC-B-13 | GET cart when empty | No body | Logged in, cart has no items | GET /api/cart | 200 with empty array `[]`; no error | | |
-| TC-B-14 | Add item to cart without authentication (D-Auth2) | `{id:1, name:"X", price:100000, quantity:1}` | Not logged in / no token | POST /api/cart | 401 Unauthorized — cart requires authentication | | |
+| TC-B-14 | Add to cart without authentication (UI path, corrected) | Add any product while logged out | Not logged in | Click "Add to cart" | **Succeeds — cart is client-side React state; add-to-cart requires NO auth.** Auth is enforced only at checkout (`Cart.jsx:11–17` redirects to /login). Original expected (401) was wrong for the real UI. *(401 applies only to the orphaned `POST /api/cart` API endpoint.)* | | |
 | TC-B-15 | Checkout without authentication (D-Auth2) | `{total_amount:200000, shipping_address:"123 Le Loi"}` | Not logged in / no token | POST /api/checkout | 401 Unauthorized — checkout requires authentication | | |
 | TC-B-16 | Checkout with empty cart | `{total_amount:0, shipping_address:"123 Le Loi"}` | Logged in, cart is empty | POST /api/checkout | Should reject (400) — cannot create order from empty cart | | |
 | TC-B-17 | Checkout with null shipping_address (D-A3) | `{total_amount:200000, shipping_address:null}` | Cart has items | POST /api/checkout | Should reject (400) — null address must be rejected | | |
@@ -432,6 +440,20 @@ Key observations from `backend/server.js` and `frontend-mobile/App.js`:
 | TC-B-20 | Cart total calculation accuracy | Add item `{price:150000, quantity:3}` and item `{price:75000, quantity:2}` | Logged in, cart empty | 2× POST /api/cart, then GET /api/cart | Cart total = `(150000×3) + (75000×2) = 600000`; verify `cart.reduce()` is correct | | |
 | TC-B-21 | Add item with extremely large quantity (D-Q7, upper edge) | `{..., quantity:2147483647}` | Logged in | POST /api/cart | Server should reject or cap; if accepted, cart total may overflow → edge behaviour documented | | |
 | TC-B-22 | XSS injection in shipping_address (D-A5) — **security** | `{total_amount:200000, shipping_address:"<script>alert(1)</script>"}` | Cart has items | POST /api/checkout | 200 or 400; no script executes; input safely stored/escaped | | |
+
+#### UI-Reachable Test Cases (added during critical review — exploit/observe via the real app)
+
+> These cases trace the **actual UI call graph** (CartContext → Checkout) rather than the orphaned `/api/cart` endpoint. They are the highest-value cases because they are reachable by an ordinary user in a browser/app.
+
+| TC ID | Objective | Input | Pre-condition | Steps | Expected Result | Actual Result | Verdict |
+|-------|-----------|-------|---------------|-------|-----------------|---------------|---------|
+| TC-B-23 | **Price manipulation via UI** (editable checkout total) — **critical** | Edit "Tổng tiền" field to `1` | Logged in; cart worth 500,000 | Open /checkout, change total input to `1`, click "Xác Nhận Thanh Toán" | Order total should be server-computed and the client value rejected. **Actual code:** web renders total as `<input type=number>` (`Checkout.jsx:93`) and POSTs it verbatim → order total = 1 ⇒ **exploitable in a plain browser, no API tooling** → **BUG-B-02** | | |
+| TC-B-24 | Every UI order stores NULL shipping_address | Complete a normal checkout | Logged in; cart has items | Checkout via web or mobile; inspect orders row | Order records the delivery address. **Actual:** no client sends `shipping_address` (`Checkout.jsx:45–49`; mobile checkout body) → server stores NULL for every UI order → **BUG-B-06** | | |
+| TC-B-25 | Web quantity = NaN (no client guard) | Clear the qty input, then add | Logged in; web product detail | Empty the quantity box, click "Thêm vào giỏ" | Reject or coerce to ≥1. **Actual:** `addToCart(product, parseInt(""))` = `NaN`; cartTotal and checkout total become `NaN` (`ProductDetail.jsx:27`, no `normalizeQuantity` on web) → **BUG-B-07** | | |
+| TC-B-26 | Web negative / zero quantity (no client guard) | qty input = `0` or `-3` | Logged in; web | Enter `0` / `-3`, add to cart | Reject; min 1. **Actual:** web has no normalization → quantity stored as-is; total goes 0/negative (web lacks mobile's `normalizeQuantity`) → **BUG-B-07** | | |
+| TC-B-27 | Mobile inline qty editor off-by-one | Edit an item's "Số lượng" to `5` | Logged in; mobile; item in cart | Change the inline qty field to `5` | Quantity becomes 5. **Actual:** editor computes `parsed + 1` (`App.js:617–619`) → quantity becomes **6** → **BUG-B-08** | | |
+| TC-B-28 | Cart lost on page refresh / app restart (real persistence) | Add items, then reload | Logged in; items in cart | Add items; press browser refresh | Cart persists, or session-scoping is intentional and documented. **Actual:** in-memory React state, no storage → **fully cleared on reload** (orphaned server `userCarts` is never involved) → **BUG-B-03 (re-scoped)** | | |
+| TC-B-29 | Mobile checkout drops the last item (latent) | Cart with 3 items, checkout | Logged in; mobile; ≥2 items | Confirm order | All items submitted. **Actual:** body sends `cart.slice(0,-1)` when `length>1` → last item omitted from `items` (latent only because the server ignores `items`; total still includes it) — code smell to fix | | |
 
 #### Constraint-based Test Cases (OWASP / Security)
 
@@ -450,7 +472,9 @@ Key observations from `backend/server.js` and `frontend-mobile/App.js`:
 
 **Step 1 — Identify variables with testable boundaries**
 
-BVA applies to variables whose valid/invalid partition has an ordered, measurable boundary. Four variables qualify:
+BVA applies to variables whose valid/invalid partition has an ordered, measurable boundary. Four variables qualify.
+
+> **Scope correction (critical review):** boundaries below must be split by *reachable path*. `total_amount` (the **editable checkout input**) and `quantity` on **web** (bare `parseInt`, no guard) are UI-reachable; `quantity` via `POST /api/cart` and **all** `shipping_address` boundaries are **API-only** (no client transmits them). The mobile `normalizeQuantity` boundaries below do **not** apply to the web path, which has no normalization.
 
 | Variable | Observable Range | Key Boundary |
 |----------|-----------------|--------------|
@@ -546,6 +570,12 @@ BVA applies to variables whose valid/invalid partition has an ordered, measurabl
 
 8. **`shipping_address` length boundary** — The original BVA table only identified boundaries for `quantity` and `total_amount`. No length boundary was considered for `shipping_address`, despite it being a free-form text field with no defined maximum length.
 
+9. **Wrong architectural layer (most significant).** The analysis treated `POST /api/cart` as the cart, but every frontend keeps the cart in client-side React state and **never calls that endpoint** — it is dead code. The user-facing logic (CartContext, the editable checkout total) was never inspected. The AI reasoned from the most "API-looking" code instead of tracing the call graph from the UI.
+10. **Price manipulation is UI-exploitable, not API-only.** The checkout total is an editable number input on web; the original framed BUG-B-02 as requiring crafted API requests, understating severity — a non-technical user can pay 1₫ in the browser.
+11. **`shipping_address` is never sent by any client** → every UI order is NULL-address (BUG-B-06). The AI wrote a full address domain/BVA matrix for a field the UI does not transmit.
+12. **Client-side validation asymmetry.** Mobile guards quantity (`normalizeQuantity`); web does not (bare `parseInt`) → web NaN/negative-quantity bugs (BUG-B-07). The AI generalized "mobile normalizes" to the whole system.
+13. **Two concrete client bugs missed entirely:** mobile inline qty editor off-by-one `parsed+1` (BUG-B-08), and mobile checkout `cart.slice(0,-1)` dropping the last item. Both require reading JSX event handlers, which the AI skipped.
+
 **Why the AI missed these:**
 - It analysed the source code for validation logic and stopped at confirming "no validation exists" — without then deriving the *security impact* of that absence (price manipulation, auth bypass testing).
 - It assumed standard e-commerce behaviour (cart quantity merging, server-side price sourcing) rather than testing the actual implementation's behaviour.
@@ -555,6 +585,14 @@ BVA applies to variables whose valid/invalid partition has an ordered, measurabl
 
 | Bug ID | Title | Severity | Steps to Reproduce | Expected | Actual | GitHub Issue |
 |--------|-------|----------|--------------------|----------|--------|--------------|
+| BUG-B-01 | No server-side quantity validation — negative and zero quantities accepted | **High** | POST /api/cart with `{quantity: 0}` or `{quantity: -1}` while authenticated | Server should return 400; invalid quantity rejected | Server returns 200; item added with quantity=0 or quantity=-1; cart total becomes 0 or negative (server.js: `userCarts[email].push(item)` with no validation) | |
+| BUG-B-02 | Checkout total is a user-editable field — price manipulation via the **normal UI** | **Critical (Security)** | 1. Add items worth 500,000. 2. Go to /checkout. 3. Edit the "Tổng tiền" number input to `1`. 4. Confirm | Order total is computed server-side from cart contents; client-supplied total rejected | Web renders the total as `<input type="number">` (`Checkout.jsx:93–102`) and POSTs it verbatim; server stores `req.body.total_amount` unverified (`server.js:299–303`). **Exploitable in a plain browser — no API tooling needed** | |
+| BUG-B-03 | Cart lost on page refresh / app restart (unpersisted React state) | **Medium (Reliability)** | 1. Add items (web or mobile). 2. Refresh the page / relaunch | Cart persists, or session-scoping is intentional and documented | Cart lives in `useState` with no `localStorage`/backend persistence → cleared on every reload (`CartContext.jsx`). *(The earlier "server restart" framing targeted the orphaned `userCarts` store, which no client populates.)* | |
+| BUG-B-04 | Inconsistent duplicate handling: web appends, mobile merges | **Medium** | Add the same product twice on web, then on mobile; compare carts | Both clients behave identically (merge into one line, summed qty) | Web `CartContext.addToCart` appends (`CartContext.jsx:8–10`); mobile `addToCart` merges by id (`App.js:134–150`) → web shows two lines, mobile shows one. *(Root cause is frontend cart logic, not the server.)* | |
+| BUG-B-05 | Orphaned `POST /api/cart` accepts arbitrary `price`/`quantity` (no validation) | **Medium (API hardening)** | POST /api/cart with `{id:1, price:1, quantity:-5}` directly | Endpoint validates inputs, or is removed | `userCarts[id].push(req.body)` stores any body unvalidated (`server.js:290–294`). *Severity reduced from Critical:* no UI calls this endpoint, and the real price-manipulation vector is the editable checkout total (BUG-B-02), independent of cart `price`. Recommend deleting the dead endpoint | |
+| BUG-B-06 | Every UI-created order has NULL shipping_address | **High** | Complete any checkout on web or mobile; inspect the order | Order stores the delivery address | No client sends `shipping_address` in the checkout body (`Checkout.jsx:45–49`; mobile checkout body); server reads `req.body.shipping_address` → undefined → NULL. Orders are undeliverable | |
+| BUG-B-07 | Web has no quantity normalization — NaN / 0 / negative quantities | **High** | On web product detail, clear the qty field (or enter `0` / `-3`), add to cart | Quantity coerced to a valid integer ≥ 1 | `addToCart(product, parseInt(quantity))` with no `Number.isFinite`/`>0` guard (`ProductDetail.jsx:27`); empty → NaN propagates into cartTotal and checkout total. Mobile guards this; web does not | |
+| BUG-B-08 | Mobile inline cart quantity editor adds 1 to the typed value (off-by-one) | **Medium** | In the mobile cart, edit an item's "Số lượng" to `5` | Quantity becomes 5 | Handler computes `Number.isFinite(parsed) && parsed > 0 ? parsed + 1 : 1` (`App.js:617–619`) → typing 5 yields 6 | |
 
 ---
 

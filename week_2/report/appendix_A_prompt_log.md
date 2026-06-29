@@ -75,3 +75,10 @@
 **Artifact produced**: Updated Sections 4 and 5 of `report.md` — Feature C: expanded domain tables (8 tables), TC-C-14 to TC-C-23 + 3 OWASP constraint TCs, Section 4.2 BVA (15 TCs), Section 4.3 AI Gap Analysis (7 gaps), Section 4.4 Bug Report (4 bugs: BUG-C-01 Critical); Feature D: expanded domain tables, TC-D-15 to TC-D-21 + 3 constraint TCs, Section 5.2 BVA (12 TCs), Section 5.3 AI Gap Analysis (6 gaps), Section 5.4 Bug Report (4 bugs: BUG-D-01 to BUG-D-04)
 
 ---
+
+## 13:15 29/06/2026 — Claude Opus 4.8 (Claude Code CLI)
+**Purpose**: R1 – Critical review of Feature B (FR-07: Shopping Cart) domain testing & BVA against the actual SUT source; adjust/add/modify
+**Prompt**:
+> "/qa-test-planner /qa-manual-istqb There are already some predefined test cases for feature B as long as domain and boudnary analysis. Use your expertise to bring a critical thinking on these output, and adjust/add/modify if needed"
+
+**Artifact produced**: Revised Section 3 (Feature B) of `report.md` after tracing the real cart call graph (backend/server.js + frontend-web + frontend-mobile). Corrected the architecture framing (cart is client-side React state; `/api/cart` is orphaned dead code); rewrote Step 1; split `auth_state` into D-Auth1/2/3 (401 vs 403); corrected TC-B-12 (frontend-dependent duplicate handling) and TC-B-14 (add-to-cart needs no auth); added BVA scope correction; added 7 UI-reachable test cases (TC-B-23–29) covering the editable-checkout-total exploit, NULL shipping_address, web NaN/negative quantity, mobile off-by-one qty editor, refresh-clears-cart, mobile dropped-last-item; added 5 AI gap-analysis items (9–13); upgraded/corrected the bug table to BUG-B-01–08 (BUG-B-02 re-scoped to UI-exploitable Critical; BUG-B-04 root cause fixed; BUG-B-05 downgraded; BUG-B-06/07/08 new).
