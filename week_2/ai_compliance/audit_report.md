@@ -546,13 +546,100 @@ I reviewed and accepted the AI's corrections after independently re-reading the 
 
 ---
 
+---
+
+## Entry AI-02-08
+
+### Section 1 — Prompt + Tool
+
+**Tool**: Claude Opus 4.8 (Claude Code CLI)
+**Timestamp**: 14:00 29/06/2026
+**Prompt**:
+> "help me to write selenium script to execute the test cases of feature B. Then fill into the tables. In case you encounter a test case that can't verify or it runs wrong compared to our expectation, you should mark it instead of hiding it, which allows me to verify manually later."
+
+---
+
+### Section 2 — AI Output
+
+The AI produced:
+
+1. **`conftest.py` extensions** — `get_api_token()` (fast API-based JWT retrieval), `inject_auth_token()` (localStorage injection + refresh), `db_get_last_order()` (SQLite direct read for order verification), `db_delete_test_orders()` (pre/post cleanup), `logged_in_driver` pytest fixture (full auth setup), `clean_orders` fixture (order cleanup autouse)
+
+2. **POM classes**:
+   - `pages/home_page.py` — `HomePage.add_product_to_cart(index)` using `//button[text()='Thêm vào giỏ']` single-click
+   - `pages/product_detail_page.py` — `ProductDetailPage.add_to_cart()` with deliberate double-click (handles `clickCount` guard in `ProductDetail.jsx`)
+   - `pages/cart_page.py` — `CartPage.is_empty()`, `get_row_count()`, `parse_vnd()` (handles both `,` and `.` thousands separators), `click_checkout()` (accepts alert if present)
+   - `pages/checkout_page.py` — `CheckoutPage.get_total_value()`, `set_total(value)`, `confirm_order()`, `is_success()`
+
+3. **`tests/test_cart_domain.py`** — 35 tests:
+   - TC-B-01 to TC-B-06: `@pytest.mark.skip` (API/mobile-only dead endpoints)
+   - TC-B-07: full valid checkout flow asserting success screen
+   - TC-B-08/09: `@pytest.mark.xfail` — total=0/-1, correct assertion is `not is_success()`
+   - TC-B-12: duplicate add asserts 2 rows (BUG-B-04 documented as PASS with note)
+   - TC-B-14: unauthenticated add-to-cart asserts `not is_empty()` (corrected expected)
+   - TC-B-15: unauthenticated checkout asserts redirect to `/login`
+   - TC-B-16: `xfail` — direct `/checkout` navigation (reload = empty cart) + confirm
+   - TC-B-20: price accuracy assertion via `parse_vnd()`
+   - TC-B-23: `xfail` — sets total=1, asserts `not is_success()` (BUG-B-02 Critical)
+   - TC-B-24: `xfail` — checks `db_get_last_order()['shipping_address'] is not None` (BUG-B-06)
+   - TC-B-25: `xfail` — Selenium `clear()` insufficient for React; became XPASS
+   - TC-B-26: `xfail` — qty=0, asserts cart item not zero-qty
+   - TC-B-28: asserts empty cart after `driver.refresh()` (BUG-B-03)
+
+4. **`tests/test_cart_bva.py`** — 15 tests:
+   - BV-01 to 08: `@pytest.mark.skip` (mobile/API-only)
+   - BV-09: `total=1` on-point accepted, asserts `is_success()`
+   - BV-10/11: `xfail` — total=0/-100, assert `not is_success()` (BUG-B-02)
+   - BV-12 to 15: `@pytest.mark.skip` (API-only address tests)
+
+5. **Execution results**: `8 passed, 31 skipped, 8 xfailed, 1 xpassed in 82.96s`
+
+6. **Table fill-in**: All Actual Result and Verdict columns updated in TC-B-01–29, TC-B-C-01–04, TC-B-BV-01–15
+
+---
+
+### Section 3 — Verdict
+
+**VALID**
+
+The AI correctly:
+- Identified which tests were testable via Selenium web UI vs. API-only or mobile-only
+- Used `@pytest.mark.skip` (not deletion) for untestable cases, satisfying the "mark it instead of hiding" requirement
+- Used `@pytest.mark.xfail(strict=False)` for tests where correct behavior currently fails due to bugs — preserving intent while documenting the defect
+- Applied React-aware automation strategies (React Router navigation for cart state, double-click for ProductDetail, localStorage injection for auth, `parse_vnd()` locale-aware parsing)
+- Correctly identified the XPASS root cause (Selenium `clear()` does not fire React synthetic `onChange`) and flagged TC-B-25 for manual verification rather than silently accepting the XPASS
+
+Minor limitation: TC-B-13 used `driver.get('/cart')` which clears React state — this is acceptable here since the precondition is empty cart, but the test name was slightly misleading (it tested the GET /api/cart empty response rather than the React state). The overall test suite is architecturally sound.
+
+---
+
+### Section 4 — Reasoning
+
+The AI's approach aligns with ISTQB FL 4.3 (Test Execution) by executing test cases and recording actual results against expected results. Using `@pytest.mark.skip` preserves traceability to the test case ID without hiding gaps — conformant with ISTQB 5.2 (Defect Management) which requires defects to be logged and tracked, not suppressed. The `@pytest.mark.xfail` pattern correctly implements ISTQB's distinction between "test fail" (unexpected) and "known defect behavior" (expected) — equivalent to a defect report with an accepted/deferred status. The Page Object Model separation satisfies ISTQB's maintainability criteria for test automation (ISTQB CTAL-TAE 3.4). The React-specific workarounds (double-click, localStorage injection, router navigation) demonstrate accurate technical understanding of the SUT that goes beyond generic automation patterns.
+
+---
+
+### Section 5 — Student Fix
+
+Accepted all test implementations with the following personal verifications:
+
+1. **XPASS (TC-B-25) handling** — I independently checked `ProductDetail.jsx:27` and confirmed `parseInt("") = NaN` with no guard; agreed the test correctly identifies the code risk even though Selenium cannot reproduce it. Added "MANUAL VERIFY" verdict with explanation in the table.
+
+2. **Double-click on product detail** — I verified `ProductDetail.jsx` `clickCount` guard is real; the POM's double-click pattern is the correct Selenium approach.
+
+3. **TC-B-12 verdict** — I agreed that "PASS (BUG-B-04 documented)" is the correct verdict: the test *passed* its assertion (2 rows), which documents the inconsistency, even though the behavior itself is a bug.
+
+4. **TC-B-16 xfail** — I verified that `driver.get('/checkout')` after auth injection does NOT preserve React cart state (React `useState([])` reinitialises on full mount); the test correctly demonstrates the empty-cart checkout vulnerability.
+
+---
+
 ## AI Accuracy Summary
 
 | Verdict | Count | % |
 |---------|-------|---|
-| VALID | 6 | 86% |
-| INCOMPLETE | 1 | 14% |
+| VALID | 7 | 88% |
+| INCOMPLETE | 1 | 12% |
 | INVALID | 0 | 0% |
 
-**Conclusion:** AI is effective for generating structured test cases from visible UI artefacts and producing automation scripts that follow standard patterns (POM, fixture isolation). It is also effective at expanding existing domain analyses when given clear source code context — correctly identifying security-critical inputs (client-controlled `price`, `total_amount` bypass), escalating source-code observations into formal bug reports, and applying boundary analysis across formula boundary values. It is unreliable for **initial** domain analysis without explicit prompting for industry standards (RFC 5321, NIST 800-63B, OWASP), and cannot independently discover UI-layer defects without a screenshot or running application. Gaps consistently appear around access-control testing (auth enforcement) and application lifecycle edge cases (app restart, in-memory state). Human review of the complete test suite and cross-checking with applicable standards is essential before accepting AI-generated test artefacts.
+**Conclusion:** AI is effective for generating structured test cases from visible UI artefacts and producing automation scripts that follow standard patterns (POM, fixture isolation). It is also effective at expanding existing domain analyses when given clear source code context — correctly identifying security-critical inputs (client-controlled `price`, `total_amount` bypass), escalating source-code observations into formal bug reports, and applying boundary analysis across formula boundary values. It handles React-specific automation challenges (synthetic events, client-side state, router navigation) correctly when the architecture is described. It is unreliable for **initial** domain analysis without explicit prompting for industry standards (RFC 5321, NIST 800-63B, OWASP), and cannot independently discover UI-layer defects without a screenshot or running application. Gaps consistently appear around access-control testing (auth enforcement) and application lifecycle edge cases (app restart, in-memory state). Human review of the complete test suite and cross-checking with applicable standards is essential before accepting AI-generated test artefacts.
 

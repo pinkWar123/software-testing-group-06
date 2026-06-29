@@ -141,3 +141,109 @@ def expired_lock_account():
     db_set_lock_expired(seconds_ago=60)
     yield
     db_reset_account()
+
+
+# ── Feature B (Shopping Cart) helpers ─────────────────────────────────────────
+import requests as _requests
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+
+API_URL = "http://localhost:3000"
+
+
+def get_api_token(email: str = TEST_EMAIL, password: str = TEST_PASSWORD) -> str:
+    """Get a JWT token from the backend API (fast, avoids UI login flow)."""
+    resp = _requests.post(
+        f"{API_URL}/api/login",
+        json={"email": email, "password": password},
+        timeout=5,
+    )
+    resp.raise_for_status()
+    return resp.json()["token"]
+
+
+def inject_auth_token(driver, token: str) -> None:
+    """Store a JWT in localStorage then reload so AuthContext picks it up."""
+    driver.execute_script(f"localStorage.setItem('token', '{token}')")
+    driver.refresh()
+
+
+def db_delete_test_orders(user_email: str = TEST_EMAIL) -> None:
+    """Delete all orders created by the test user — call before/after checkout tests."""
+    with _connect() as conn:
+        conn.execute(
+            "DELETE FROM orders WHERE user_id = (SELECT id FROM users WHERE email = ?)",
+            (user_email,),
+        )
+
+
+def db_get_last_order(user_email: str = TEST_EMAIL):
+    """Return the most recent order row for the test user, or None."""
+    with _connect() as conn:
+        row = conn.execute(
+            """
+            SELECT o.id, o.total_amount, o.status, o.shipping_address
+            FROM orders o
+            JOIN users u ON o.user_id = u.id
+            WHERE u.email = ?
+            ORDER BY o.id DESC LIMIT 1
+            """,
+            (user_email,),
+        ).fetchone()
+    if row is None:
+        return None
+    return {
+        "id": row[0],
+        "total_amount": row[1],
+        "status": row[2],
+        "shipping_address": row[3],
+    }
+
+
+def click_cart_nav(driver, timeout: int = 8) -> None:
+    """Click the 'Giỏ hàng' nav link (React Router — preserves client-side cart state)."""
+    WebDriverWait(driver, timeout).until(
+        EC.element_to_be_clickable((By.XPATH, "//a[text()='Giỏ hàng']"))
+    ).click()
+
+
+def click_checkout_btn(driver, timeout: int = 8) -> None:
+    """Click the 'Tiến hành thanh toán' button on the cart page; accept alert if shown."""
+    WebDriverWait(driver, timeout).until(
+        EC.element_to_be_clickable(
+            (By.XPATH, "//button[contains(text(),'Tiến hành thanh toán')]")
+        )
+    ).click()
+    try:
+        WebDriverWait(driver, 3).until(EC.alert_is_present())
+        driver.switch_to.alert.accept()
+    except Exception:
+        pass  # No alert — user is authenticated
+
+
+@pytest.fixture()
+def logged_in_driver(driver):
+    """Chrome driver with the test user authenticated via localStorage token injection.
+
+    After this fixture:
+    - Driver is at BASE_URL (home page)
+    - 'Thoát' button is visible in the header
+    - Cart is empty (fresh React state after reload)
+    """
+    db_reset_account()
+    token = get_api_token()
+    driver.get(BASE_URL)
+    inject_auth_token(driver, token)
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, "//button[text()='Thoát']"))
+    )
+    return driver
+
+
+@pytest.fixture()
+def clean_orders():
+    """Delete test-user orders before and after each test that runs through checkout."""
+    db_delete_test_orders()
+    yield
+    db_delete_test_orders()
