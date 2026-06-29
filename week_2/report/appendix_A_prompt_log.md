@@ -91,3 +91,12 @@
 > "help me to write selenium script to execute the test cases of feature B. Then fill into the tables. In case you encounter a test case that can't verify or it runs wrong compared to our expectation, you should mark it instead of hiding it, which allows me to verify manually later."
 
 **Artifact produced**: (1) New Selenium test files: `week_2/artifacts/selenium/tests/test_cart_domain.py` (35 tests, TC-B-01 to TC-B-29) and `week_2/artifacts/selenium/tests/test_cart_bva.py` (15 tests, TC-B-BV-01 to TC-B-BV-15). (2) New POM classes: `pages/home_page.py`, `pages/product_detail_page.py`, `pages/cart_page.py`, `pages/checkout_page.py`. (3) Extended `conftest.py` with cart-specific helpers: `get_api_token()`, `inject_auth_token()`, `db_get_last_order()`, `db_delete_test_orders()`, `logged_in_driver` fixture, `clean_orders` fixture. (4) Updated `pytest.ini` with `cart_domain` and `cart_bva` markers. (5) Test execution results: `8 passed, 31 skipped, 8 xfailed, 1 xpassed in 82.96s`. (6) Filled all Actual Result and Verdict columns in all four Feature B test tables (TC-B-01–29, TC-B-C-01–04, TC-B-BV-01–15) in `report.md` based on execution results, with skip/xfail/manual-verify markings where tests could not be executed via Selenium web UI.
+
+---
+
+## 22:59 29/06/2026 — Claude Sonnet 4.6 (Claude Code CLI)
+**Purpose**: R2 – Execute remaining N/A API-only test cases for Feature B (FR-07: Shopping Cart) via curl; fill actual results
+**Prompt**:
+> "Now help me to execute curls to test for the remaining N/A cases due to API tests of the feature"
+
+**Artifact produced**: Executed 18 curl commands against `http://localhost:3000` covering: POST /api/cart (TC-B-01 to TC-B-04, TC-B-18, TC-B-19, TC-B-21, TC-B-C-01, TC-B-C-04, TC-B-BV-06, TC-B-BV-07, TC-B-BV-08), GET /api/cart without token (TC-B-C-03), POST /api/checkout (TC-B-10, TC-B-11, TC-B-17, TC-B-22, TC-B-BV-12, TC-B-BV-13, TC-B-BV-14, TC-B-BV-15). Updated all corresponding Actual Result and Verdict cells in `report.md`. Key findings: BUG-B-01 confirmed (qty 0/-1 accepted by server), BUG-B-02 confirmed again via API (total=1 accepted), BUG-B-05 confirmed (price=0/-50000 accepted), empty/null shipping_address accepted (BUG-B-06 reinforced), TC-B-C-03 PASS (401 returned correctly), XSS stored verbatim in DB (React UI safe due to JSX escaping but stored XSS risk remains for non-React consumers).
