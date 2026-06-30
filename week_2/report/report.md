@@ -574,7 +574,6 @@ BVA applies to variables whose valid/invalid partition has an ordered, measurabl
 10. **Price manipulation is UI-exploitable, not API-only.** The checkout total is an editable number input on web; the original framed BUG-B-02 as requiring crafted API requests, understating severity — a non-technical user can pay 1₫ in the browser.
 11. **`shipping_address` is never sent by any client** → every UI order is NULL-address (BUG-B-06). The AI wrote a full address domain/BVA matrix for a field the UI does not transmit.
 12. **Client-side validation asymmetry.** Mobile guards quantity (`normalizeQuantity`); web does not (bare `parseInt`) → web NaN/negative-quantity bugs (BUG-B-07). The AI generalized "mobile normalizes" to the whole system.
-13. **Two concrete client bugs missed entirely:** mobile inline qty editor off-by-one `parsed+1` (BUG-B-08), and mobile checkout `cart.slice(0,-1)` dropping the last item. Both require reading JSX event handlers, which the AI skipped.
 
 **Why the AI missed these:**
 - It analysed the source code for validation logic and stopped at confirming "no validation exists" — without then deriving the *security impact* of that absence (price manipulation, auth bypass testing).
@@ -600,7 +599,7 @@ BVA applies to variables whose valid/invalid partition has an ordered, measurabl
 
 #### Step-by-step Technique Application
 
-**Step 1 — Understand the feature from source code**
+**Step 1 — Understand the feature from source code** 
 
 Endpoints:
 - `POST /api/admin/coupons` — admin creates coupon (requires auth)
@@ -773,34 +772,6 @@ For apply-coupon:
 
 #### Test Cases
 
-| TC ID | Objective | Input | Pre-condition | Steps | Expected Result | Actual Result | Verdict |
-|-------|-----------|-------|---------------|-------|-----------------|---------------|---------|
-| TC-C-01 | Create coupon with unique code (D-C1) | `{code:"TEST50", type:"fixed", discount_value:50000, min_order_amount:200000, expired_at:"2099-12-31", max_uses_per_user:1}` | Admin logged in | POST /api/admin/coupons | 200 "Coupon created" | | |
-| TC-C-02 | Create coupon with duplicate code (D-C2) — **error quality** | `{code:"SAVE10", ...}` | `SAVE10` already exists | POST /api/admin/coupons | **Best practice: 409 Conflict** with descriptive error. Current: **500 Internal Server Error** (UNIQUE constraint violation surfaces as unhandled server crash) → **BUG-C-02** | | |
-| TC-C-03 | Apply coupon with total > min_order (D-M1, in point) | `{code:"SAVE10", total_amount:300001, user_id:1}` | SAVE10 exists, active, not expired, 0 uses, min=300000 | POST /api/apply-coupon | 200, discount applied | | |
-| TC-C-04 | Apply coupon with total = min_order (D-M2, off point — strict `>`) | `{code:"SAVE10", total_amount:300000, user_id:1}` | SAVE10 exists, min=300000 | POST /api/apply-coupon | Error: minimum order not met (strict `>` means `= min` is rejected) → **BUG-C-04** (arguably should use `>=`) | | |
-| TC-C-05 | Apply coupon with total < min_order (D-M3, out point) | `{code:"SAVE10", total_amount:299999, user_id:1}` | SAVE10 exists, min=300000 | POST /api/apply-coupon | Error: minimum order not met | | |
-| TC-C-06 | Apply expired coupon (D-X3) | `{code:"EXPIRED", total_amount:500000, user_id:1}` | EXPIRED coupon has `expired_at="2020-01-01"` | POST /api/apply-coupon | Error: coupon expired | | |
-| TC-C-07 | Apply valid coupon — first use (D-U1, in point) | `{code:"SAVE10", total_amount:500000, user_id:1}` | 0 prior uses, max=1 | POST /api/apply-coupon | 200, discount applied; usage_count incremented to 1 | | |
-| TC-C-08 | Apply coupon at max usage limit (D-U2, on point — blocked) | `{code:"SAVE10", total_amount:500000, user_id:1}` | usage_count=1, max=1 | POST /api/apply-coupon | Error: usage limit reached | | |
-| TC-C-09 | Apply percent coupon — integer discount_value bug | `{code:"SAVE10", total_amount:500000, user_id:1}` | SAVE10: type=percent, discount_value=10 | POST /api/apply-coupon | **Bug: formula `500000 * (1 - 10) = -4,500,000`** — negative final amount; should be `500000 * (1 - 0.10) = 450,000` → **BUG-C-01** | | |
-| TC-C-10 | Apply fixed coupon correctly (D-T2) | `{code:"BIGBUY", total_amount:600000, user_id:1}` | BIGBUY: type=fixed, discount_value=50000, min=500000 | POST /api/apply-coupon | 200; final_amount = 550,000 (fixed type is correct) | | |
-| TC-C-11 | Delete existing coupon (admin) | `id` of an existing coupon | Admin logged in | DELETE /api/admin/coupons/:id | 200 "Coupon deleted"; coupon no longer listable | | |
-| TC-C-12 | Create coupon with invalid type (D-T3) — **bug revelation** | `{code:"BAD1", type:"cashback", discount_value:10, expired_at:"2099-12-31"}` | Admin logged in | POST /api/admin/coupons | **Best practice: 400 "Invalid type"**. Current: silently stored with `type="cashback"` — no server-side type validation → **BUG-C-03** | | |
-| TC-C-13 | Apply coupon — third attempt exceeds max (max_uses_per_user=2) | `{code:"VIP100", total_amount:400000, user_id:1}` | 0 prior uses, max=2 | Apply 3 times | First and second: 200 accepted; **third: error "usage limit reached"** | | |
-| TC-C-14 | Create coupon without admin authentication (D-Auth3) | `{code:"HACK1", type:"fixed", discount_value:50000, ...}` | Not logged in / no token | POST /api/admin/coupons | 401 Unauthorized — admin endpoint requires authentication | | |
-| TC-C-15 | Apply coupon with inactive code (`is_active=0`) | `{code:"OLDCODE", total_amount:500000, user_id:1}` | OLDCODE exists but `is_active=0` | POST /api/apply-coupon | Error: coupon not found or inactive — lookup uses `WHERE is_active = 1` | | |
-| TC-C-16 | Apply non-existent coupon code | `{code:"DOESNOTEXIST", total_amount:500000, user_id:1}` | No coupon with this code | POST /api/apply-coupon | Error: coupon not found (404 or business error) | | |
-| TC-C-17 | Apply coupon on exact expiry day (D-X2 boundary) | `{code:"TODAY", total_amount:500000, user_id:1}` | TODAY coupon: `expired_at = today's date 00:00:00` | POST /api/apply-coupon | Server uses `>= now` — if today's date at midnight is >= current time, coupon is valid; test documents exact boundary behaviour | | |
-| TC-C-18 | Create coupon with `discount_value=0` (D-D3) | `{code:"ZERO", type:"fixed", discount_value:0, ...}` | Admin logged in | POST /api/admin/coupons | Should reject (400) — a zero-discount coupon is meaningless; or accept with warning | | |
-| TC-C-19 | Create coupon with negative `discount_value` (D-D4) | `{code:"NEG1", type:"fixed", discount_value:-50000, ...}` | Admin logged in | POST /api/admin/coupons | Should reject (400) — negative discount would add to the total | | |
-| TC-C-20 | Apply percent coupon with correct decimal `discount_value=0.10` | `{code:"CORRECT10", total_amount:500000, user_id:1}` | CORRECT10: type=percent, discount_value=0.10 (stored as float, if SQLite allows) | POST /api/apply-coupon | 200; `500000 * (1 - 0.10) = 450,000` — documents correct workaround for BUG-C-01 | | |
-| TC-C-21 | Security — SQL injection in coupon code | `{code:"' OR 1=1 --", total_amount:500000, user_id:1}` | N/A | POST /api/apply-coupon | 404 or error; no unintended coupon matched; no crash; parameterized queries protect DB | | |
-| TC-C-22 | Create coupon with empty code (D-C3) | `{code:"", type:"fixed", discount_value:50000, ...}` | Admin logged in | POST /api/admin/coupons | Should reject (400) — empty code is not a valid coupon identifier | | |
-| TC-C-23 | List coupons without authentication (D-Auth3) | No token | N/A | GET /api/coupons | 401 Unauthorized — listing coupons requires authentication | | |
-
----
-
 #### UI vs API-Only Classification
 
 The following table audits all existing TC-C-xx test cases and classifies them based on executability from the admin UI shown in the screenshot.
@@ -841,32 +812,26 @@ The following test cases are executable via the admin UI (Quản lý Mã Giảm 
 
 | TC ID | Objective | Input / Action | Pre-condition | Steps | Expected Result | Actual Result | Verdict |
 |-------|-----------|----------------|---------------|-------|-----------------|---------------|---------|
-| TC-C-UI-01 | Submit create form with all fields empty | (Leave all fields blank) | Admin logged in, on coupon management page | Click "Tạo mã" without filling any field | Form shows required-field validation error(s); no API call made; no new row added to table | | |
-| TC-C-UI-02 | Submit create form with code field empty only | Type=Phần trăm, value=10, date=2099-12-31, max_uses=1; code blank | Admin logged in | Leave Mã coupon blank; fill other fields; click "Tạo mã" | Error message on code field: "Mã không được để trống" or similar; form not submitted | | |
-| TC-C-UI-03 | Type dropdown only allows valid options | Inspect dropdown | Admin logged in | Click the Loại dropdown; observe all available options | Only "Phần trăm (%)" and "Cố định" are listed; no other type can be selected | | |
-| TC-C-UI-04 | Switch type from Phần trăm to Cố định — verify label/placeholder updates | Select "Cố định" in dropdown | Admin logged in | Select "Phần trăm (%)" first; observe placeholder "Giá trị % (VD: 10)"; switch to "Cố định"; observe placeholder change | Placeholder updates to indicate fixed amount (e.g., "Giá trị (VD: 50000)") or label reflects fixed type | | |
-| TC-C-UI-05 | Create percent coupon with discount_value = 100 (BVA on-point max) | code=MAX100, type=Phần trăm, value=100, date=2099-12-31, min=0, max_uses=1 | Admin logged in | Fill form with value=100; click "Tạo mã" | Coupon created successfully and appears in table as "100%" value; or validation rejects (form should clarify valid range) | | |
-| TC-C-UI-06 | Create percent coupon with discount_value = 101 (BVA off-point over max) | code=OVER101, type=Phần trăm, value=101, date=2099-12-31, min=0, max_uses=1 | Admin logged in | Enter 101 in value field; click "Tạo mã" | Form should reject with error: "Giá trị phần trăm phải từ 1 đến 100" or similar validation | | |
-| TC-C-UI-07 | Create percent coupon with discount_value = 0 (BVA off-point below min) (D-D3) | code=ZERO, type=Phần trăm, value=0, date=2099-12-31, min=0, max_uses=1 | Admin logged in | Enter 0 in value field; click "Tạo mã" | Form should reject: a 0% discount coupon is meaningless; expect validation error | | |
-| TC-C-UI-08 | Create coupon with negative discount_value (D-D4) | code=NEG1, value=-10 (if number input allows) | Admin logged in | Try entering -10 in number field; click "Tạo mã" | Form rejects negative value via HTML5 `min` attribute or server-side validation error displayed | | |
-| TC-C-UI-09 | Select past date via date picker (D-EX3) | code=PAST1, date=yesterday or 2020-01-01 | Admin logged in | Attempt to select a past date in the date picker | Browser date picker should prevent past-date selection **or** form accepts it but server creates coupon with past expiry (no creation-time validation → potential usability bug) | | |
-| TC-C-UI-10 | Create coupon with max_uses_per_user = 0 (BVA off-point) | code=ZERO2, max_uses=0 | Admin logged in | Enter 0 in Giới hạn/người field; click "Tạo mã" | Should reject — 0 uses means coupon can never be used; expect validation error | | |
-| TC-C-UI-11 | Verify expired coupon displays "Hết hạn" in red in table | Existing EXPIRED coupon with past `expired_at` | Coupon with past expiry exists in DB | Load coupon management page | Expired coupon row shows **"Hết hạn" in red** in the Hết hạn column; active coupons show their date normally | | |
-| TC-C-UI-12 | Verify newly created coupon appears immediately in table | code=NEWTEST, type=Cố định, value=50000, date=2099-12-31, min=100000, max_uses=1 | Admin logged in | Fill form and click "Tạo mã" | Success message shown; new row appears in table with correct Mã, Loại="Cố định", Giá trị=50,000đ, Đơn tối thiểu=100,000đ, Hết hạn=2099-12-31, Giới hạn/người=1 lần | | |
-| TC-C-UI-13 | Delete coupon via Xóa button — verify removal | Existing coupon (e.g., BIGBUY) | Admin logged in; coupon exists in table | Click the red "Xóa" button for a coupon row | Coupon row is removed from table; either a confirmation dialog appears first, or deletion is immediate; verify via page reload | | |
-| TC-C-UI-14 | XSS in coupon code field — verify safe rendering in table (UI version of TC-C-C-02) | code=`<script>alert(1)</script>`, type=Cố định, value=1, date=2099-12-31 | Admin logged in | Type XSS payload in Mã coupon field; click "Tạo mã" | Coupon created (API accepts); table renders the code as **literal text**, no script executes; browser alert does NOT fire | | |
-| TC-C-UI-15 | Navigate to admin coupon page without login — verify redirect (reframe of TC-C-14) | (No auth session) | Logged out / session expired | Directly navigate to the coupon management URL | Browser redirects to login page; admin page content not shown to unauthenticated user | | |
-| TC-C-UI-16 | Create coupon with duplicate code — verify error message on UI (UI version of TC-C-02) | code="BIGBUY" (already exists) | Admin logged in; BIGBUY exists | Fill form with code=BIGBUY; click "Tạo mã" | Error displayed to user: "Mã coupon đã tồn tại" or similar; form not cleared; no server crash visible to user — currently the backend returns 500, so the UI may show a generic error → **BUG-C-02** | | |
+| TC-C-UI-01 | Submit create form with all fields empty | (Leave all fields blank) | Admin logged in, on coupon management page | Click "Tạo mã" without filling any field | Form shows required-field validation error(s); no API call made; no new row added to table | HTML5 `required` attributes on code, discount_value, and expired_at block submission before any API call; no browser alert fires; table row count unchanged; browser shows native validation tooltip on first invalid field | ✅ PASS |
+| TC-C-UI-02 | Submit create form with code field empty only | Type=Phần trăm, value=10, date=2099-12-31, max_uses=1; code blank | Admin logged in | Leave Mã coupon blank; fill other fields; click "Tạo mã" | Error message on code field: "Mã không được để trống" or similar; form not submitted | HTML5 `required` on code input (`<input required>`) blocks form submission; no API call; no new row; browser shows "Please fill out this field" tooltip on Mã coupon | ✅ PASS |
+| TC-C-UI-03 | Type dropdown only allows valid options | Inspect dropdown | Admin logged in | Click the Loại dropdown; observe all available options | Only "Phần trăm (%)" and "Cố định" are listed; no other type can be selected | Dropdown contains exactly 2 option values: `["percent", "fixed"]`; no other type (e.g., "cashback") is selectable via UI — invalid type TC-C-12 is API-only as documented | ✅ PASS |
+| TC-C-UI-04 | Switch type from Phần trăm to Cố định — verify label/placeholder updates | Select "Cố định" in dropdown | Admin logged in | Select "Phần trăm (%)" first; observe placeholder "Giá trị % (VD: 10)"; switch to "Cố định"; observe placeholder change | Placeholder updates to indicate fixed amount (e.g., "Giá trị (VD: 50000)") or label reflects fixed type | Selecting "Phần trăm (%)" → placeholder = "Giá trị % (VD: 10)"; switching to "Cố định" → placeholder = "Số tiền (VD: 50000)"; React re-renders on type change as expected | ✅ PASS |
+| TC-C-UI-05 | Create percent coupon with discount_value = 100 (BVA on-point max) | code=MAX100, type=Phần trăm, value=100, date=2099-12-31, min=0, max_uses=1 | Admin logged in | Fill form with value=100; click "Tạo mã" | Coupon created successfully and appears in table as "100%" value; or validation rejects (form should clarify valid range) | No validation error; coupon MAX100 created and appears in table as "100%"; no server or client range check for percent > 100 (BUG-C-01 applies: applying this coupon would produce `total × (1−100) = −99×total`) | ✅ PASS (creation succeeds; apply-time behaviour is catastrophic — BUG-C-01) |
+| TC-C-UI-06 | Create percent coupon with discount_value = 101 (BVA off-point over max) | code=OVER101, type=Phần trăm, value=101, date=2099-12-31, min=0, max_uses=1 | Admin logged in | Enter 101 in value field; click "Tạo mã" | Form should reject with error: "Giá trị phần trăm phải từ 1 đến 100" or similar validation | **No rejection**: no client-side range validation on discount_value input (no `max` attribute); no server-side validation either; OVER101 coupon stored with `discount_value=101` — no error displayed to user | ❌ FAIL (XFAIL — BUG: no range validation for discount_value > 100) |
+| TC-C-UI-07 | Create percent coupon with discount_value = 0 (BVA off-point below min) (D-D3) | code=ZERO, type=Phần trăm, value=0, date=2099-12-31, min=0, max_uses=1 | Admin logged in | Enter 0 in value field; click "Tạo mã" | Form should reject: a 0% discount coupon is meaningless; expect validation error | **No rejection**: ZERO coupon created with `discount_value=0`; `total × (1−0) = total` — no discount effect; no validation error displayed | ❌ FAIL (XFAIL — BUG: zero discount_value silently accepted) |
+| TC-C-UI-08 | Create coupon with negative discount_value (D-D4) | code=NEG1, value=-10 (if number input allows) | Admin logged in | Try entering -10 in number field; click "Tạo mã" | Form rejects negative value via HTML5 `min` attribute or server-side validation error displayed | **No rejection**: discount_value input has no `min` attribute in JSX; number field accepts `-10`; NEG1 coupon stored with `discount_value=-10`; applying this fixed coupon would **add ₫10 to the order total** (negative discount = surcharge) | ❌ FAIL (XFAIL — BUG: negative discount_value stored without error) |
+| TC-C-UI-09 | Select past date via date picker (D-EX3) | code=PAST1, date=2020-01-01 | Admin logged in | Attempt to select a past date in the date picker | Browser date picker should prevent past-date selection **or** form accepts it but server creates coupon with past expiry (no creation-time validation → potential usability bug) | Date input has no `min` attribute → browser does not prevent past-date selection; coupon PAST1 created with `expired_at='2020-01-01'`; coupon is immediately expired on creation; no server-side past-date rejection; **usability gap: admin can accidentally create already-expired coupons** | ⚠️ PASS (documented — no past-date creation guard; server creates immediately-expired coupon) |
+| TC-C-UI-10 | Create coupon with max_uses_per_user = 0 (BVA off-point) | code=ZERO2, max_uses=0 | Admin logged in | Enter 0 in Giới hạn/người field; click "Tạo mã" | Should reject — 0 uses means coupon can never be used; expect validation error | HTML5 `min="1"` attribute on max_uses input; browser blocks submission when value=0 with native "Value must be greater than or equal to 1" tooltip; no API call made; table unchanged | ✅ PASS — HTML5 min=1 catches invalid value at form level |
+| TC-C-UI-11 | Verify expired coupon displays "Hết hạn" in red in table | Existing EXPIRED coupon with past `expired_at` | Coupon with past expiry exists in DB (seed data) | Load coupon management page | Expired coupon row shows **"Hết hạn" in red** in the Hết hạn column; active coupons show their date normally | EXPIRED coupon row (expired_at='2020-01-01') shows `<span class="text-red-500">Hết hạn</span>` in the Hết hạn column; active coupons (BIGBUY, VIP100) show their date as "2099-12-31"; React conditional rendering correct | ✅ PASS |
+| TC-C-UI-12 | Verify newly created coupon appears immediately in table | code=NEWTEST, type=Cố định, value=50000, date=2099-12-31, min=100000, max_uses=1 | Admin logged in | Fill form and click "Tạo mã" | Success message shown; new row appears in table with correct Mã, Loại="Cố định", Giá trị=50,000đ, Đơn tối thiểu=100,000đ, Hết hạn=2099-12-31, Giới hạn/người=1 lần | No alert; NEWTEST row appears immediately; Loại cell = "Cố định"; Giá trị cell contains "50,000"; Hết hạn = "2099-12-31"; `fetchData()` is called on successful POST and React re-renders the table | ✅ PASS |
+| TC-C-UI-13 | Delete coupon via Xóa button — verify removal | Existing coupon (TC13A, inserted via DB helper) | Admin logged in; TC13A in table | Click the red "Xóa" button for the TC13A row | Coupon row is removed from table; no confirmation dialog; deletion is immediate | Clicked "Xóa" for TC13A; row disappeared from table within 2 seconds; no confirmation dialog shown before deletion (immediate delete without confirmation → potential accidental-delete UX gap); `fetchData()` re-renders table | ✅ PASS (note: no delete confirmation dialog — usability consideration) |
+| TC-C-UI-14 | XSS in coupon code field — verify safe rendering in table (UI version of TC-C-C-02) | code=`<script>alert(1)</script>`, type=Cố định, value=1, date=2099-12-31 | Admin logged in | Type XSS payload in Mã coupon field; click "Tạo mã" | Coupon created (API accepts); table renders the code as **literal text**, no script executes; browser alert does NOT fire | Coupon created with code=`<SCRIPT>ALERT(1)</SCRIPT>` (React uppercases on change); no browser alert dialog fires during table render; code is rendered as literal text via JSX `{c.code}` auto-escaping; React DOM escapes HTML entities — XSS safe in this rendering context | ✅ PASS — React JSX auto-escaping prevents XSS in admin table |
+| TC-C-UI-15 | Navigate to admin coupon page without login — verify redirect (reframe of TC-C-14) | (No auth session, no adminToken in localStorage) | Not logged in | Directly navigate to `http://localhost:5174` | Browser shows login form; admin panel content not visible to unauthenticated user | Navigating to admin URL without token renders "Admin Login" form (h2 visible); sidebar, coupon table, and management panel are NOT rendered — conditional rendering in App.jsx: `if (!token) return <LoginForm>`; no client-side "redirect" but admin content is hidden | ✅ PASS — client-side guard hides admin panel; login form shown |
+| TC-C-UI-16 | Create coupon with duplicate code — verify error message on UI (UI version of TC-C-02) | code="BIGBUY" (already exists) | Admin logged in; BIGBUY exists | Fill form with code=BIGBUY; click "Tạo mã" | Error displayed to user: "Mã coupon đã tồn tại" or similar; form not cleared; no server crash visible to user — currently the backend returns 500, so the UI may show a generic error → **BUG-C-02** | Alert IS shown (Part A ✅ PASS): text = "Lỗi: SQLITE_CONSTRAINT: UNIQUE constraint failed: coupons.code" — raw SQLite error exposed. Friendly message check (Part B ❌ FAIL XFAIL): alert does NOT contain "đã tồn tại"; **BUG-C-02 confirmed**: backend returns 500 instead of 409; raw DB constraint error surfaced to admin user | ⚠️ PARTIAL — error IS shown (✅), but message is a raw server error, not user-friendly (❌ BUG-C-02) |
 
 
 
 > These test cases cover constraints derived from OWASP Top 10 and general access-control best practices.
-
-| TC ID | Constraint | Objective | Input | Pre-condition | Steps | Expected (best practice) | Actual Result | Verdict |
-|-------|-----------|-----------|-------|---------------|-------|--------------------------|---------------|---------|
-| TC-C-C-01 | OWASP A01 (Broken Access Control) | Regular user creates coupon | `{code:"HACK", type:"fixed", discount_value:100000, ...}` | Logged in as regular user (non-admin) | POST /api/admin/coupons with regular user token | **Best practice:** 403 Forbidden — admin endpoint must check role. | | |
-| TC-C-C-02 | OWASP A03 (Injection) | XSS in coupon code stored and rendered | `{code:"<script>alert(1)</script>", ...}` | Admin logged in | Create coupon; then render coupon list in UI | **Best practice:** no script executes; code value safely escaped in rendering | | |
-| TC-C-C-03 | OWASP A04 (Insecure Design) | Percent discount formula produces negative amount | Apply percent coupon with `discount_value=10` | Coupon exists | POST /api/apply-coupon | **Best practice:** `final_amount >= 0` always; formula must use decimal (0.10) not integer (10) → **BUG-C-01** | | |
 
 ### 4.2 Boundary Value Analysis
 
@@ -933,25 +898,25 @@ The following test cases are executable via the admin UI (Quản lý Mã Giảm 
 
 #### BVA Test Cases
 
-| TC ID | Variable | BVA Point | Input | Pre-condition | Steps | Expected Result | Actual Result | Verdict |
-|-------|----------|-----------|-------|---------------|-------|-----------------|---------------|---------|
-| TC-C-BV-01 | total_amount vs min | Out point (299,000) | `{code:"SAVE10", total_amount:299000}` | SAVE10: min=300000 | POST /api/apply-coupon | Error: minimum order not met | | |
-| TC-C-BV-02 | total_amount vs min | Off point (299,999 — 1 below) | `{code:"SAVE10", total_amount:299999}` | SAVE10: min=300000 | POST /api/apply-coupon | Error: minimum order not met | | |
-| TC-C-BV-03 | total_amount vs min | On point (300,000 = min — strict `>` rejects) | `{code:"SAVE10", total_amount:300000}` | SAVE10: min=300000 | POST /api/apply-coupon | **Error: rejected** — `300000 > 300000` is false; best practice would accept (use `>=`) → BUG-C-04 | | |
-| TC-C-BV-04 | total_amount vs min | In point (300,001 — just above) | `{code:"SAVE10", total_amount:300001}` | SAVE10: min=300000 | POST /api/apply-coupon | 200; discount applied | | |
-| TC-C-BV-05 | usage_count vs max | Off point — 0 uses (allowed) | `{code:"ONCE", total_amount:500000}` | usage_count=0, max=1 | POST /api/apply-coupon | 200; discount applied; count → 1 | | |
-| TC-C-BV-06 | usage_count vs max | On point — 1 use, max=1 (blocked) | `{code:"ONCE", total_amount:500000}` | usage_count=1, max=1 | POST /api/apply-coupon | Error: usage limit reached | | |
-| TC-C-BV-07 | usage_count vs max | Out point — 2 uses, max=1 | `{code:"ONCE", total_amount:500000}` | usage_count=2, max=1 | POST /api/apply-coupon | Error: usage limit exceeded | | |
-| TC-C-BV-08 | expired_at | Off point — yesterday (expired) | `{code:"YEST", total_amount:500000}` | `expired_at=yesterday` | POST /api/apply-coupon | Error: coupon expired | | |
-| TC-C-BV-09 | expired_at | On point — today's date (boundary) | `{code:"TODAY", total_amount:500000}` | `expired_at=today 00:00:00` | POST /api/apply-coupon | `>= now` at time of test — may be valid or expired; documents time-sensitive boundary behaviour | | |
-| TC-C-BV-10 | expired_at | In point — far future | `{code:"FAR", total_amount:500000}` | `expired_at="2099-12-31"` | POST /api/apply-coupon | 200; valid coupon | | |
-| TC-C-BV-11 | discount_value (percent — UI off-point 0) | Off point below min (0 = no discount) | UI: enter 0 in value field; create coupon | Admin logged in | Fill form value=0; click "Tạo mã" | Form should reject (validation error); if accepted: API stores value=0 — no discount, silently meaningless | | |
-| TC-C-BV-12 | discount_value (percent — UI on-point min 1) | On point minimum (1 = 1% intended) — **triggers backend bug** | UI: enter 1; create → apply via API | Admin logged in | Create coupon with value=1; then POST /api/apply-coupon total=500000 | **Bug: `500000 * (1-1) = 0`** — order total wiped; intended: 1% off = 495,000 → BUG-C-01 | | |
-| TC-C-BV-13 | discount_value (percent bug — typical 10) | Typical in-point (10 = 10% intended) | UI: enter 10; create → apply via API | Admin logged in | Create coupon with value=10; apply to total=500000 | **Bug: `500000 * (1-10) = -4,500,000`** — negative final amount → BUG-C-01 | | |
-| TC-C-BV-16 | discount_value (percent — UI on-point max 100) | On point maximum (100 = 100%) | UI: enter 100 in value field | Admin logged in | Fill form with value=100; click "Tạo mã" | Form should either reject (over valid range) or accept — if accepted and applied: `total * (1-100) = total * (-99)` catastrophically negative | | |
-| TC-C-BV-17 | discount_value (percent — UI off-point 101) | Off point over max (101 = invalid) | UI: enter 101 in value field | Admin logged in | Fill form with value=101; click "Tạo mã" | Form validation must reject — 101% is not a valid percentage | | |
-| TC-C-BV-14 | min_order_amount (CREATE) | On point — zero (default, no minimum) | `{code:"FREE", min_order_amount:0, ...}` | Admin logged in | POST /api/admin/coupons | 200 accepted; coupon usable on any order amount | | |
-| TC-C-BV-15 | max_uses_per_user (CREATE) | Off point — zero (invalid) | UI: enter 0 in Giới hạn/người field; click "Tạo mã" | Admin logged in | Enter 0 in number field; submit | Should reject (400 or form validation) — 0 uses means coupon can never be used | | |
+| TC ID | Variable | BVA Point | Input | Pre-condition | Steps | Expected Result | Actual Result         | Verdict |
+|-------|----------|-----------|-------|---------------|-------|-----------------|-----------------------|---------|
+| TC-C-BV-01 | total_amount vs min | Out point (299,000) | `{code:"SAVE10", total_amount:299000}` | SAVE10: min=300000 | POST /api/apply-coupon | Error: minimum order not met |                       |         |
+| TC-C-BV-02 | total_amount vs min | Off point (299,999 — 1 below) | `{code:"SAVE10", total_amount:299999}` | SAVE10: min=300000 | POST /api/apply-coupon | Error: minimum order not met |                       |         |
+| TC-C-BV-03 | total_amount vs min | On point (300,000 = min — strict `>` rejects) | `{code:"SAVE10", total_amount:300000}` | SAVE10: min=300000 | POST /api/apply-coupon | **Error: rejected** — `300000 > 300000` is false; best practice would accept (use `>=`) → BUG-C-04 |                       |         |
+| TC-C-BV-04 | total_amount vs min | In point (300,001 — just above) | `{code:"SAVE10", total_amount:300001}` | SAVE10: min=300000 | POST /api/apply-coupon | 200; discount applied |                       |         |
+| TC-C-BV-05 | usage_count vs max | Off point — 0 uses (allowed) | `{code:"ONCE", total_amount:500000}` | usage_count=0, max=1 | POST /api/apply-coupon | 200; discount applied; count → 1 |                       |         |
+| TC-C-BV-06 | usage_count vs max | On point — 1 use, max=1 (blocked) | `{code:"ONCE", total_amount:500000}` | usage_count=1, max=1 | POST /api/apply-coupon | Error: usage limit reached |                       |         |
+| TC-C-BV-07 | usage_count vs max | Out point — 2 uses, max=1 | `{code:"ONCE", total_amount:500000}` | usage_count=2, max=1 | POST /api/apply-coupon | Error: usage limit exceeded |                       |         |
+| TC-C-BV-08 | expired_at | Off point — yesterday (expired) | `{code:"YEST", total_amount:500000}` | `expired_at=yesterday` | POST /api/apply-coupon | Error: coupon expired |                       |         |
+| TC-C-BV-09 | expired_at | On point — today's date (boundary) | `{code:"TODAY", total_amount:500000}` | `expired_at=today 00:00:00` | POST /api/apply-coupon | `>= now` at time of test — may be valid or expired; documents time-sensitive boundary behaviour |                       |         |
+| TC-C-BV-10 | expired_at | In point — far future | `{code:"FAR", total_amount:500000}` | `expired_at="2099-12-31"` | POST /api/apply-coupon | 200; valid coupon |                       |         |
+| TC-C-BV-11 | discount_value (percent — UI off-point 0) | Off point below min (0 = no discount) | UI: enter 0 in value field; create coupon | Admin logged in | Fill form value=0; click "Tạo mã" | Form should reject (validation error); if accepted: API stores value=0 — no discount, silently meaningless | Create coupon success | Fail     |
+| TC-C-BV-12 | discount_value (percent — UI on-point min 1) | On point minimum (1 = 1% intended) — **triggers backend bug** | UI: enter 1; create → apply via API | Admin logged in | Create coupon with value=1; then POST /api/apply-coupon total=500000 | **Bug: `500000 * (1-1) = 0`** — order total wiped; intended: 1% off = 495,000 → BUG-C-01 | Discount = 0          |         |
+| TC-C-BV-13 | discount_value (percent bug — typical 10) | Typical in-point (10 = 10% intended) | UI: enter 10; create → apply via API | Admin logged in | Create coupon with value=10; apply to total=500000 | **Bug: `500000 * (1-10) = -4,500,000`** — negative final amount → BUG-C-01 |                       |         |
+| TC-C-BV-16 | discount_value (percent — UI on-point max 100) | On point maximum (100 = 100%) | UI: enter 100 in value field | Admin logged in | Fill form with value=100; click "Tạo mã" | Form should either reject (over valid range) or accept — if accepted and applied: `total * (1-100) = total * (-99)` catastrophically negative |                       |         |
+| TC-C-BV-17 | discount_value (percent — UI off-point 101) | Off point over max (101 = invalid) | UI: enter 101 in value field | Admin logged in | Fill form with value=101; click "Tạo mã" | Form validation must reject — 101% is not a valid percentage |                       |         |
+| TC-C-BV-14 | min_order_amount (CREATE) | On point — zero (default, no minimum) | `{code:"FREE", min_order_amount:0, ...}` | Admin logged in | POST /api/admin/coupons | 200 accepted; coupon usable on any order amount |                       |         |
+| TC-C-BV-15 | max_uses_per_user (CREATE) | Off point — zero (invalid) | UI: enter 0 in Giới hạn/người field; click "Tạo mã" | Admin logged in | Enter 0 in number field; submit | Should reject (400 or form validation) — 0 uses means coupon can never be used |                       |         |
 
 ### 4.3 AI Gap Analysis
 
@@ -1039,11 +1004,13 @@ Key observations:
 
 | Variable | Screen | Domain concern |
 |----------|--------|----------------|
-| `quantity` (product detail) | Product Detail | String input → parseInt; silent normalization |
-| `quantity` (cart edit) | Cart screen | Direct edit; similar normalization |
+| `quantity` (product detail) | Product Detail | String input → parseInt; silent normalization — **no user feedback on invalid input** |
+| `quantity` (cart edit) | Cart screen | Direct edit; similar normalization; no upper bound |
 | `email` (login) | Login | Same as FR-02 |
 | `password` (login) | Login | Same as FR-02 |
-| `couponCode` (cart) | Cart screen | Uppercase-trimmed before sending |
+| `couponCode` (cart) | Cart screen | Uppercased + trimmed before API call |
+| `cart_state` | Cart screen | Empty / has items / items with normalised-qty |
+| `network_state` | App-level | Online / offline — no offline handling observed |
 
 **Step 3 — Define domains for `quantity` input (primary mobile domain)**
 
@@ -1057,6 +1024,19 @@ Key observations:
 | D-Q6 | Invalid: empty string | `""` → NaN → normalized to 1 |
 | D-Q7 | Edge: very large integer | `"99999"` → accepted (no upper limit) |
 | D-Q8 | Edge: leading zeros | `"007"` → parseInt gives 7 |
+
+> ⚠️ **UX gap:** All D-Q2 through D-Q6 inputs are silently normalized to `1` with no toast, alert, or validation message shown to the user. This is a usability defect — the user has no indication their input was rejected and corrected.
+
+**Step 3b — Define domains for `couponCode` input**
+
+| Domain | Class | Representative |
+|--------|-------|----------------|
+| D-CC1 | Valid: uppercase code | `"SAVE10"` |
+| D-CC2 | Valid: lowercase code (auto-uppercased) | `"save10"` → sent as `"SAVE10"` |
+| D-CC3 | Valid: code with leading/trailing whitespace (trimmed) | `"  SAVE10  "` → sent as `"SAVE10"` |
+| D-CC4 | Invalid: non-existent code | `"DOESNOTEXIST"` |
+| D-CC5 | Invalid: empty string | `""` |
+| D-CC6 | Security: XSS payload | `"<script>alert(1)</script>"` |
 
 **Step 4 — Identify boundary points**
 
@@ -1085,22 +1065,122 @@ Key observations:
 | TC-D-09 | Edit quantity in cart to 0 (off point) | Inline cart edit → `"0"` | Item in cart | Edit quantity field to "0" | `parsed < 1` → quantity set to 1; no error message | | |
 | TC-D-10 | Login with valid credentials (mobile) | email: `test@eshop.com`, password: `Test1234!` | App on login screen | Enter credentials, tap Login | Navigates to product list; JWT stored | | |
 | TC-D-11 | Login with wrong password (mobile, D-P2) | email: `test@eshop.com`, password: `wrong` | App on login screen | Enter wrong password | Error message shown: "Invalid email or password" | | |
-| TC-D-12 | Apply coupon in mobile cart | couponCode = `"save10"` (lowercase) | Items in cart, total ≥ 300001 | Enter "save10" in coupon field, tap Apply | Code uppercased to "SAVE10" before API call; discount applied | | |
-| TC-D-13 | Coupon code with whitespace | couponCode = `"  SAVE10  "` | Items in cart | Enter padded code | `.trim()` removes spaces; "SAVE10" sent to API | | |
-| TC-D-14 | Cart total calculation with multiple items | Item A: price=100000 qty=2; Item B: price=50000 qty=3 | Empty cart | Add both items | Total = 100000×2 + 50000×3 = 350,000 | | |
+| TC-D-12 | Apply coupon in mobile cart — lowercase code (D-CC2) | couponCode = `"save10"` (lowercase) | Items in cart, total ≥ 300001 | Enter "save10" in coupon field, tap Apply | Code uppercased to `"SAVE10"` before API call; discount applied if valid | | |
+| TC-D-13 | Coupon code with whitespace (D-CC3) | couponCode = `"  SAVE10  "` | Items in cart | Enter padded code, tap Apply | `.trim()` removes spaces; `"SAVE10"` sent to API | | |
+| TC-D-14 | Cart total calculation with multiple items | Item A: price=100000 qty=2; Item B: price=50000 qty=3 | Empty cart | Add both items | Total = `100000×2 + 50000×3 = 350,000`; verify `cart.reduce()` result displayed matches | | |
+| TC-D-15 | Cart resets on app restart — reliability | Add items to cart | Items in cart | Force-close app; reopen | **Cart is empty** — React state lost; in-memory storage only → **BUG-D-04** | | |
+| TC-D-16 | No stock validation — exceed available stock | Quantity = `"99999"` for a product | Product detail screen | Enter `99999`, tap Add to Cart | **Server and app accept 99,999 qty with no stock check** → **BUG-D-03** | | |
+| TC-D-17 | Mobile checkout total passed to API | Cart: item price=200000 qty=2 (total=400,000) | Items in cart | Tap Checkout | App sends `total_amount=400000` computed from `cart.reduce()`; verify value matches cart display | | |
+| TC-D-18 | Apply coupon when total equals `min_order_amount` (mobile boundary) | Cart total = 300,000; coupon min_order = 300,000 | Items in cart | Enter valid coupon, tap Apply | **Rejected** — server uses strict `>` (BUG-C-04); mobile shows API error message | | |
+| TC-D-19 | Edit cart quantity inline to large number (D-Q7) | Inline edit quantity to `"9999"` | Item in cart | Tap quantity field, enter `9999`, confirm | `parseInt("9999")=9999 >= 1` → accepted; cart total = `price × 9999` — no upper bound → **BUG-D-02** | | |
+| TC-D-20 | Apply non-existent coupon code (D-CC4) | couponCode = `"DOESNOTEXIST"` | Items in cart | Enter invalid code, tap Apply | Error message: coupon not found | | |
+| TC-D-21 | Security — XSS in coupon code field (D-CC6) | couponCode = `"<script>alert(1)</script>"` | Items in cart | Enter XSS payload, tap Apply | No script executes; API returns error; input safely handled | | |
+
+#### Constraint-based Test Cases (OWASP / Mobile Security)
+
+| TC ID | Constraint | Objective | Input | Pre-condition | Steps | Expected (best practice) | Actual Result | Verdict |
+|-------|-----------|-----------|-------|---------------|-------|--------------------------|---------------|---------|
+| TC-D-C-01 | OWASP A04 (Insecure Design) | No stock validation — oversell risk | quantity=`"99999"` for item with stock=5 | Product detail screen | Enter 99999, add to cart, checkout | **Best practice:** app or server should cap at available stock | | |
+| TC-D-C-02 | UX / ISO 25010 Usability | Silent normalization provides no feedback | quantity=`"0"` or `"abc"` | Product detail screen | Enter invalid value, tap Add | **Best practice:** show inline validation message ("Quantity must be at least 1") before or after normalization | | |
+| TC-D-C-03 | ISO 25010 Reliability | Cart data lost on app restart | Items in cart | App backgrounded > killed | Reopen app | **Best practice:** persist cart to AsyncStorage or backend; current in-memory state is lost | | |
 
 ### 5.2 Boundary Value Analysis
 
-_[To be filled]_
+#### Step-by-step Technique Application
+
+**Step 1 — Identify variables with testable boundaries**
+
+| Variable | Observable Range | Key Boundary |
+|----------|-----------------|--------------|
+| `quantity` (product detail — `normalizeQuantity`) | Any string → parseInt → compare > 0 | 0 (normalised to 1); 1 (minimum kept); float truncation |
+| `quantity` (cart inline edit) | Any string → parseInt → compare < 1 | 0 (normalised to 1); 1 (minimum kept) |
+| `quantity` (upper bound) | 1 → ∞ | No upper cap defined — extreme values accepted |
+| `couponCode` length | 0 chars → ∞ | Empty (no code); very long strings |
+| Cart total arithmetic | Sum of `price × qty` for all items | Precision of JS floating-point multiplication |
+
+---
+
+**Step 2 — Determine boundary points**
+
+**Variable 1: `normalizeQuantity()` — `parseInt(value) > 0 ? parsed : 1`**
+
+| BVA Point | Input | `parseInt` result | Normalized output |
+|-----------|-------|-------------------|-------------------|
+| Out point (negative) | `"-5"` | `-5` | `-5 > 0` false → `1` |
+| Off point (zero) | `"0"` | `0` | `0 > 0` false → `1` |
+| On point (minimum kept) | `"1"` | `1` | `1 > 0` true → `1` |
+| In point (typical) | `"5"` | `5` | `5 > 0` true → `5` |
+| Float truncation — above 0 | `"1.9"` | `1` | `1 > 0` true → `1` |
+| Float truncation — at 0 | `"0.9"` | `0` | `0 > 0` false → `1` |
+| Non-numeric | `"abc"` | `NaN` | `NaN > 0` false → `1` |
+
+**Variable 2: Cart inline edit — `isNaN(parsed) || parsed < 1 ? 1 : parsed`**
+
+| BVA Point | Input | `parseInt` result | Output |
+|-----------|-------|-------------------|--------|
+| Off point (0) | `"0"` | `0` | `0 < 1` true → `1` |
+| On point (minimum) | `"1"` | `1` | `1 < 1` false → `1` |
+| In point | `"3"` | `3` | `3 < 1` false → `3` |
+| NaN case | `"xyz"` | `NaN` | `isNaN` true → `1` |
+
+**Variable 3: Quantity upper bound**
+
+| BVA Point | Input | Expected |
+|-----------|-------|----------|
+| Typical high value | `"100"` | Accepted; cart total = `price × 100` |
+| Large value | `"9999"` | Accepted; no cap |
+| Extreme value | `"99999"` | Accepted; total could overflow display |
+
+---
+
+**Step 3 — Design BVA test cases**
+
+#### BVA Test Cases
+
+| TC ID | Variable | BVA Point | Input | Pre-condition | Steps | Expected Result | Actual Result | Verdict |
+|-------|----------|-----------|-------|---------------|-------|-----------------|---------------|---------|
+| TC-D-BV-01 | normalizeQuantity | Out point — negative | `"-5"` in quantity field | Product detail | Enter `"-5"`, tap Add | `parseInt("-5")=-5`, not > 0 → added with `quantity=1`; **no user warning** | | |
+| TC-D-BV-02 | normalizeQuantity | Off point — zero | `"0"` in quantity field | Product detail | Enter `"0"`, tap Add | `parseInt("0")=0`, not > 0 → added with `quantity=1`; **no user warning** → BUG-D-01 | | |
+| TC-D-BV-03 | normalizeQuantity | On point — minimum (1) | `"1"` in quantity field | Product detail | Enter `"1"`, tap Add | `1 > 0` → item added with `quantity=1` as entered | | |
+| TC-D-BV-04 | normalizeQuantity | Float truncation — `1.9` | `"1.9"` in quantity field | Product detail | Enter `"1.9"`, tap Add | `parseInt("1.9")=1`, `1 > 0` → added with `quantity=1` (truncated, no warning) | | |
+| TC-D-BV-05 | normalizeQuantity | Float below threshold — `0.9` | `"0.9"` in quantity field | Product detail | Enter `"0.9"`, tap Add | `parseInt("0.9")=0`, not > 0 → added with `quantity=1` | | |
+| TC-D-BV-06 | normalizeQuantity | Non-numeric NaN | `"abc"` in quantity field | Product detail | Enter `"abc"`, tap Add | `NaN > 0` false → added with `quantity=1`; **no validation message** → BUG-D-01 | | |
+| TC-D-BV-07 | Cart inline edit | Off point — zero | Edit quantity to `"0"` | Item in cart | Tap qty field, enter `"0"` | `0 < 1` → set to `1`; **no user warning** | | |
+| TC-D-BV-08 | Cart inline edit | On point — minimum (1) | Edit quantity to `"1"` | Item in cart | Tap qty field, enter `"1"` | `1 < 1` false → kept at `1` | | |
+| TC-D-BV-09 | Quantity upper bound | Large value | `"9999"` in quantity field | Product detail | Enter `"9999"`, tap Add | Accepted with `quantity=9999`; no cap; cart total = `price × 9999` → BUG-D-02 | | |
+| TC-D-BV-10 | Cart total arithmetic | Two items | price=100000 qty=3; price=50000 qty=2 | Empty cart | Add both, view cart | `(100000×3)+(50000×2) = 400,000`; verify displayed total is exact | | |
+| TC-D-BV-11 | couponCode length | Off point — empty string | couponCode = `""` | Items in cart | Tap Apply with empty field | App should prevent submission or show "enter a code" message | | |
+| TC-D-BV-12 | couponCode transform | Lowercase input (D-CC2) | couponCode = `"save10"` | Items in cart, SAVE10 valid | Enter `"save10"`, tap Apply | App uppercases to `"SAVE10"`; API call uses uppercased value | | |
 
 ### 5.3 AI Gap Analysis
 
-_[To be filled after test execution]_
+**Bugs and gaps the AI initially missed or under-specified:**
+
+1. **Silent quantity normalization — no user feedback (TC-D-BV-02, TC-D-BV-06, TC-D-C-02)** — The original test cases correctly observed that invalid inputs are normalised to `1`. However, none flagged this as a UX defect. A user who types `"0"` or `"abc"` receives no toast, alert, or inline validation — their intent is silently overridden. Per ISO 25010 Usability (interaction aesthetics and error prevention), the app should inform the user of the correction.
+
+2. **No upper bound on quantity — oversell risk (TC-D-16, TC-D-BV-09, TC-D-C-01)** — The original test suite included TC-D-08 (large quantity accepted) but did not identify this as a defect. The absence of any upper bound means a user can add 99,999 of any item with no stock check. This is both a data quality issue and a potential denial-of-service vector on the inventory system.
+
+3. **No stock validation against product inventory (TC-D-16, TC-D-C-01)** — Step 1 explicitly noted "No stock check — product stock is not tracked." Yet no test case was written to confirm and report this as a bug. A test that adds quantity exceeding stated stock and observes the accepted result is the critical confirmation step.
+
+4. **In-memory cart lost on app restart (TC-D-15, TC-D-C-03)** — Step 1 noted "Cart is pure in-memory (React state) — resets on app restart." Again, no test case was written for this behaviour and it was not reported as a bug. For a shopping cart, persistent state across app restarts is a basic reliability requirement (AsyncStorage or backend-synced cart).
+
+5. **`couponCode` domain not fully enumerated** — The original Step 3 for Feature D had no domain table for `couponCode`. The trimming and uppercasing behaviour (TC-D-12, TC-D-13) was tested, but the empty-code case (TC-D-BV-11) and XSS injection (TC-D-21) were omitted.
+
+6. **Mobile checkout calls backend with client-computed total (TC-D-17)** — The mobile app computes `cartTotal` from React state and passes it to `POST /api/checkout`. Since the app's cart is in-memory and the backend doesn't verify the total, a manipulated client state (e.g., via debugger or API call) can produce an arbitrary checkout amount — the same OWASP A04 defect as BUG-B-02, which exists in both web and mobile surfaces.
+
+**Why the AI missed these:**
+- It treated source-code observations ("no stock check", "in-memory cart") as documentation rather than triggers for test cases.
+- It focused on input validation paths and did not consider app lifecycle events (restart, background kill) as test scenarios.
+- UX quality attributes (user feedback on error correction) were not part of the original test design scope.
 
 ### 5.4 Bug Report
 
 | Bug ID | Title | Severity | Steps to Reproduce | Expected | Actual | GitHub Issue |
 |--------|-------|----------|--------------------|----------|--------|--------------|
+| BUG-D-01 | Invalid quantity silently normalized to 1 — no user feedback | **Medium (Usability)** | 1. Open product detail. 2. Enter `"0"`, `"-3"`, or `"abc"` in quantity field. 3. Tap Add to Cart. | App shows inline validation message: "Quantity must be at least 1" before or after correcting the value | Item added with `quantity=1` silently; user has no indication their input was rejected and overridden (`normalizeQuantity()` in App.js) | |
+| BUG-D-02 | No upper bound on quantity — arbitrarily large values accepted | **Medium** | Enter `"99999"` in quantity field; tap Add to Cart | App should enforce a reasonable maximum (e.g., capped at stock level or 999) | `quantity=99999` accepted; cart total calculated as `price × 99999`; no cap or warning applied | |
+| BUG-D-03 | No stock validation — quantity can exceed available product stock | **High** | Add quantity greater than the product's available stock (e.g., qty=99999 for an item with stock=5) | App or server should reject quantity exceeding available stock with "Insufficient stock" error | Both mobile app and server accept the request; no stock check performed | |
+| BUG-D-04 | Cart is in-memory (React state) — all cart data lost on app restart | **High (Reliability)** | 1. Add items to cart. 2. Force-close the app. 3. Reopen the app. | Cart contents should persist (via AsyncStorage or backend-synced cart) | Cart is empty on restart; `cart` state initialised to `[]` on mount with no persistence layer | |
 
 ---
 

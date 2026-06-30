@@ -247,3 +247,79 @@ def clean_orders():
     db_delete_test_orders()
     yield
     db_delete_test_orders()
+
+
+# ── Feature C (Coupon Management) helpers ─────────────────────────────────────
+
+ADMIN_URL   = "http://localhost:5174"
+ADMIN_EMAIL = "admin@eshop.com"
+ADMIN_PASSWORD = "Admin123!"
+
+
+def db_create_coupon(
+    code: str,
+    type_: str = "fixed",
+    discount_value: int = 10000,
+    min_order_amount: int = 0,
+    expired_at: str = "2099-12-31",
+    max_uses_per_user: int = 1,
+    is_active: int = 1,
+) -> int:
+    """Insert a coupon directly into the DB; returns the new coupon id."""
+    with _connect() as conn:
+        cur = conn.execute(
+            """INSERT INTO coupons
+               (code, type, discount_value, min_order_amount, expired_at,
+                is_active, max_uses_per_user)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (code, type_, discount_value, min_order_amount, expired_at,
+             is_active, max_uses_per_user),
+        )
+        return cur.lastrowid
+
+
+def db_delete_coupon_by_code(*codes: str) -> None:
+    """Delete coupons by code (accepts multiple codes)."""
+    with _connect() as conn:
+        for code in codes:
+            conn.execute("DELETE FROM coupons WHERE code = ?", (code,))
+
+
+def db_get_coupon_by_code(code: str):
+    """Return the coupon row as a dict, or None if not found."""
+    with _connect() as conn:
+        row = conn.execute(
+            "SELECT id, code, type, discount_value, min_order_amount, "
+            "expired_at, is_active, max_uses_per_user FROM coupons WHERE code = ?",
+            (code,),
+        ).fetchone()
+    if row is None:
+        return None
+    keys = ["id", "code", "type", "discount_value", "min_order_amount",
+            "expired_at", "is_active", "max_uses_per_user"]
+    return dict(zip(keys, row))
+
+
+def inject_admin_token(driver, token: str) -> None:
+    """Store a JWT as 'adminToken' in localStorage so the admin panel picks it up."""
+    driver.execute_script(f"localStorage.setItem('adminToken', '{token}')")
+    driver.refresh()
+
+
+@pytest.fixture()
+def admin_driver(driver):
+    """Chrome driver authenticated on the admin panel at ADMIN_URL.
+
+    After this fixture:
+    - Driver is at ADMIN_URL with admin logged in
+    - Sidebar is visible; no specific tab is active
+    """
+    token = get_api_token(email=ADMIN_EMAIL, password=ADMIN_PASSWORD)
+    driver.get(ADMIN_URL)
+    inject_admin_token(driver, token)
+    WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable(
+            (By.XPATH, "//li[contains(text(),'Mã Giảm Giá')]")
+        )
+    )
+    return driver
