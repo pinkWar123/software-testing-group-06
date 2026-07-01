@@ -25,7 +25,7 @@
    - 4.2 Boundary Value Analysis
    - 4.3 AI Gap Analysis
    - 4.4 Bug Report
-5. [Feature D — \[FR-XX: Name, Mobile\]](#5-feature-d)
+5. [Feature D — Mobile Add-to-Cart Quantity Input](#5-feature-d)
    - 5.1 Domain Testing
    - 5.2 Boundary Value Analysis
    - 5.3 AI Gap Analysis

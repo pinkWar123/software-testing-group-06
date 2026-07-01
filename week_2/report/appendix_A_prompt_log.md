@@ -18,6 +18,22 @@
 
 ---
 
+## 21:29 01/07/2026 — GPT-5 Codex
+**Purpose**: R1 – Refine Feature D (Pool D) so it covers one concrete mobile feature only; rewrite domain analysis and BVA for mobile add-to-cart quantity input
+**Prompt**:
+> "$qa-test-planner I'm writing the report for my homework in week_2/report/report.md , and working on feature D for mobile. Actually, mobile app has many features, so we only need to pick one and then perform domain and boundary analysis for it. So help me to choose one feature, then perform your expertise to do analysis, update the analysis and test cases accordingly"
+
+**Artifact produced**: Reworked Section 5 (Feature D) of `week_2/report/report.md` to focus on a single coherent mobile feature: **Mobile Add-to-Cart Quantity Input**. Updated the Feature Selection table and TOC label. Removed mixed mobile cases unrelated to the chosen feature (login, coupon, restart, checkout-total cases). Rebuilt the domain model around `quantity_text`, derived `parsed_quantity`, derived `effective_quantity`, and `stock_relation`. Added 12 domain test cases (TC-D-01 to TC-D-12), 3 constraint-based test cases (TC-D-C-01 to TC-D-C-03), and 10 BVA test cases (TC-D-BV-01 to TC-D-BV-10). Reframed Actual Result/Verdict values to distinguish **static code-trace evidence** from true executed mobile tests, and consolidated the bug list to 3 quantity-input defects: silent normalization with no feedback, decimal truncation, and missing upper-bound/stock validation.
+
+---
+
+## 22:05 01/07/2026 — GPT-5 Codex
+**Purpose**: R3 – Implement and execute Selenium tests for Feature D through the Expo web build of the mobile app; replace analysis-only rows with observed results where verifiable
+**Prompt**:
+> "Now you should apply $webapp-selenium-testing to help me write and execute selenium tests for the test cases. You can reference to how the current tests work in artifacts folder. Then fill into the test cases table. In case you can't verify a test case, let me know instead of assuming."
+
+**Artifact produced**: Added Selenium automation for Feature D under `week_2/artifacts/selenium/` using the existing Python/pytest stack: new page object `pages/mobile_app_page.py`, new test module `tests/test_mobile_quantity.py`, and marker `mobile_quantity` in `pytest.ini`. Started the backend and Expo web target (`frontend-mobile` on `http://localhost:8082`) and executed the suite with `python3 -m pytest tests/test_mobile_quantity.py -q`. Final result: **21 passed, 2 skipped**. Updated Section 5 of `week_2/report/report.md` so TC-D-01..10, TC-D-C-01..03, and TC-D-BV-01..07 / 10 now contain **observed Selenium results** instead of code-inference placeholders. Left stock-dependent cases (TC-D-11, TC-D-12, TC-D-BV-08, TC-D-BV-09) explicitly marked **SKIP / not verifiable** because the mobile UI does not expose or validate stock in the add-to-cart path.
+
 
 ## 21:55 22/06/2026 — Claude Sonnet 4.6 (GitHub Copilot CLI)
 **Purpose**: R1 – Domain testing & BVA for Feature A (FR-02: Login and Account Lockout); correct existing TCs and add RFC 5321 / NIST 800-63B constraint cases
