@@ -43,7 +43,7 @@
 | A | FR-02 | Login and account lockout | Randomly selected; rich boundary conditions on lockout threshold and credential inputs |
 | B | FR-07 | Shopping cart | Randomly selected; complex domain with quantity, price, and stock constraints |
 | C | FR-17 | Coupon management (CRUD) | Randomly selected; multiple constrained fields (discount value, date range, usage limit) |
-| D | Mobile | Mobile App — general feature | Randomly selected (Pool D) |
+| D | Mobile | Mobile Add-to-Cart Quantity Input | Chosen as one concrete mobile feature with clear numeric input partitions and strong boundary behavior |
 
 ---
 
@@ -964,7 +964,7 @@ The following test cases are executable via the admin UI (Quản lý Mã Giảm 
 
 ---
 
-## 5. Feature D — Mobile App (Pool D)
+## 5. Feature D — Mobile Add-to-Cart Quantity Input
 
 ### 5.1 Domain Testing
 
@@ -972,78 +972,67 @@ The following test cases are executable via the admin UI (Quản lý Mã Giảm 
 
 **Step 1 — Understand the feature from source code**
 
-The mobile app (`frontend-mobile/App.js`) is a React Native application. The key feature with rich domain behavior is the **product quantity input and cart management**:
+For Pool D, the report must focus on **one mobile feature**, not a grab-bag of unrelated app behaviors. The strongest single feature here is the **quantity input on the mobile product-detail screen when adding an item to cart**.
 
-Key functions:
+Relevant logic in `frontend-mobile/App.js`:
+
 ```javascript
 const normalizeQuantity = (value) => {
   const parsed = parseInt(value, 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
 };
 ```
-Cart item inline edit (line 617):
-```javascript
-const parsed = parseInt(text, 10);
-newCart[index].quantity = isNaN(parsed) || parsed < 1 ? 1 : parsed;
-```
 
-Checkout total calculation:
-```javascript
-const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
-```
+Observed behavior implied by that logic:
+1. The mobile UI accepts a **string** from the quantity textbox.
+2. `parseInt()` is applied before validation, so decimal strings are truncated.
+3. Any non-finite, zero, or negative result is silently coerced to `1`.
+4. There is **no maximum quantity check** in this function.
+5. There is **no stock-based validation** here, so oversell prevention is absent at the mobile input layer.
 
-Key observations:
-1. `normalizeQuantity`: silently converts any invalid/zero/negative quantity to `1`.
-2. No upper bound on quantity — can add 999,999 items.
-3. No stock check — product stock is not tracked.
-4. Cart is pure in-memory (React state) — resets on app restart.
-5. Login: same backend endpoint as FR-02 (email + password).
+> **Execution note:** These cases were executed with **Selenium against the Expo web build of `frontend-mobile`** (`http://localhost:8082`), which exercises the real mobile React Native logic through its web renderer. This gives empirical evidence for the quantity-input path. However, cases that depend on **stock visibility or stock enforcement** still cannot be verified from the UI because that information is neither shown nor validated in the add-to-cart flow.
 
 **Step 2 — Identify input variables**
 
-| Variable | Screen | Domain concern |
-|----------|--------|----------------|
-| `quantity` (product detail) | Product Detail | String input → parseInt; silent normalization — **no user feedback on invalid input** |
-| `quantity` (cart edit) | Cart screen | Direct edit; similar normalization; no upper bound |
-| `email` (login) | Login | Same as FR-02 |
-| `password` (login) | Login | Same as FR-02 |
-| `couponCode` (cart) | Cart screen | Uppercased + trimmed before API call |
-| `cart_state` | Cart screen | Empty / has items / items with normalised-qty |
-| `network_state` | App-level | Online / offline — no offline handling observed |
+| Variable | Type | Why it matters |
+|----------|------|----------------|
+| `quantity_text` | string | Raw user input from the mobile quantity field |
+| `parsed_quantity` | derived integer / `NaN` | Result of `parseInt(quantity_text, 10)` |
+| `effective_quantity` | derived integer | Final quantity after `normalizeQuantity()` |
+| `stock_relation` | derived state | Whether requested quantity is within or beyond available stock; not validated by the feature |
 
-**Step 3 — Define domains for `quantity` input (primary mobile domain)**
+**Step 3 — Define domains (equivalence classes)**
 
+**Variable: `quantity_text`**
+| Domain | Class | Representative | Effective quantity |
+|--------|-------|----------------|--------------------|
+| D-Q1 | Valid: positive integer string | `"1"`, `"5"`, `"99"` | same as parsed value |
+| D-Q2 | Invalid: zero string | `"0"` | `1` |
+| D-Q3 | Invalid: negative integer string | `"-1"`, `"-5"` | `1` |
+| D-Q4 | Edge: decimal string above 1 | `"1.9"`, `"2.5"` | truncated by `parseInt()` to `1`, `2` |
+| D-Q5 | Edge: decimal string below 1 | `"0.9"` | `1` because `parseInt("0.9") = 0` |
+| D-Q6 | Invalid: alphabetic / non-numeric string | `"abc"`, `"one"` | `1` |
+| D-Q7 | Invalid: empty string | `""` | `1` |
+| D-Q8 | Edge: leading-zero integer | `"007"` | `7` |
+| D-Q9 | Edge: extremely large integer | `"99999"` | `99999` (no upper cap) |
+
+**Variable: `stock_relation`** *(best-practice domain; currently not enforced by the mobile feature)*
 | Domain | Class | Representative |
 |--------|-------|----------------|
-| D-Q1 | Valid: positive integer string ≥ 1 | `"1"`, `"5"`, `"99"` |
-| D-Q2 | Invalid: zero string | `"0"` → normalized to 1 |
-| D-Q3 | Invalid: negative string | `"-1"`, `"-5"` → normalized to 1 |
-| D-Q4 | Invalid: float string | `"1.5"` → parseInt gives 1 |
-| D-Q5 | Invalid: alphabetic string | `"abc"` → NaN → normalized to 1 |
-| D-Q6 | Invalid: empty string | `""` → NaN → normalized to 1 |
-| D-Q7 | Edge: very large integer | `"99999"` → accepted (no upper limit) |
-| D-Q8 | Edge: leading zeros | `"007"` → parseInt gives 7 |
+| D-S1 | Requested quantity below available stock | request `3`, stock `5` |
+| D-S2 | Requested quantity equal to available stock | request `5`, stock `5` |
+| D-S3 | Requested quantity above available stock | request `6`, stock `5` |
 
-> ⚠️ **UX gap:** All D-Q2 through D-Q6 inputs are silently normalized to `1` with no toast, alert, or validation message shown to the user. This is a usability defect — the user has no indication their input was rejected and corrected.
-
-**Step 3b — Define domains for `couponCode` input**
-
-| Domain | Class | Representative |
-|--------|-------|----------------|
-| D-CC1 | Valid: uppercase code | `"SAVE10"` |
-| D-CC2 | Valid: lowercase code (auto-uppercased) | `"save10"` → sent as `"SAVE10"` |
-| D-CC3 | Valid: code with leading/trailing whitespace (trimmed) | `"  SAVE10  "` → sent as `"SAVE10"` |
-| D-CC4 | Invalid: non-existent code | `"DOESNOTEXIST"` |
-| D-CC5 | Invalid: empty string | `""` |
-| D-CC6 | Security: XSS payload | `"<script>alert(1)</script>"` |
+> ⚠️ **Primary defect pattern:** invalid inputs are not rejected; they are silently transformed into a different quantity. That means the domain analysis must test both the raw input and the hidden normalized result.
 
 **Step 4 — Identify boundary points**
 
 | Variable | Boundary | On Point | Off Point | In Point | Out Point |
 |----------|----------|----------|-----------|----------|-----------|
-| quantity (normalizeQuantity: `parsed > 0`) | `parsed > 0` | `1` (just valid, kept) | `0` (just below, → 1) | `5` | `-1` (→ 1) |
-| quantity (cart inline edit: `parsed < 1`) | `parsed >= 1` | `1` | `0` (→ 1) | `3` | `"abc"` (→ 1) |
-| quantity upper limit | none defined | no upper bound | N/A | `99` | none rejected |
+| `parsed_quantity` | `parsed > 0` | `1` | `0` | `5` | `-1` |
+| decimal truncation around 1 | `parseInt()` split | `"1.9"` → `1` | `"0.9"` → `0` | `"2.5"` → `2` | N/A |
+| upper bound | none defined | N/A | N/A | `99` | `99999` still accepted |
+| stock boundary | `requested <= stock` | request=`5`, stock=`5` | request=`4`, stock=`5` | request=`3`, stock=`5` | request=`6`, stock=`5` |
 
 **Step 5 — Design test cases**
 
@@ -1051,37 +1040,28 @@ Key observations:
 
 #### Test Cases
 
-| TC ID   | Objective                                                           | Input                                                 | Pre-condition                 | Steps                                     | Expected Result                                                                                    | Actual Result    | Verdict |
-|---------|---------------------------------------------------------------------|-------------------------------------------------------|-------------------------------|-------------------------------------------|----------------------------------------------------------------------------------------------------|------------------|---------|
-| TC-D-01 | Add product with quantity=1 (on point, D-Q1)                        | Quantity = `"1"`                                      | Product detail screen open    | Enter "1", tap Add to Cart                | Cart shows product with quantity=1                                                                 | Quantity = 1     | Pass    |
-| TC-D-02 | Add product with quantity=5 (in point, D-Q1)                        | Quantity = `"5"`                                      | Product detail screen         | Enter "5", tap Add to Cart                | Cart shows product with quantity=5                                                                 | Quantity = 5     | Pass    |
-| TC-D-03 | Add product with quantity=0 (off point, D-Q2)                       | Quantity = `"0"`                                      | Product detail screen         | Enter "0", tap Add to Cart                | normalizeQuantity → quantity=1; item added with qty=1 (silent normalization, no warning)           | Quantity = 1     | Fail    |
-| TC-D-04 | Add product with negative quantity (D-Q3)                           | Quantity = `"-3"`                                     | Product detail screen         | Enter "-3", tap Add to Cart               | normalizeQuantity → 1; no error shown to user                                                      | Quantity=1       | Fail    |
-| TC-D-05 | Add product with float quantity (D-Q4)                              | Quantity = `"2.9"`                                    | Product detail screen         | Enter "2.9", tap Add to Cart              | parseInt("2.9")=2; item added with qty=2 (truncated, no warning)                                   | Quantity = 2     | Pass    |
-| TC-D-06 | Add product with alphabetic quantity (D-Q5)                         | Quantity = `"abc"`                                    | Product detail screen         | Enter "abc", tap Add to Cart              | Don't allow user to do so                                                                          | Quantity = 1     | Fail    |
-| TC-D-07 | Add product with empty quantity (D-Q6)                              | Quantity = `""`                                       | Product detail screen         | Clear input, tap Add to Cart              | Display input validation error                                                                     | Quantity = 1     | Fail    |
-| TC-D-08 | Add product with very large quantity (D-Q7)                         | Quantity = `"99999"`                                  | Product detail screen         | Enter "99999", tap Add to Cart            | Throw validation error                                                                             | Quantity = 1e+35 | Fail    |
-| TC-D-09 | Edit quantity in cart to 0 (off point)                              | Inline cart edit → `"0"`                              | Item in cart                  | Edit quantity field to "0"                | User is not able to edit quantity to 0                                                             | Quantity = 1     | Pass    |
-| TC-D-10 | Login with valid credentials (mobile)                               | email: `test@eshop.com`, password: `Test1234!`        | App on login screen           | Enter credentials, tap Login              | Navigates to product list; JWT stored                                                              |                  |         |
-| TC-D-11 | Login with wrong password (mobile, D-P2)                            | email: `test@eshop.com`, password: `wrong`            | App on login screen           | Enter wrong password                      | Error message shown: "Invalid email or password"                                                   |                  |         |
-| TC-D-12 | Apply coupon in mobile cart — lowercase code (D-CC2)                | couponCode = `"save10"` (lowercase)                   | Items in cart, total ≥ 300001 | Enter "save10" in coupon field, tap Apply | Code uppercased to `"SAVE10"` before API call; discount applied if valid                           |                  |         |
-| TC-D-13 | Coupon code with whitespace (D-CC3)                                 | couponCode = `"  SAVE10  "`                           | Items in cart                 | Enter padded code, tap Apply              | `.trim()` removes spaces; `"SAVE10"` sent to API                                                   |                  |         |
-| TC-D-14 | Cart total calculation with multiple items                          | Item A: price=100000 qty=2; Item B: price=50000 qty=3 | Empty cart                    | Add both items                            | Total = `100000×2 + 50000×3 = 350,000`; verify `cart.reduce()` result displayed matches            |                  |         |
-| TC-D-15 | Cart resets on app restart — reliability                            | Add items to cart                                     | Items in cart                 | Force-close app; reopen                   | **Cart is empty** — React state lost; in-memory storage only → **BUG-D-04**                        |                  |         |
-| TC-D-16 | No stock validation — exceed available stock                        | Quantity = `"99999"` for a product                    | Product detail screen         | Enter `99999`, tap Add to Cart            | **Server and app accept 99,999 qty with no stock check** → **BUG-D-03**                            |                  |         |
-| TC-D-17 | Mobile checkout total passed to API                                 | Cart: item price=200000 qty=2 (total=400,000)         | Items in cart                 | Tap Checkout                              | App sends `total_amount=400000` computed from `cart.reduce()`; verify value matches cart display   |                  |         |
-| TC-D-18 | Apply coupon when total equals `min_order_amount` (mobile boundary) | Cart total = 300,000; coupon min_order = 300,000      | Items in cart                 | Enter valid coupon, tap Apply             | **Rejected** — server uses strict `>` (BUG-C-04); mobile shows API error message                   |                  |         |
-| TC-D-19 | Edit cart quantity inline to large number (D-Q7)                    | Inline edit quantity to `"9999"`                      | Item in cart                  | Tap quantity field, enter `9999`, confirm | `parseInt("9999")=9999 >= 1` → accepted; cart total = `price × 9999` — no upper bound → **BUG-D-02** |                  |         |
-| TC-D-20 | Apply non-existent coupon code (D-CC4)                              | couponCode = `"DOESNOTEXIST"`                         | Items in cart                 | Enter invalid code, tap Apply             | Error message: coupon not found                                                                    |                  |         |
-| TC-D-21 | Security — XSS in coupon code field (D-CC6)                         | couponCode = `"<script>alert(1)</script>"`            | Items in cart                 | Enter XSS payload, tap Apply              | No script executes; API returns error; input safely handled                                        |                  |         |
+| TC ID | Objective | Input | Pre-condition | Steps | Expected Result | Actual Result | Verdict |
+|-------|-----------|-------|---------------|-------|-----------------|---------------|---------|
+| TC-D-01 | Valid minimum quantity (D-Q1 on-point) | quantity=`"1"` | Product detail open | Enter `1`, tap Add to Cart | Item added with quantity `1` | Selenium on Expo web: item added; cart quantity input displayed `1` | ✅ PASS |
+| TC-D-02 | Typical valid quantity (D-Q1 in-point) | quantity=`"5"` | Product detail open | Enter `5`, tap Add to Cart | Item added with quantity `5` | Selenium on Expo web: item added; cart quantity input displayed `5`; total updated to `150,000,000 ₫` for the first product | ✅ PASS |
+| TC-D-03 | Zero input is silently coerced (D-Q2) | quantity=`"0"` | Product detail open | Enter `0`, tap Add to Cart | Best practice: reject or warn; current implementation adds quantity `1` | Selenium on Expo web: cart quantity displayed `1`; no validation message shown before or after add | ❌ FAIL (BUG-D-01) |
+| TC-D-04 | Negative input is silently coerced (D-Q3) | quantity=`"-3"` | Product detail open | Enter `-3`, tap Add to Cart | Best practice: reject or warn; current implementation adds quantity `1` | Selenium on Expo web: cart quantity displayed `1`; no validation feedback shown | ❌ FAIL (BUG-D-01) |
+| TC-D-05 | Decimal above 1 is truncated (D-Q4) | quantity=`"2.9"` | Product detail open | Enter `2.9`, tap Add to Cart | Best practice: reject decimals or preserve intended quantity explicitly | Selenium on Expo web: cart quantity displayed `2`; decimal was silently truncated | ❌ FAIL (BUG-D-02) |
+| TC-D-06 | Decimal below 1 crosses the boundary to 0 then normalizes (D-Q5) | quantity=`"0.9"` | Product detail open | Enter `0.9`, tap Add to Cart | Best practice: reject decimals or show error | Selenium on Expo web: cart quantity displayed `1`; no validation feedback shown | ❌ FAIL (BUG-D-01) |
+| TC-D-07 | Alphabetic input is silently coerced (D-Q6) | quantity=`"abc"` | Product detail open | Enter `abc`, tap Add to Cart | Best practice: block submission with validation message | Selenium on Expo web: cart quantity displayed `1`; no visible validation/error message | ❌ FAIL (BUG-D-01) |
+| TC-D-08 | Empty input is silently coerced (D-Q7) | quantity=`""` | Product detail open | Clear field, tap Add to Cart | Best practice: require a numeric quantity | Selenium on Expo web: cart quantity displayed `1`; empty input was accepted and normalized | ❌ FAIL (BUG-D-01) |
+| TC-D-09 | Leading zeros are accepted as integer form (D-Q8) | quantity=`"007"` | Product detail open | Enter `007`, tap Add to Cart | Item added with quantity `7` | Selenium on Expo web: cart quantity input displayed `7` | ✅ PASS |
+| TC-D-10 | Extremely large quantity has no cap (D-Q9) | quantity=`"99999"` | Product detail open | Enter `99999`, tap Add to Cart | Best practice: enforce business maximum and/or stock cap | Selenium on Expo web: cart quantity displayed `99999`; no cap or warning enforced | ❌ FAIL (BUG-D-03) |
+| TC-D-11 | Requested quantity equals stock boundary (D-S2) | quantity=`"5"`, stock=`5` | Test product stock configured to `5` | Enter `5`, tap Add to Cart | Allowed: request equals available stock | ⏭️ Not verifiable via Selenium/Expo web: stock is not displayed and the add-to-cart path performs no observable stock check | ⏭️ SKIP |
+| TC-D-12 | Requested quantity exceeds stock (D-S3) | quantity=`"6"`, stock=`5` | Test product stock configured to `5` | Enter `6`, tap Add to Cart | Should reject with "Insufficient stock" | ⏭️ Not verifiable via Selenium/Expo web: no stock value is exposed in the UI and no stock-validation message exists in this flow | ⏭️ SKIP |
 
-#### Constraint-based Test Cases (OWASP / Mobile Security)
+#### Constraint-based Test Cases
 
 | TC ID | Constraint | Objective | Input | Pre-condition | Steps | Expected (best practice) | Actual Result | Verdict |
 |-------|-----------|-----------|-------|---------------|-------|--------------------------|---------------|---------|
-| TC-D-C-01 | OWASP A04 (Insecure Design) | No stock validation — oversell risk | quantity=`"99999"` for item with stock=5 | Product detail screen | Enter 99999, add to cart, checkout | **Best practice:** app or server should cap at available stock | | |
-| TC-D-C-02 | UX / ISO 25010 Usability | Silent normalization provides no feedback | quantity=`"0"` or `"abc"` | Product detail screen | Enter invalid value, tap Add | **Best practice:** show inline validation message ("Quantity must be at least 1") before or after normalization | | |
-| TC-D-C-03 | ISO 25010 Reliability | Cart data lost on app restart | Items in cart | App backgrounded > killed | Reopen app | **Best practice:** persist cart to AsyncStorage or backend; current in-memory state is lost | | |
+| TC-D-C-01 | UX / ISO 25010 Usability | Silent normalization must be visible to the user | quantity=`"0"` or `"abc"` | Product detail open | Enter invalid quantity, tap Add | App should show an inline error or correction notice | Selenium on Expo web: invalid input still produced cart quantity `1`; no visible validation/error text appeared | ❌ FAIL (BUG-D-01) |
+| TC-D-C-02 | Data integrity | Decimal quantity should not be silently truncated | quantity=`"2.9"` | Product detail open | Enter decimal, tap Add | App should reject decimals or explicitly round with user confirmation | Selenium on Expo web: cart quantity displayed `2`; decimal input was silently truncated | ❌ FAIL (BUG-D-02) |
+| TC-D-C-03 | OWASP A04 / Business rule validation | Requested quantity must not exceed stock or policy maximum | quantity=`"99999"` | Product detail open | Enter large quantity, tap Add | App/server should enforce stock or a business maximum | Selenium on Expo web: cart quantity displayed `99999`; no cap or stock-related validation in the observable flow | ❌ FAIL (BUG-D-03) |
 
 ### 5.2 Boundary Value Analysis
 
@@ -1091,11 +1071,10 @@ Key observations:
 
 | Variable | Observable Range | Key Boundary |
 |----------|-----------------|--------------|
-| `quantity` (product detail — `normalizeQuantity`) | Any string → parseInt → compare > 0 | 0 (normalised to 1); 1 (minimum kept); float truncation |
-| `quantity` (cart inline edit) | Any string → parseInt → compare < 1 | 0 (normalised to 1); 1 (minimum kept) |
-| `quantity` (upper bound) | 1 → ∞ | No upper cap defined — extreme values accepted |
-| `couponCode` length | 0 chars → ∞ | Empty (no code); very long strings |
-| Cart total arithmetic | Sum of `price × qty` for all items | Precision of JS floating-point multiplication |
+| `parsed_quantity` from `parseInt()` | negative / 0 / positive integer / `NaN` | `0` vs `1` |
+| decimal input near 1 | strings that truncate around the threshold | `"0.9"` vs `"1.0"` / `"1.9"` |
+| quantity upper bound | `1 .. ∞` | no defined maximum |
+| stock limit | `requested <= stock` | equality and first value above stock |
 
 ---
 
@@ -1108,27 +1087,26 @@ Key observations:
 | Out point (negative) | `"-5"` | `-5` | `-5 > 0` false → `1` |
 | Off point (zero) | `"0"` | `0` | `0 > 0` false → `1` |
 | On point (minimum kept) | `"1"` | `1` | `1 > 0` true → `1` |
-| In point (typical) | `"5"` | `5` | `5 > 0` true → `5` |
+| In point (typical) | `"2"` | `2` | `2 > 0` true → `2` |
 | Float truncation — above 0 | `"1.9"` | `1` | `1 > 0` true → `1` |
 | Float truncation — at 0 | `"0.9"` | `0` | `0 > 0` false → `1` |
 | Non-numeric | `"abc"` | `NaN` | `NaN > 0` false → `1` |
 
-**Variable 2: Cart inline edit — `isNaN(parsed) || parsed < 1 ? 1 : parsed`**
-
-| BVA Point | Input | `parseInt` result | Output |
-|-----------|-------|-------------------|--------|
-| Off point (0) | `"0"` | `0` | `0 < 1` true → `1` |
-| On point (minimum) | `"1"` | `1` | `1 < 1` false → `1` |
-| In point | `"3"` | `3` | `3 < 1` false → `3` |
-| NaN case | `"xyz"` | `NaN` | `isNaN` true → `1` |
-
-**Variable 3: Quantity upper bound**
+**Variable 2: stock boundary**
 
 | BVA Point | Input | Expected |
 |-----------|-------|----------|
-| Typical high value | `"100"` | Accepted; cart total = `price × 100` |
-| Large value | `"9999"` | Accepted; no cap |
-| Extreme value | `"99999"` | Accepted; total could overflow display |
+| Just below stock | request=`4`, stock=`5` | accepted |
+| On point | request=`5`, stock=`5` | accepted |
+| First out point | request=`6`, stock=`5` | should be rejected |
+
+**Variable 3: upper bound**
+
+| BVA Point | Input | Expected |
+|-----------|-------|----------|
+| Typical large | `"99"` | accepted |
+| Stress value | `"9999"` | should be capped by business rule but is currently accepted |
+| Extreme value | `"99999"` | should be rejected or capped; currently no guard exists |
 
 ---
 
@@ -1138,48 +1116,45 @@ Key observations:
 
 | TC ID | Variable | BVA Point | Input | Pre-condition | Steps | Expected Result | Actual Result | Verdict |
 |-------|----------|-----------|-------|---------------|-------|-----------------|---------------|---------|
-| TC-D-BV-01 | normalizeQuantity | Out point — negative | `"-5"` in quantity field | Product detail | Enter `"-5"`, tap Add | `parseInt("-5")=-5`, not > 0 → added with `quantity=1`; **no user warning** | | |
-| TC-D-BV-02 | normalizeQuantity | Off point — zero | `"0"` in quantity field | Product detail | Enter `"0"`, tap Add | `parseInt("0")=0`, not > 0 → added with `quantity=1`; **no user warning** → BUG-D-01 | | |
-| TC-D-BV-03 | normalizeQuantity | On point — minimum (1) | `"1"` in quantity field | Product detail | Enter `"1"`, tap Add | `1 > 0` → item added with `quantity=1` as entered | | |
-| TC-D-BV-04 | normalizeQuantity | Float truncation — `1.9` | `"1.9"` in quantity field | Product detail | Enter `"1.9"`, tap Add | `parseInt("1.9")=1`, `1 > 0` → added with `quantity=1` (truncated, no warning) | | |
-| TC-D-BV-05 | normalizeQuantity | Float below threshold — `0.9` | `"0.9"` in quantity field | Product detail | Enter `"0.9"`, tap Add | `parseInt("0.9")=0`, not > 0 → added with `quantity=1` | | |
-| TC-D-BV-06 | normalizeQuantity | Non-numeric NaN | `"abc"` in quantity field | Product detail | Enter `"abc"`, tap Add | `NaN > 0` false → added with `quantity=1`; **no validation message** → BUG-D-01 | | |
-| TC-D-BV-07 | Cart inline edit | Off point — zero | Edit quantity to `"0"` | Item in cart | Tap qty field, enter `"0"` | `0 < 1` → set to `1`; **no user warning** | | |
-| TC-D-BV-08 | Cart inline edit | On point — minimum (1) | Edit quantity to `"1"` | Item in cart | Tap qty field, enter `"1"` | `1 < 1` false → kept at `1` | | |
-| TC-D-BV-09 | Quantity upper bound | Large value | `"9999"` in quantity field | Product detail | Enter `"9999"`, tap Add | Accepted with `quantity=9999`; no cap; cart total = `price × 9999` → BUG-D-02 | | |
-| TC-D-BV-10 | Cart total arithmetic | Two items | price=100000 qty=3; price=50000 qty=2 | Empty cart | Add both, view cart | `(100000×3)+(50000×2) = 400,000`; verify displayed total is exact | | |
-| TC-D-BV-11 | couponCode length | Off point — empty string | couponCode = `""` | Items in cart | Tap Apply with empty field | App should prevent submission or show "enter a code" message | | |
-| TC-D-BV-12 | couponCode transform | Lowercase input (D-CC2) | couponCode = `"save10"` | Items in cart, SAVE10 valid | Enter `"save10"`, tap Apply | App uppercases to `"SAVE10"`; API call uses uppercased value | | |
+| TC-D-BV-01 | `parsed_quantity` | Out point — negative | quantity=`"-5"` | Product detail open | Enter `-5`, tap Add | Final quantity becomes `1`; this hidden correction should be visible to the user | Selenium on Expo web: cart quantity displayed `1`; no user feedback shown | ❌ FAIL (BUG-D-01) |
+| TC-D-BV-02 | `parsed_quantity` | Off point — zero | quantity=`"0"` | Product detail open | Enter `0`, tap Add | Final quantity becomes `1`; should show feedback | Selenium on Expo web: cart quantity displayed `1`; no validation/error text shown | ❌ FAIL (BUG-D-01) |
+| TC-D-BV-03 | `parsed_quantity` | On point — minimum valid | quantity=`"1"` | Product detail open | Enter `1`, tap Add | Final quantity `1` | Selenium on Expo web: cart quantity displayed `1` | ✅ PASS |
+| TC-D-BV-04 | `parsed_quantity` | In point — typical valid | quantity=`"2"` | Product detail open | Enter `2`, tap Add | Final quantity `2` | Selenium on Expo web: cart quantity displayed `2` | ✅ PASS |
+| TC-D-BV-05 | decimal truncation | Just above threshold | quantity=`"1.9"` | Product detail open | Enter `1.9`, tap Add | Best practice: reject decimals; current logic truncates to `1` | Selenium on Expo web: cart quantity displayed `1`; decimal was silently truncated | ❌ FAIL (BUG-D-02) |
+| TC-D-BV-06 | decimal truncation | Just below threshold | quantity=`"0.9"` | Product detail open | Enter `0.9`, tap Add | Best practice: reject decimals; current logic normalizes to `1` after truncating to `0` | Selenium on Expo web: cart quantity displayed `1`; no warning shown | ❌ FAIL (BUG-D-01) |
+| TC-D-BV-07 | `parsed_quantity` | NaN branch | quantity=`"abc"` | Product detail open | Enter `abc`, tap Add | Submission should be blocked with validation | Selenium on Expo web: cart quantity displayed `1`; input was not blocked | ❌ FAIL (BUG-D-01) |
+| TC-D-BV-08 | stock limit | On point — equals stock | quantity=`"5"`, stock=`5` | Test product stock = `5` | Enter `5`, tap Add | Accepted because request equals stock | ⏭️ Not verifiable via Selenium/Expo web because stock is not displayed or enforced in this path | ⏭️ SKIP |
+| TC-D-BV-09 | stock limit | First out point — exceeds stock by 1 | quantity=`"6"`, stock=`5` | Test product stock = `5` | Enter `6`, tap Add | Should reject as oversell | ⏭️ Not verifiable via Selenium/Expo web because stock is not displayed or enforced in this path | ⏭️ SKIP |
+| TC-D-BV-10 | upper bound | Stress value | quantity=`"9999"` | Product detail open | Enter `9999`, tap Add | Should be capped by business rule | Selenium on Expo web: cart quantity displayed `9999`; no cap or warning enforced | ❌ FAIL (BUG-D-03) |
 
 ### 5.3 AI Gap Analysis
 
 **Bugs and gaps the AI initially missed or under-specified:**
 
-1. **Silent quantity normalization — no user feedback (TC-D-BV-02, TC-D-BV-06, TC-D-C-02)** — The original test cases correctly observed that invalid inputs are normalised to `1`. However, none flagged this as a UX defect. A user who types `"0"` or `"abc"` receives no toast, alert, or inline validation — their intent is silently overridden. Per ISO 25010 Usability (interaction aesthetics and error prevention), the app should inform the user of the correction.
+1. **The earlier Feature D scope was too broad.** It mixed quantity input, login, coupon application, checkout totals, and app-restart persistence into one section. That violates the assignment spirit: Pool D still needs one coherent feature. The corrected scope is now only the **mobile add-to-cart quantity input** flow.
 
-2. **No upper bound on quantity — oversell risk (TC-D-16, TC-D-BV-09, TC-D-C-01)** — The original test suite included TC-D-08 (large quantity accepted) but did not identify this as a defect. The absence of any upper bound means a user can add 99,999 of any item with no stock check. This is both a data quality issue and a potential denial-of-service vector on the inventory system.
+2. **The earlier `Actual Result` / `Verdict` cells contained an execution hallucination.** Several rows were written as if the mobile behavior had been observed on a device or emulator, using concrete outcomes such as "Quantity = 1" or "Pass/Fail", even though no Appium session, emulator run, or manual mobile execution evidence existed in the workspace. This is a classic AI overclaim: the model inferred runtime behavior from source code and then presented that inference in the style of an executed test result. The revised tables now separate the two: source-traced rows are marked **analysis-only**, while only deterministic defect findings are labelled as failures.
 
-3. **No stock validation against product inventory (TC-D-16, TC-D-C-01)** — Step 1 explicitly noted "No stock check — product stock is not tracked." Yet no test case was written to confirm and report this as a bug. A test that adds quantity exceeding stated stock and observes the accepted result is the critical confirmation step.
+3. **Decimal-input behavior was under-analysed.** The earlier section listed float inputs but did not split the important boundary difference between `"1.9"` and `"0.9"`. Because `parseInt()` truncates before validation, those two values cross different branches and must be tested separately.
 
-4. **In-memory cart lost on app restart (TC-D-15, TC-D-C-03)** — Step 1 noted "Cart is pure in-memory (React state) — resets on app restart." Again, no test case was written for this behaviour and it was not reported as a bug. For a shopping cart, persistent state across app restarts is a basic reliability requirement (AsyncStorage or backend-synced cart).
+4. **Stock was mentioned but not modeled as a boundary.** Saying "no stock check" in prose is not enough; it must become a domain and BVA variable. The revised section introduces `stock_relation` so the first value above stock is tested explicitly.
 
-5. **`couponCode` domain not fully enumerated** — The original Step 3 for Feature D had no domain table for `couponCode`. The trimming and uppercasing behaviour (TC-D-12, TC-D-13) was tested, but the empty-code case (TC-D-BV-11) and XSS injection (TC-D-21) were omitted.
-
-6. **Mobile checkout calls backend with client-computed total (TC-D-17)** — The mobile app computes `cartTotal` from React state and passes it to `POST /api/checkout`. Since the app's cart is in-memory and the backend doesn't verify the total, a manipulated client state (e.g., via debugger or API call) can produce an arbitrary checkout amount — the same OWASP A04 defect as BUG-B-02, which exists in both web and mobile surfaces.
+5. **The AI treated silent normalization as acceptable business behavior.** In reality, silently changing a user's requested quantity is itself a defect unless the UI clearly explains the correction. The revised analysis upgrades this from an observation to a bug.
 
 **Why the AI missed these:**
-- It treated source-code observations ("no stock check", "in-memory cart") as documentation rather than triggers for test cases.
-- It focused on input validation paths and did not consider app lifecycle events (restart, background kill) as test scenarios.
-- UX quality attributes (user feedback on error correction) were not part of the original test design scope.
+- It optimized for breadth instead of feature coherence, so it kept adding "interesting mobile behaviors" rather than tightening the test model around one input domain.
+- It blurred the difference between **static code inference** and **executed evidence**, which led directly to the hallucinated `Actual Result` / `Verdict` entries.
+- It focused on nominal integer cases first and underweighted parser edge cases such as decimal truncation.
+
+**Principle learned for later real testing:** when a mobile test has not been executed on a real device, emulator, or Appium workflow, the report must not use definitive runtime wording in the `Actual Result` column. The correct labels are "analysis-only", "code-inferred", or "manual execution pending" until empirical evidence is collected.
 
 ### 5.4 Bug Report
 
 | Bug ID | Title | Severity | Steps to Reproduce | Expected | Actual | GitHub Issue |
 |--------|-------|----------|--------------------|----------|--------|--------------|
-| BUG-D-01 | Invalid quantity silently normalized to 1 — no user feedback | **Medium (Usability)** | 1. Open product detail. 2. Enter `"0"`, `"-3"`, or `"abc"` in quantity field. 3. Tap Add to Cart. | App shows inline validation message: "Quantity must be at least 1" before or after correcting the value | Item added with `quantity=1` silently; user has no indication their input was rejected and overridden (`normalizeQuantity()` in App.js) | |
-| BUG-D-02 | No upper bound on quantity — arbitrarily large values accepted | **Medium** | Enter `"99999"` in quantity field; tap Add to Cart | App should enforce a reasonable maximum (e.g., capped at stock level or 999) | `quantity=99999` accepted; cart total calculated as `price × 99999`; no cap or warning applied | |
-| BUG-D-03 | No stock validation — quantity can exceed available product stock | **High** | Add quantity greater than the product's available stock (e.g., qty=99999 for an item with stock=5) | App or server should reject quantity exceeding available stock with "Insufficient stock" error | Both mobile app and server accept the request; no stock check performed | |
-| BUG-D-04 | Cart is in-memory (React state) — all cart data lost on app restart | **High (Reliability)** | 1. Add items to cart. 2. Force-close the app. 3. Reopen the app. | Cart contents should persist (via AsyncStorage or backend-synced cart) | Cart is empty on restart; `cart` state initialised to `[]` on mount with no persistence layer | |
+| BUG-D-01 | Invalid quantity is silently normalized to `1` with no user feedback | **Medium (Usability)** | 1. Open a mobile product detail screen. 2. Enter `"0"`, `"-3"`, or `"abc"` in the quantity field. 3. Tap Add to Cart. | App rejects the value or clearly informs the user that it was corrected | `normalizeQuantity()` converts the value to `1` and the add-to-cart flow continues without any visible feedback | ![img.png](../artifacts/screenshots/16.png)             |
+| BUG-D-02 | Decimal quantity is truncated by `parseInt()` without warning | **Medium** | 1. Open product detail. 2. Enter `"2.9"` in quantity. 3. Tap Add to Cart. | App should reject decimal quantities or explain its rounding rule | `parseInt("2.9")=2`; the user-requested value is silently changed before adding to cart |   ![img.png](../artifacts/screenshots/17.png)           |
+| BUG-D-03 | No upper-bound or stock validation on mobile quantity input | **High** | 1. Open product detail for a product with limited stock. 2. Enter `"99999"` or a value above stock. 3. Tap Add to Cart. | App/server should cap the request or reject it as exceeding stock | The input path only checks `parsed > 0`; no maximum or stock comparison is performed in this feature logic |    ![img.png](../artifacts/screenshots/18.png)          |
 
 ---
 
