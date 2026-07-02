@@ -768,6 +768,57 @@ Verified the following after execution:
 
 ---
 
+## Entry AI-02-11
+
+### Section 1 — Prompt + Tool
+
+**Tool**: GPT-5 Codex  
+**Timestamp**: 10:41 02/07/2026
+
+**Prompt**:
+> "I need to create a separate bug report. Therefore, you should copy the bugs reported in week_2/report/report.md , then paste them into this bug report. Then update audit report and plog also"
+
+---
+
+### Section 2 — AI Output
+
+The AI created a new standalone bug report file:
+
+- `week_2/report/bug_report.md`
+
+Content copied into that file:
+- Feature A bug table from Section 2.4 of `report.md` (BUG-A-01 to BUG-A-06)
+- Feature B bug table from Section 3.4 of `report.md` (BUG-B-01 to BUG-B-05, BUG-B-07)
+- Feature C bug table from Section 4.4 of `report.md` (BUG-C-01, BUG-C-02, BUG-C-04)
+- Feature D bug table from Section 5.4 of `report.md` (BUG-D-01 to BUG-D-03)
+
+The AI did not invent new bugs or rewrite the defect content. It only reorganized the already-approved bug entries into one separate deliverable and then updated:
+
+- `week_2/ai_compliance/audit_report.md`
+- `week_2/report/appendix_A_prompt_log.md`
+
+---
+
+### Section 3 — Verdict
+
+**VALID**
+
+The AI performed a straightforward documentation refactor without changing the substance of any bug report. The standalone bug report remains consistent with the main report and preserves the original screenshots and issue links.
+
+---
+
+### Section 4 — Reasoning
+
+Per ISTQB CTFL §5.5 (defect reporting), defects must be documented in a clear, accessible form containing identifier, reproduction steps, expected result, actual result, and supporting evidence. The new `bug_report.md` preserves those required fields while improving deliverable separation for submission. This is a documentation restructuring task rather than new test design, so correctness depends on faithful copying and traceability back to the original source artifact. Because the AI only copied existing approved bug tables, the risk of semantic distortion is low.
+
+---
+
+### Section 5 — Student Fix
+
+I reviewed the new standalone bug report and confirmed it is only a compilation of the existing bug tables from `report.md`. No bug title, severity, reproduction step, expected result, actual result, screenshot link, or GitHub issue link was altered during the copy. I accepted this artifact because it improves submission organization while keeping the original report unchanged.
+
+---
+
 ## AI Accuracy Summary
 
 | Verdict | Count | % |
@@ -777,4 +828,3 @@ Verified the following after execution:
 | INVALID | 0 | 0% |
 
 **Conclusion:** AI is effective for generating structured test cases from visible UI artefacts and producing automation scripts that follow standard patterns (POM, fixture isolation). It is also effective at expanding existing domain analyses when given clear source code context — correctly identifying security-critical inputs (client-controlled `price`, `total_amount` bypass), escalating source-code observations into formal bug reports, and applying boundary analysis across formula boundary values. It handles React-specific automation challenges (synthetic events, client-side state, router navigation) correctly when the architecture is described. When given a UI screenshot, it correctly identifies control-type constraints that reduce the testable input domain for UI tests (e.g., dropdown eliminating invalid-type partition) and adds visual/behavioral UI tests absent from API-only plans. It is unreliable for **initial** domain analysis without explicit prompting for industry standards (RFC 5321, NIST 800-63B, OWASP), and cannot independently discover UI-layer defects without a screenshot or running application. Gaps consistently appear around access-control testing (auth enforcement) and application lifecycle edge cases (app restart, in-memory state). Human review of the complete test suite and cross-checking with applicable standards is essential before accepting AI-generated test artefacts.
-

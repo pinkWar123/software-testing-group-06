@@ -134,3 +134,11 @@
 **Artifact produced**: (1) `week_2/artifacts/selenium/pages/admin_coupon_page.py` — Page Object Model for admin coupon management UI (admin panel at localhost:5174); locators for all form fields and table rows; stale-element-safe wait helpers; React native event dispatch fix for date input. (2) `week_2/artifacts/selenium/tests/test_coupon_ui.py` — 17 test functions (TC-C-UI-01 to TC-C-UI-16 + split TC-C-UI-16A/B); 13 PASS, 4 XFAIL. (3) Extended `conftest.py` with coupon DB helpers (`db_create_coupon`, `db_delete_coupon_by_code`, `db_get_coupon_by_code`), `inject_admin_token()`, and `admin_driver` fixture. (4) Filled all 16 TC-C-UI Actual Result and Verdict cells in `report.md` Section 4.1. (5) Added AI-02-10 entry to `audit_report.md`. Key execution findings: TC-C-UI-06/07/08 XFAIL (no discount_value range validation — BUG confirmed); TC-C-UI-16B XFAIL (raw SQLite UNIQUE error exposed — BUG-C-02 confirmed); TC-C-UI-09 PASS with gap note (past date accepted — no creation-time validation).
 
 ---
+---
+
+## 10:41 02/07/2026 — GPT-5 Codex
+**Purpose**: R4 – Create a standalone bug-report deliverable by compiling all bugs already documented in the main report; update audit report and prompt log
+**Prompt**:
+> "I need to create a separate bug report. Therefore, you should copy the bugs reported in week_2/report/report.md , then paste them into this bug report. Then update audit report and plog also"
+
+**Artifact produced**: Created `week_2/report/bug_report.md` as a separate deliverable containing all bug tables already documented in `week_2/report/report.md`: Feature A (BUG-A-01 to BUG-A-06), Feature B (BUG-B-01 to BUG-B-05 and BUG-B-07), Feature C (BUG-C-01, BUG-C-02, BUG-C-04), and Feature D (BUG-D-01 to BUG-D-03). Also appended a new AI-02 entry to `week_2/ai_compliance/audit_report.md` and logged this interaction in `week_2/report/appendix_A_prompt_log.md`.
