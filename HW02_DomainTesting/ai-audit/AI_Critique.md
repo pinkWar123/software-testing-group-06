@@ -1,0 +1,3 @@
+# AI Critique
+
+Placeholder.
