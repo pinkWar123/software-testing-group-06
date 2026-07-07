@@ -153,9 +153,9 @@ Spec states `times used < max`. With max = 2: used 0, 1 (valid) and 2 (invalid) 
 
 | Bug ID | Title | Severity | Steps to reproduce | Expected | Actual | Screenshot | Issue link |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| BUG-01 | Percent coupon miscalculated and not applied to the total | Major | Log in; cart total `400,000`; apply `SAVE10` (10%) | Discount `40,000`, final `360,000` | Discount shown as `360,000` (~90% / the after-discount value); total stays `400,000`, coupon not applied | DT1.png | |
-| BUG-02 | Coupon applies while not logged in (C4 bypassed) | Major | Not logged in; cart total `400,000`; apply `SAVE10` | Require login / reject | Coupon applies successfully | DT7.png | |
-| BUG-03 | Order-total threshold uses `>` instead of `>=` (off-by-one) | Major | Apply any coupon with total = exactly `min_order_amount` (e.g. `SAVE10` at `300,000`) | Applied successfully | Rejected as "below minimum"; must add at least 1 more to apply | BT2.png | |
+| BUG-01 | Percent coupon miscalculated and not applied to the total | Major | Log in; cart total `400,000`; apply `SAVE10` (10%) | Discount `40,000`, final `360,000` | Discount shown as `360,000` (~90% / the after-discount value); total stays `400,000`, coupon not applied | DT1.png |#49|
+| BUG-02 | Coupon applies while not logged in (C4 bypassed) | Major | Not logged in; cart total `400,000`; apply `SAVE10` | Require login / reject | Coupon applies successfully | DT7.png |#50 |
+| BUG-03 | Order-total threshold uses `>` instead of `>=` (off-by-one) | Major | Apply any coupon with total = exactly `min_order_amount` (e.g. `SAVE10` at `300,000`) | Applied successfully | Rejected as "below minimum"; must add at least 1 more to apply | BT2.png |#51 |
 
 ---
 
