@@ -1,9 +1,9 @@
 # FR-01 Bug Reports
 
 ## Summary
-- Total failing TCs captured: 13
-- API evidence was verified directly against the backend registration endpoint at http://localhost:3000/api/register.
-- UI screenshots are attached in the FR-01 evidence folder, so each report now records the screenshot-backed UI observation alongside the verified API failure.
+- Total failing TCs captured: 17
+- API evidence was verified directly against the backend registration and checkout endpoints at http://localhost:3000.
+- UI screenshots are attached in the FR-01 and FR-08 evidence folders, so each report now records the screenshot-backed UI observation alongside the verified API failure.
 
 ## BUG-001
 - Bug ID: BUG-001
@@ -214,3 +214,66 @@
   - Actual: The UI screenshot shows the registration form submission outcome for this invalid input; the API returned HTTP 200 with body `{"message":"User registered successfully","id":21}`.
 - Environment: Web UI + backend API on localhost; Windows workspace.
 - Screenshot/curl evidence: UI screenshot: [TC-FR01-BVA-04](../evidence/screenshots/FR-01_AccountRegistration/TC-FR01-BVA-04.png). API evidence: `TC-FR01-BVA-04|status=200|body={"message":"User registered successfully","id":21}`.
+
+## FR-08 Bug Reports
+
+## BUG-014
+- Bug ID: BUG-014
+- Title: Checkout allows empty-cart order creation
+- TC ref: TC-FR08-04
+- Severity: High
+- Steps to Reproduce:
+  1. Log in to the web UI with a valid account.
+  2. Ensure the cart is empty.
+  3. Attempt checkout from the cart/checkout flow.
+  4. Observe the result.
+- Expected vs Actual:
+  - Expected: The UI should block checkout on an empty cart and the backend should return a 4xx error without creating an order.
+  - Actual: The UI shows empty-cart messaging, but the backend returns HTTP 200 and creates an order with `total_amount: 0`.
+- Environment: Web UI + backend API on localhost; Windows workspace.
+- Screenshot/curl evidence: UI screenshot: [TC-FR08-04](../evidence/screenshots/FR-08_Checkout/TC-FR08-04.png). API evidence: `TC-FR08-04|status=200|body={"message":"Order created","order":{"total_amount":0,...}}`.
+
+## BUG-015
+- Bug ID: BUG-015
+- Title: Checkout accepts tampered client total_amount
+- TC ref: TC-FR08-05
+- Severity: Critical
+- Steps to Reproduce:
+  1. Log in to the web UI with a valid account and have one item in the cart.
+  2. Tamper the checkout request to send `total_amount: 1000` while the cart total is actually 28000000.
+  3. Submit the checkout request.
+- Expected vs Actual:
+  - Expected: The backend should recompute the total from the cart and reject or override the tampered `total_amount`.
+  - Actual: The backend returns HTTP 200 and creates an order with `total_amount: 1000`, accepting the manipulated client-supplied total.
+- Environment: Web UI + backend API on localhost; Windows workspace.
+- Screenshot/curl evidence: UI screenshot: [TC-FR08-05](../evidence/screenshots/FR-08_Checkout/TC-FR08-05.png). API evidence: `TC-FR08-05|status=200|body={"message":"Order created","order":{"total_amount":1000,...}}`.
+
+## BUG-016
+- Bug ID: BUG-016
+- Title: Checkout succeeds without required shipping_address field
+- TC ref: TC-FR08-06
+- Severity: High
+- Steps to Reproduce:
+  1. Log in to the web UI with a valid account and add an item to the cart.
+  2. Navigate to checkout and observe that no shipping address field is presented.
+  3. Submit the checkout request.
+- Expected vs Actual:
+  - Expected: The UI should collect a shipping address and the backend should reject requests missing `shipping_address`.
+  - Actual: The UI shows no shipping address input, and the backend returns HTTP 200 with checkout success while `shipping_address` is null.
+- Environment: Web UI + backend API on localhost; Windows workspace.
+- Screenshot/curl evidence: UI screenshot: [TC-FR08-06](../evidence/screenshots/FR-08_Checkout/TC-FR08-06.png). API evidence: `TC-FR08-06|status=200|body={"message":"Order created","order":{"shipping_address":null,...}}`.
+
+## BUG-017
+- Bug ID: BUG-017
+- Title: Checkout does not clear cart after successful order creation
+- TC ref: TC-FR08-01
+- Severity: High
+- Steps to Reproduce:
+  1. Log in to the web UI with a valid account and add one item to the cart.
+  2. Submit checkout normally.
+  3. Verify the cart state after order creation.
+- Expected vs Actual:
+  - Expected: The backend should clear the cart after a successful checkout and the UI should reflect an empty cart.
+  - Actual: The checkout appears successful, but the backend leaves the cart items intact and the cart is not cleared.
+- Environment: Web UI + backend API on localhost; Windows workspace.
+- Screenshot/curl evidence: UI screenshot: [TC-FR08-01](../evidence/screenshots/FR-08_Checkout/TC-FR08-01.png). API evidence: `TC-FR08-01|status=200|body={"message":"Order created","order":{"total_amount":28000000,...}}; subsequent GET /api/cart shows the item still present.`
