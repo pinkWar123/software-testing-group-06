@@ -1,9 +1,48 @@
+# Bug Reports
+
+## BUG-001 — Critical: Authorization bypass on admin user-management endpoints
+- **Severity:** Critical
+- **Affected feature:** FR-19 User Management (Admin)
+- **Environment:** Local dev environment, backend at http://localhost:3000
+- **Summary:** Non-admin bearer tokens are able to access admin-only endpoints. Observed behaviors: `GET /api/admin/users` returned `200 OK` for a non-admin token, and `DELETE /api/admin/users/:id` returned `200 OK` and deleted a user when called with a non-admin token. This is an access-control failure allowing arbitrary users to enumerate and delete accounts.
+- **Steps to reproduce (black-box):**
+  1. Register a disposable user and login to obtain a non-admin token:
+     - `POST /api/register` body {"name":"BB Test User","email":"bbtest_nonadmin@eshop.com","password":"BbTest123!"}
+     - `POST /api/login` body {"email":"bbtest_nonadmin@eshop.com","password":"BbTest123!"} -> obtain `token`.
+  2. Call the admin users list with that token:
+     - `curl -i -H "Authorization: Bearer <token>" http://localhost:3000/api/admin/users`
+     - Observed: `200 OK` with JSON array of users.
+  3. Call delete as the same non-admin token:
+     - `curl -i -X DELETE -H "Authorization: Bearer <token>" http://localhost:3000/api/admin/users/999999`
+     - Observed: `200 OK {"message":"User deleted"}`.
+- **Expected result:** All admin endpoints require a valid admin-role bearer token; requests with non-admin tokens must return `403 Forbidden` (or `401 Unauthorized` for missing token). Deletion must only succeed for authenticated admin callers.
+- **Actual result:** Non-admin tokens are authorized; sensitive operations succeed.
+- **Evidence:** API output captured during run (status codes and bodies) stored in session logs; UI screenshot S-001 shows the Users page (for reference). See `HW02_DomainTesting/reports/FR-19_UserManagement/domain_testing.md` and `boundary_value_analysis.md` for per-TC details.
+- **Impact:** Critical — allows account enumeration and deletion by non-admin users; immediate data loss and privilege escalation risk.
+- **Suggested fix:** Enforce role-based authorization checks server-side on all `/api/admin/*` endpoints, verifying the token's `role` claim equals `admin` before performing sensitive operations.
+
+## BUG-002 — Critical: Sensitive data exposure in login response
+- **Severity:** Critical
+- **Affected feature:** Authentication / User endpoints
+- **Summary:** Login responses (successful `POST /api/login`) include the user's password in the `user` object returned to the client (observed for newly created accounts). Returning plaintext passwords in responses is a data-exposure vulnerability and must be eliminated.
+- **Steps to reproduce:**
+  1. Register a disposable user: `POST /api/register` ...
+  2. Login: `POST /api/login` with that user's credentials. Observed response included `"user": { ..., "password": "BbTest123!", ...}` in the response body.
+- **Expected result:** Authentication responses should never include password or password hashes. The response should include a token and non-sensitive user metadata only.
+- **Actual result:** Password present in response body.
+- **Evidence:** Captured API response from `POST /api/login` for the disposable user (see session logs). This is attached to this bug entry.
+- **Impact:** Critical — exposes user passwords to any client receiving the response; violates basic security best practices.
+- **Suggested fix:** Remove `password` (and any password_hash) from all API responses; never return credentials in response bodies.
+
+---
+
+Further bug entries should be added for UI-vs-API mismatches once admin-token UI checks are completed (self-delete behavior, password exposure in `GET /api/admin/users` if present, pagination/gap items).
 # FR-01 Bug Reports
 
 ## Summary
-- Total failing TCs captured: 17
-- API evidence was verified directly against the backend registration and checkout endpoints at http://localhost:3000.
-- UI screenshots are attached in the FR-01 and FR-08 evidence folders, so each report now records the screenshot-backed UI observation alongside the verified API failure.
+- Total failing TCs captured: 13
+- API evidence was verified directly against the backend registration endpoint at http://localhost:3000/api/register.
+- UI screenshots are attached in the FR-01 evidence folder, so each report now records the screenshot-backed UI observation alongside the verified API failure.
 
 ## BUG-001
 - Bug ID: BUG-001
@@ -214,66 +253,3 @@
   - Actual: The UI screenshot shows the registration form submission outcome for this invalid input; the API returned HTTP 200 with body `{"message":"User registered successfully","id":21}`.
 - Environment: Web UI + backend API on localhost; Windows workspace.
 - Screenshot/curl evidence: UI screenshot: [TC-FR01-BVA-04](../evidence/screenshots/FR-01_AccountRegistration/TC-FR01-BVA-04.png). API evidence: `TC-FR01-BVA-04|status=200|body={"message":"User registered successfully","id":21}`.
-
-## FR-08 Bug Reports
-
-## BUG-014
-- Bug ID: BUG-014
-- Title: Checkout allows empty-cart order creation
-- TC ref: TC-FR08-04
-- Severity: High
-- Steps to Reproduce:
-  1. Log in to the web UI with a valid account.
-  2. Ensure the cart is empty.
-  3. Attempt checkout from the cart/checkout flow.
-  4. Observe the result.
-- Expected vs Actual:
-  - Expected: The UI should block checkout on an empty cart and the backend should return a 4xx error without creating an order.
-  - Actual: The UI shows empty-cart messaging, but the backend returns HTTP 200 and creates an order with `total_amount: 0`.
-- Environment: Web UI + backend API on localhost; Windows workspace.
-- Screenshot/curl evidence: UI screenshot: [TC-FR08-04](../evidence/screenshots/FR-08_Checkout/TC-FR08-04.png). API evidence: `TC-FR08-04|status=200|body={"message":"Order created","order":{"total_amount":0,...}}`.
-
-## BUG-015
-- Bug ID: BUG-015
-- Title: Checkout accepts tampered client total_amount
-- TC ref: TC-FR08-05
-- Severity: Critical
-- Steps to Reproduce:
-  1. Log in to the web UI with a valid account and have one item in the cart.
-  2. Tamper the checkout request to send `total_amount: 1000` while the cart total is actually 28000000.
-  3. Submit the checkout request.
-- Expected vs Actual:
-  - Expected: The backend should recompute the total from the cart and reject or override the tampered `total_amount`.
-  - Actual: The backend returns HTTP 200 and creates an order with `total_amount: 1000`, accepting the manipulated client-supplied total.
-- Environment: Web UI + backend API on localhost; Windows workspace.
-- Screenshot/curl evidence: UI screenshot: [TC-FR08-05](../evidence/screenshots/FR-08_Checkout/TC-FR08-05.png). API evidence: `TC-FR08-05|status=200|body={"message":"Order created","order":{"total_amount":1000,...}}`.
-
-## BUG-016
-- Bug ID: BUG-016
-- Title: Checkout succeeds without required shipping_address field
-- TC ref: TC-FR08-06
-- Severity: High
-- Steps to Reproduce:
-  1. Log in to the web UI with a valid account and add an item to the cart.
-  2. Navigate to checkout and observe that no shipping address field is presented.
-  3. Submit the checkout request.
-- Expected vs Actual:
-  - Expected: The UI should collect a shipping address and the backend should reject requests missing `shipping_address`.
-  - Actual: The UI shows no shipping address input, and the backend returns HTTP 200 with checkout success while `shipping_address` is null.
-- Environment: Web UI + backend API on localhost; Windows workspace.
-- Screenshot/curl evidence: UI screenshot: [TC-FR08-06](../evidence/screenshots/FR-08_Checkout/TC-FR08-06.png). API evidence: `TC-FR08-06|status=200|body={"message":"Order created","order":{"shipping_address":null,...}}`.
-
-## BUG-017
-- Bug ID: BUG-017
-- Title: Checkout does not clear cart after successful order creation
-- TC ref: TC-FR08-01
-- Severity: High
-- Steps to Reproduce:
-  1. Log in to the web UI with a valid account and add one item to the cart.
-  2. Submit checkout normally.
-  3. Verify the cart state after order creation.
-- Expected vs Actual:
-  - Expected: The backend should clear the cart after a successful checkout and the UI should reflect an empty cart.
-  - Actual: The checkout appears successful, but the backend leaves the cart items intact and the cart is not cleared.
-- Environment: Web UI + backend API on localhost; Windows workspace.
-- Screenshot/curl evidence: UI screenshot: [TC-FR08-01](../evidence/screenshots/FR-08_Checkout/TC-FR08-01.png). API evidence: `TC-FR08-01|status=200|body={"message":"Order created","order":{"total_amount":28000000,...}}; subsequent GET /api/cart shows the item still present.`
