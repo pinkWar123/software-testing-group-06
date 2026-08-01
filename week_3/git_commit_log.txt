@@ -1,0 +1,8 @@
+HW03 Git commit log
+
+This is a placeholder, not a fabricated commit history.
+
+Before final submission, replace the placeholder with the repository's actual text-based
+Git commit log. The assignment expects a new commit for each testing step, such as:
+checklist design, execution per screen, bug logging, heuristic evaluation, and each
+cross-platform run.
