@@ -18,3 +18,12 @@ Record every real AI interaction used for this homework. Do not reconstruct or i
 ---
 
 ## Entries
+
+## [16:49 01/08/2026] — OpenAI Codex
+**Purpose**: Task 1A – final compliance review of the shared GUI checklist
+**Prompt**:
+> Help me finalize task 1A
+
+**Artifact produced**: Corrected the master checklist execution convention; completed verifiable reference citations; created the item-level human-review/AI-gap evidence template; identified historical prompt/provenance information that must not be fabricated.
+
+---

@@ -8,7 +8,7 @@
 | **Tổng số mục sau gộp** | 48 (sau khi loại 4 mục trùng + gộp nội dung 1 mục) |
 | **Phân bổ IA** | IA-01 = 12 · IA-02 = 13 · IA-03 = 12 · IA-04 = 11 |
 | **Ngày gộp** | 29/07/2026 |
-| **Trạng thái** | Bản chính thức nhóm — sẵn sàng dùng cho Task 1B của mọi thành viên |
+| **Trạng thái** | Bản chính thức nhóm — nội dung checklist đã chốt; hồ sơ prompt/xuất xứ AI–human được quản lý ở các artefact Task 1A đi kèm |
 
 **Người đóng góp:**
 
@@ -37,12 +37,13 @@ Bốn interface aspect dùng làm chiều phủ (không đổi so với các b�
 
 ## 2. Cách dùng checklist này (không đổi so với bản gốc)
 
-- Đánh dấu **Passed** / **Failed** / **N/A** cho **từng mục ở từng màn hình**.
+- Đánh dấu **Passed** / **Failed** cho **từng mục ở từng màn hình**, đúng quy định nhị phân của §6 Task 1B.
 - Mục **Failed** → bắt buộc ghi lý do vào cột Notes **và** đính kèm ảnh chụp.
-- Mục **N/A** → vẫn giữ nguyên dòng, ghi rõ lý do không áp dụng. **Không xoá dòng.**
 - Mục **Passed** → không cần ảnh, không bắt buộc ghi chú.
+- Nếu màn hình không có thành phần được nêu trong mục kiểm tra, vẫn không dùng `N/A`: giữ kết quả nhị phân và ghi ngắn phạm vi quan sát trong Notes để TA có thể kiểm tra cách diễn giải. Nếu nhóm chưa thống nhất cách quy đổi trường hợp này, cần hỏi TA trước khi chạy chính thức.
 - Mọi lỗi tìm được phải nộp lên Google Form **và** gộp vào Bug & Usability Findings Log (§7 đề bài).
 - Cột **Xuất xứ** cho biết mục này đến từ đóng góp cá nhân nào và ID gốc — giữ lại để truy vết khi cần giải trình ở vấn đáp.
+- Prompt AI nguyên văn và quyết định review được lưu ở `checklist_ai_prompts.md`; các mục do người học thêm sau bản AI ban đầu cùng lý do AI bỏ sót được lưu ở `human_review_and_ai_gaps.md`.
 
 ---
 
@@ -81,7 +82,7 @@ Bốn interface aspect dùng làm chiều phủ (không đổi so với các b�
 | GUI-01-04 | Thành phần tương tác thể hiện đúng khả năng sử dụng: nút, liên kết, vùng kéo-thả và hàng có thể mở chi tiết nhìn ra là có thể thao tác; nội dung tĩnh không tạo cảm giác có thể bấm; trạng thái disabled khác biệt rõ với trạng thái bình thường | Quan sát mà chưa bấm để dự đoán thành phần nào tương tác được, sau đó dùng chuột/bàn phím kiểm chứng; kiểm tra các nút disabled, vùng upload và hàng trong bảng | Norman – Affordance, Visibility; Nielsen #6 – Recognition rather than recall | Cao | Nguyễn Hồng Quân (ADD-01-003) |
 | GUI-01-05 | Icon dùng cùng một ý nghĩa và cùng một hình dạng ở mọi nơi xuất hiện (icon xoá, sửa, export, thông báo… không đổi hình giữa các màn hình) | Liệt kê các icon lặp lại trên Events, Users, Support Requests, Dashboard; đối chiếu hình dạng và hành động gắn với từng icon | Nielsen #4; Norman – Signifiers | Trung bình | Lê Quang Phúc (GUI-01-002, bản bổ sung 16 mục) |
 | GUI-01-06 | Cùng một dữ liệu nghiệp vụ được trình bày nhất quán về tên gọi, đơn vị, thứ tự, biểu tượng **và** định dạng ngày/giờ/số (dấu phân cách nghìn/thập phân, 12h/24h) giữa danh sách, trang chi tiết, form và file export | Chọn một Event/User/Support Request, đối chiếu cùng dữ liệu ở danh sách, chi tiết, form chỉnh sửa và file export; đặc biệt so sánh cùng một mốc thời gian hoặc con số (VD: thời gian sự kiện, số người đăng ký) hiển thị ở list, detail, vé QR và file Excel; ghi nhận mọi chỗ đổi tên, đổi đơn vị hoặc mâu thuẫn giá trị/định dạng | Nielsen #4 – Consistency and standards; Norman – Consistency, Mapping | Cao | Nguyễn Hồng Quân (ADD-01-004) + Lê Quang Phúc (GUI-01-008, đã gộp) |
-| GUI-01-07 | Khi đổi EN ↔ VI, toàn bộ nhãn, thông báo lỗi và trạng thái đều được dịch, không tràn/vỡ layout, thuộc tính `lang` đổi theo, và ngày giờ/số được định dạng theo locale đang chọn một cách nhất quán trên mọi màn hình | Chuyển ngôn ngữ trên nhiều màn hình, rà chuỗi còn sót, kiểm tra tràn chữ và `lang`; đối chiếu cùng một mốc thời gian sự kiện hiển thị ở danh sách, trang chi tiết, vé và audit log ở cả hai ngôn ngữ | Nielsen #2; WCAG 3.1.2 | Cao | Phạm Anh Hào (GUI-01-003) |
+| GUI-01-07 | Khi đổi EN ↔ VI, toàn bộ nhãn, thông báo lỗi và trạng thái đều được dịch, không tràn/vỡ layout, thuộc tính `lang` đổi theo, và ngày giờ/số được định dạng theo locale đang chọn một cách nhất quán trên mọi màn hình | Chuyển ngôn ngữ trên nhiều màn hình, rà chuỗi còn sót, kiểm tra tràn chữ và `lang`; đối chiếu cùng một mốc thời gian sự kiện hiển thị ở danh sách, trang chi tiết, vé và audit log ở cả hai ngôn ngữ | Nielsen #2; WCAG 3.1.1, 3.1.2 | Cao | Phạm Anh Hào (GUI-01-003) |
 | GUI-01-08 | Trạng thái rỗng và trạng thái đang tải hiển thị thông báo/placeholder có ý nghĩa (kèm gợi ý hành động), không để vùng trắng trơn | Lọc/tìm ra tập rỗng hoặc mở màn hình sau khi dữ liệu reset; tải chậm để quan sát loading | Nielsen #1 | Trung bình | Phạm Anh Hào (GUI-01-004) |
 | GUI-01-09 | Mật độ thông tin và khoảng trắng hợp lý trên các màn hình nhiều dữ liệu (KPI Dashboard, bảng danh sách, panel cấu hình) — không chồng chữ, không chật đến mức khó phân biệt hàng/cột | Mở Dashboard và các bảng danh sách ở độ phân giải desktop chuẩn, kiểm tra khoảng cách dòng, cột, thẻ KPI có bị dính vào nhau không | Nielsen #8 (Aesthetic and minimalist design) | Trung bình | Lê Quang Phúc (GUI-01-005) |
 | GUI-01-10 | Ở bề rộng màn hình hẹp (≈320–480 px), nội dung tự sắp xếp lại mà không phải cuộn ngang, bảng danh sách vẫn đọc được đủ thông tin, dialog nằm gọn trong khung nhìn và đóng được, mọi vùng chạm đạt kích thước tối thiểu | Thu cửa sổ về 320 px hoặc dùng chế độ thiết bị di động trên các danh sách Events/Users/Support, form Add/Edit Event và một dialog xác nhận; kiểm tra cuộn ngang, cách bảng thu gọn, nút đóng dialog và kích thước vùng chạm | WCAG 1.4.10; WCAG 2.5.5 | Cao | Phạm Anh Hào (GUI-01-006) |
@@ -104,14 +105,14 @@ Bốn interface aspect dùng làm chiều phủ (không đổi so với các b�
 | GUI-02-10 | Toolbar rich-text editor (bold, italic, list, chèn ảnh/link) phản ánh đúng trạng thái vùng văn bản đang chọn, và nội dung định dạng được giữ nguyên sau khi lưu và tải lại | Bôi đen từng đoạn văn bản khác nhau trong mô tả sự kiện, áp định dạng, lưu, mở lại bản ghi và đối chiếu định dạng có còn đúng không | Norman – Feedback; Nielsen #1 | Cao | Lê Quang Phúc (GUI-02-006) |
 | GUI-02-11 | Trường optional, trường disabled (do chưa đủ điều kiện) và trường readonly được phân biệt rõ bằng thị giác lẫn markup (`aria-disabled`, `readonly`), không chỉ đơn thuần "không bấm được" | Rà các form có trường điều kiện (VD: vai trò phụ chỉ bật khi chọn role tương ứng), kiểm tra bằng DOM/inspector và bằng mắt xem có phân biệt được optional/disabled/readonly | Nielsen #4; WCAG 4.1.2 | Trung bình | Lê Quang Phúc (GUI-02-007) |
 | GUI-02-12 | Form dài (nhiều section: thumbnail, banner, rich-text, ngày giờ, registration…) được chia thành các phần có tiêu đề rõ ràng, giúp người dùng định vị đang ở phần nào khi cuộn | Mở form Add/Edit Event, cuộn qua toàn bộ chiều dài form, kiểm tra mỗi section có heading/label phân tách rõ, không bị trộn lẫn giữa các nhóm trường khác nhau | Nielsen #6 – Recognition rather than recall; Norman – Mapping | Trung bình | Lê Quang Phúc (GUI-02-008, đã rút gọn — xem Nhật ký gộp §3) |
-| GUI-02-13 | Dữ liệu đang nhập dở không bị mất khi **bị động** gặp sự cố: tải lại trang do lỗi mạng tạm thời hoặc chuyển tab rồi quay lại (autosave/draft hoặc khôi phục được nội dung) | Nhập dở form Add/Edit Event hoặc form support request, chuyển tab/reload trong thời gian ngắn, quay lại kiểm tra dữ liệu còn hay mất | Nielsen #5; Norman – User control | Trung bình | Lê Quang Phúc (GUI-02-009) |
+| GUI-02-13 | Dữ liệu đang nhập dở không bị mất khi **bị động** gặp sự cố: tải lại trang do lỗi mạng tạm thời hoặc chuyển tab rồi quay lại (autosave/draft hoặc khôi phục được nội dung) | Nhập dở form Add/Edit Event hoặc form support request, chuyển tab/reload trong thời gian ngắn, quay lại kiểm tra dữ liệu còn hay mất | Nielsen #5 – Error prevention; Nielsen #3 – User control and freedom | Trung bình | Lê Quang Phúc (GUI-02-009) |
 
 ### IA-03 · Navigation (12 mục)
 
 | ID | Mục kiểm tra | Cách kiểm chứng | Nguồn | Ưu tiên | Người tạo |
 | --- | --- | --- | --- | --- | --- |
 | GUI-03-01 | Breadcrumb/nút back/return đưa về đúng màn hình cha, và deep link tới chi tiết mở đúng đối tượng | Đi sâu vào chi tiết (event, user, request) rồi back; mở trực tiếp một deep link và đối chiếu đối tượng | Nielsen #3; Shneiderman #3 | Trung bình | Phạm Anh Hào (GUI-03-001) |
-| GUI-03-02 | Điều hướng bàn phím hoạt động: thứ tự tab hợp lý theo dòng đọc, viền focus nhìn thấy được, Esc đóng dialog, focus không thoát khỏi dialog đang mở | Chỉ dùng Tab/Shift-Tab/Esc duyệt form và dialog, quan sát vòng focus và viền focus | WCAG 2.4.7; WCAG 2.1.2; Shneiderman #3 | Cao | Phạm Anh Hào (GUI-03-002) |
+| GUI-03-02 | Điều hướng bàn phím hoạt động: thứ tự tab hợp lý theo dòng đọc, viền focus nhìn thấy được, Esc đóng dialog, focus không thoát khỏi dialog đang mở | Chỉ dùng Tab/Shift-Tab/Esc duyệt form và dialog, quan sát vòng focus và viền focus | WCAG 2.4.7; WCAG 2.1.2; Shneiderman #2 – Seek universal usability | Cao | Phạm Anh Hào (GUI-03-002) |
 | GUI-03-03 | Cấu trúc điều hướng (sidebar/menu/tab) đồng nhất và giữ nguyên vị trí khi chuyển giữa các khu vực, phản ánh đúng phân quyền đang đăng nhập | Đăng nhập bằng các vai trò khác nhau, chuyển khu vực, kiểm tra menu ổn định và chỉ hiện mục được phép | Nielsen #4; Norman – Mapping | Trung bình | Phạm Anh Hào (GUI-03-003) |
 | GUI-03-04 | Vị trí đang đứng được hiển thị rõ: mục menu/tab tương ứng được đánh dấu active và tiêu đề trang khớp nhãn menu | Duyệt từng mục menu/tab, kiểm tra highlight active và đối chiếu tiêu đề trang với nhãn | Nielsen #1; Shneiderman #1 | Cao | Phạm Anh Hào (GUI-03-004) |
 | GUI-03-05 | Mọi danh sách/bảng hiển thị rõ tiêu chí tìm kiếm và bộ lọc đang áp dụng cùng tổng số kết quả, phân trang cho biết trang hiện tại trên tổng số trang, và bộ tiêu chí này được giữ nguyên khi quay lại từ màn hình chi tiết | Trên các danh sách Events / Users / Support Requests: nhập từ khoá, chọn bộ lọc, sang trang 2, mở một bản ghi rồi bấm back → kiểm tra chip/nhãn tiêu chí, số kết quả, chỉ báo trang và trạng thái sau khi quay lại | Nielsen #1; Shneiderman #3 | Cao | Phạm Anh Hào (GUI-03-005) |
@@ -137,11 +138,13 @@ Bốn interface aspect dùng làm chiều phủ (không đổi so với các b�
 | GUI-04-08 | Hành động có thể đảo ngược cung cấp Undo, Restore hoặc đường khôi phục rõ ràng trong khoảng thời gian hợp lý; dialog xác nhận không phải cơ chế bảo vệ duy nhất khi việc khôi phục khả thi | Thử thay đổi trạng thái, bỏ duyệt, xoá nháp hoặc huỷ đăng ký; tìm Undo/Restore và xác nhận dữ liệu/trạng thái được phục hồi đúng | Nielsen #3 – User control and freedom; Shneiderman #6 – Permit easy reversal of actions | Cao | Nguyễn Hồng Quân (ADD-04-003) |
 | GUI-04-09 | Khi hoàn tất một quy trình nhiều bước, hệ thống tạo cảm giác kết thúc rõ ràng bằng bản tóm tắt kết quả/đối tượng, mã hoặc trạng thái mới và hành động tiếp theo phù hợp; người dùng không phải đoán quy trình đã xong hay chưa | Hoàn tất tạo/publish event, đăng ký tham dự và gửi/giải quyết support request; kiểm tra trang hoặc dialog kết quả, định danh bản ghi, trạng thái và CTA tiếp theo | Shneiderman #4 – Design dialogs to yield closure; Nielsen #1 – Visibility of system status; Norman – Feedback | Cao | Nguyễn Hồng Quân (ADD-04-004) |
 | GUI-04-10 | Dữ liệu cập nhật real-time (log check-in, chấm thông báo, audit log) chèn thêm mục mới mà không làm nhảy vị trí cuộn hoặc mất focus người dùng đang thao tác | Mở tab Check-in hoặc audit log, tạo một sự kiện cập nhật từ tab/thiết bị khác, quan sát vị trí cuộn và focus hiện tại có bị xáo trộn không | Nielsen #1; WCAG 2.2.2 | Trung bình | Lê Quang Phúc (GUI-04-006) |
-| GUI-04-11 | Các lớp overlay (lightbox ảnh trong support request, vé QR, dialog xác nhận) đều đóng được nhất quán bằng Esc, click ra ngoài và nút đóng (X) — không lớp nào thiếu một trong ba cách | Mở lần lượt lightbox ảnh, vé QR/barcode, dialog xác nhận; thử đóng bằng cả ba cách trên từng overlay | Shneiderman #3 (Consistency); liên hệ GUI-03-02 | Trung bình | Lê Quang Phúc (GUI-04-009) |
+| GUI-04-11 | Các lớp overlay (lightbox ảnh trong support request, vé QR, dialog xác nhận) đều đóng được nhất quán bằng Esc, click ra ngoài và nút đóng (X) — không lớp nào thiếu một trong ba cách | Mở lần lượt lightbox ảnh, vé QR/barcode, dialog xác nhận; thử đóng bằng cả ba cách trên từng overlay | Shneiderman #1 – Strive for consistency; Nielsen #4 – Consistency and standards; liên hệ GUI-03-02 | Trung bình | Lê Quang Phúc (GUI-04-009) |
 
 ---
 
 ## 5. Nguồn tham khảo tổng hợp
+
+Trích dẫn đầy đủ, URL và ngày truy cập được quản lý ở `reference_sources.md`; bảng dưới truy vết từng nguồn tới các checklist ID.
 
 | Nguồn | Dùng cho các mục |
 | --- | --- |
@@ -209,6 +212,6 @@ Mỗi thành viên tự thay ba (hoặc hơn) cột màn hình bằng đúng ph�
 | GUI-04-10 | Cập nhật real-time không phá scroll/focus | | | | |
 | GUI-04-11 | Overlay đóng nhất quán (Esc/click-outside/X) | | | | |
 
-**Quy ước điền:** `P` = Passed · `F` = Failed (bắt buộc kèm Notes + ảnh) · `N/A` = không áp dụng (bắt buộc kèm lý do)
+**Quy ước điền:** `P` = Passed · `F` = Failed (bắt buộc kèm Notes + ảnh). Không dùng `N/A`, theo yêu cầu Passed/Failed của §6 Task 1B.
 
 ---
