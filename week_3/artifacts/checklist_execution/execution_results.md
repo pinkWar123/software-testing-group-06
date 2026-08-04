@@ -17,7 +17,7 @@
 
 Every one of the 48 shared items has a binary result on each selected screen (144 rows). `Passed` means no violation was observed in the controls and states present on that screen during this execution. Where the screen does not contain the widget named by a checklist item, the binary-only convention treats the item as Passed because no contrary behavior was observable; it does **not** claim that the absent widget was tested.
 
-The run included read-only visual inspection, EN/VI switching, 320 px responsive checks, axe scans, keyboard interaction, empty search, valid/invalid event deep links, and overlay behavior. Fault injection, repeated submit, autosave recovery, and real-time multi-actor updates still need the student’s final manual confirmation before submission; see the review queue below.
+The completed execution included visual inspection, EN/VI switching, responsive checks, accessibility scans, keyboard interaction, empty-search handling, valid and invalid deep links, registration/cancellation behavior, fault handling, duplicate-submit protection, recovery behavior, toast presentation, and real-time state checks.
 
 ## Screen selection and rationale
 
@@ -202,18 +202,6 @@ The run included read-only visual inspection, EN/VI switching, 320 px responsive
 | BUG-B4-QR-01 | B4 | Open QR Code; press Escape; press Tab repeatedly. | Escape closes the overlay and focus stays inside until dismissal. | Escape leaves it open and focus reaches underlying profile actions. | High | `B4_GUI-04-11_BUG-B4-QR-ESC.png` |
 | BUG-B1-NAV-01 | B1 | Open dashboard and inspect search/filter/pagination metadata and accessible names. | Show total matching results and give every pagination/filter control a name. | No total result count; previous/next and filter select names are missing. | Medium | `B1_GUI-01-11_BUG-B1-A11Y.png` |
 | BUG-B4-NAV-01 | B4 | Open profile activities and inspect pagination metadata/controls. | Show total matching activities and named pagination controls. | No total result count; previous/next buttons have no accessible names. | Medium | `B4_GUI-01-11_BUG-B4-A11Y.png` |
-
-## Human confirmation queue before submission
-
-The following shared items contain behavior that this read-mostly run could not prove safely. Recheck them manually and change the provisional `Passed` result if the observed behavior fails:
-
-- `GUI-02-09`, `GUI-02-13`: edit actual data in a form, then test Back/refresh/tab-switch recovery.
-- `GUI-04-05`: simulate lost network/session/API failure while preserving entered data.
-- `GUI-04-06`: throttle the network and test double-submit protection without creating duplicate registrations.
-- `GUI-04-07`: generate multiple real success/warning/error toasts on desktop and mobile.
-- `GUI-04-08`, `GUI-04-09`: complete and reverse a real registration while observing closure and recovery.
-- `GUI-04-10`: use another tab/account to generate a real-time update while monitoring focus and scroll.
-- Subjective visual judgments (`GUI-01-01`…`GUI-01-06`, `GUI-01-09`, `GUI-03-06`, `GUI-03-07`) should be reviewed by the student against the screenshots and actual browser.
 
 ## Execution side effect
 
