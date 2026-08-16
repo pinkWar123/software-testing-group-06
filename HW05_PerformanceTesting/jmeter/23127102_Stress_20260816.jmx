@@ -245,14 +245,20 @@ if (prev.getResponseCode() == "400") {
             <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Assert wrong password rejected (401)" enabled="true">
-              <collectionProp name="Asserion.test_strings">
-                <stringProp name="401">401</stringProp>
-              </collectionProp>
-              <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
-              <boolProp name="Assertion.assume_success">false</boolProp>
-              <intProp name="Assertion.test_type">8</intProp>
-            </ResponseAssertion>
+            <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Expect 401 (wrong password correctly rejected)" enabled="true">
+              <stringProp name="cacheKey">true</stringProp>
+              <stringProp name="filename"></stringProp>
+              <stringProp name="parameters"></stringProp>
+              <stringProp name="script">// Fix (human review, AI_Audit_Report.md Entry 08): same JMeter
+// >=400-fails-before-assertions issue as Load's Entry 06, reproduced here.
+// A plain ResponseAssertion checking "code equals 401" can PASS while the
+// sample itself still shows red, since assertions can't rescue an
+// already-failed sample. 401 is the correct outcome for this deliberately
+// wrong password - mark it successful explicitly. Any other code (e.g. a
+// 200, meaning the bad password was wrongly accepted) stays/becomes failed.
+prev.setSuccessful(prev.getResponseCode() == "401");</stringProp>
+              <stringProp name="scriptLanguage">groovy</stringProp>
+            </JSR223PostProcessor>
             <hashTree/>
           </hashTree>
         </hashTree>
@@ -278,14 +284,16 @@ if (prev.getResponseCode() == "400") {
           <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Assert account now locked (403)" enabled="true">
-            <collectionProp name="Asserion.test_strings">
-              <stringProp name="403">403</stringProp>
-            </collectionProp>
-            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
-            <boolProp name="Assertion.assume_success">false</boolProp>
-            <intProp name="Assertion.test_type">8</intProp>
-          </ResponseAssertion>
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Expect 403 (account correctly locked)" enabled="true">
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="script">// Same fix as the 401 samplers above. 403 is the correct outcome here -
+// the account should be locked after the 2 prior failed attempts. A 200
+// here would mean the lockout logic failed to engage (a real bug).
+prev.setSuccessful(prev.getResponseCode() == "403");</stringProp>
+            <stringProp name="scriptLanguage">groovy</stringProp>
+          </JSR223PostProcessor>
           <hashTree/>
         </hashTree>
       </hashTree>
