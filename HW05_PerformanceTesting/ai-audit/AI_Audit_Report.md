@@ -221,6 +221,12 @@ agent in this repository (`c:\Users\ACER\Downloads\eshop-sut`).
      with zero pause, which reads as "admin re-opens the list the instant they hit
      save" — not impossible, but not representative either. **Fix:** add a small
      Uniform Random Timer (300–900ms) after the PUT sampler.
+
+  **Verification:** re-ran the smoke test (1 thread/10s) after applying both
+  fixes. First PUT hit order 1, already `confirmed` from the v1 smoke test, so
+  the server correctly returned `400 Bad Request` — and the `.jtl` shows
+  `responseCode=400, success=true`, confirming the JSR223 override works exactly
+  as intended (`summary = 3 in 00:00:08 ... Err: 0.00%`).
 - **Audit / Correction (student):** _[pending]_
 
 ---
