@@ -347,7 +347,38 @@ agent in this repository (`c:\Users\ACER\Downloads\eshop-sut`).
   modeling a genuine traffic spike rather than many humans acting in sync. Also
   carrying forward the GUI-vs-headless View Results Tree execution note from
   Entry 09 into the Step 6 runbook.
-- **Audit / Correction (student):** _[pending]_
+- **Audit / Correction (student):**confirmed, no correction
+---
+
+## Entry 11 — Step 6/7: Soak plan + live-execution runbook
+
+- **Timestamp:** 2026-08-16 (session continued)
+- **Prompt (derived from the approved plan, Step 6/7, per your go-ahead to
+  prepare both in one handoff):** "Prepare the full live-execution runbook
+  (Steps 6+7) so I have everything needed to record all four runs in one
+  sitting."
+- **AI output:** Created `jmeter/23127102_Soak_20260816.jmx` (single Thread
+  Group, defaults 25 threads/30s ramp/720s duration, reusing the reviewed Load
+  workflow — smoke-tested, `Err: 0.00%`). Gathered real hardware facts directly
+  from the machine (`systeminfo`/`wmic`, not guessed) into
+  `evidence/hardware/spec_table.md`: hostname `LAPTOP-HNGLK6L4`, Acer Aspire
+  A515-58GM, Windows 11 Home 10.0.26200, Intel i5-13420H (8c/12t), 16GB RAM
+  (only ~2GB free at capture time — flagged since it will distort the soak
+  test's memory-ceiling finding if not addressed), Node v22.19.0, JMeter 5.6.3.
+  Wrote `EXECUTION_RUNBOOK.md`: server-restart-wipes-DB sequencing (start
+  server → seed → run JMeter, every time), exact headless JMeter commands per
+  scenario, seed-count table, the Stress→Spike lockout-reset handoff, soak
+  methodology (pick a thread count from real Stress results, not a pre-picked
+  number — 3 resource-monitor screenshots across the 12 minutes), and the
+  GUI-vs-headless guidance from Entry 09/10 formalized into a concrete
+  instruction (run all four official scenarios headless; a separate small
+  GUI-mode pass afterward only for showing the View Results Tree UI on video).
+  Stopped the background `node.exe` (PID 4500) I'd been using for smoke-testing
+  so the official runs start from a clean, freshly-started server as the
+  runbook itself requires.
+- **Audit / Correction (student):** _[pending — this is the handoff point;
+  your execution of §1-§6 of `EXECUTION_RUNBOOK.md` is what produces the actual
+  graded evidence]_
 
 ---
 
