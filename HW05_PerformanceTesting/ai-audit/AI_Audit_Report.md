@@ -34,9 +34,7 @@ agent in this repository (`c:\Users\ACER\Downloads\eshop-sut`).
   for 180 seconds — flagged as a likely AI-vs-reality gap for the Task 1 human-review
   deliverable. Produced a text breakdown of what I can automate vs. what requires my
   live participation (video, live screenshots, GitHub issues, oral defense).
-- **Audit / Correction (student):** _[fill in: did you confirm the lockout logic
-  reading against the code yourself? Any part of the breakdown you disagreed with?]_
-
+- **Audit / Correction (student):** confirm, no correction.
 ---
 
 ## Entry 01 — Orchestration plan (this workflow itself)
@@ -59,10 +57,7 @@ agent in this repository (`c:\Users\ACER\Downloads\eshop-sut`).
   that raw evidence (`.jtl`, screenshots, video) must come from runs I execute live,
   not from anything synthesized. Plan approved by student before any files were
   created.
-- **Audit / Correction (student):** _[fill in after reviewing the plan file at
-  `C:\Users\ACER\.claude\plans\swift-kindling-summit.md` — does the step order and
-  the AI/human split match what you actually want to submit?]_
-
+- **Audit / Correction (student):** confirmed, no correction.
 ---
 
 ## Entry 02 — Step 0: folder scaffold + AGENTS.md
@@ -77,8 +72,48 @@ agent in this repository (`c:\Users\ACER\Downloads\eshop-sut`).
   `evidence/{hardware,resource-monitor}/`, `analysis/`, `proposal/`, `bug-reports/`,
   `video/`, `agent-skills/performance-testing-skill/`, `git/`) and
   `HW05_PerformanceTesting/AGENTS.md` (persona + 9 ground rules + 5 self-named risks).
-- **Audit / Correction (student):** _[fill in: any folder you want renamed/removed,
-  any ground rule you disagree with?]_
+- **Audit / Correction (student):** I need this file: AI Audit Report. The entire process of using AI must be recorded in a complete log. You are encouraged to build Agent Skills that can automatically perform these activities on similar exercises. If you do not use AI, you must still declare this explicitly.
+
+---
+
+## Entry 03 — Workflow pivot: consumer flow → admin order-management flow
+
+- **Timestamp:** 2026-08-16 (session continued)
+- **Prompt (verbatim, with attached screenshot of a groupmate's endpoint-group
+  table):** "a member have done this flow in picture. get another one, prefer to
+  management flow" / "I done it." (confirming Entries 00-02 audit fields filled).
+- **AI output (summary):** Read `backend/server.js` in full and queried
+  `backend/database.sqlite` directly (read-only, via a one-off `node -e` script) to
+  ground a new workflow choice in real data rather than guesswork. Found: `orders`
+  table is empty on the current DB (0 rows); real admin login is
+  `admin@eshop.com` / `Admin123!` (the `setup_guide.md` value `admin123` is wrong);
+  `/api/admin/*` routes have no admin-role check, only `authenticateToken` (matches
+  the authorization-bypass bug already on record from HW02); the order
+  status-transition handler at `server.js:525-568` reads-then-writes with no
+  transaction/lock (possible race condition under concurrency) and has a genuine
+  logic bug allowing `canceled → delivered`. Selected the workflow **admin login
+  (auth-heavy) → GET /api/admin/orders (read-heavy) → PUT
+  /api/admin/orders/:id/status (transactional)**, distinct from the groupmate's
+  consumer flow, and updated `AGENTS.md` accordingly with a "Known SUT
+  characteristics" section documenting all of the above so later steps don't
+  re-derive it.
+- **Audit / Correction (student):** _[fill in: confirm this doesn't overlap a
+  different groupmate's admin-side pick; confirm the admin credentials work on your
+  running instance.]_
+
+---
+
+## Entry 04 — Step 1: Load scenario design draft
+
+- **Timestamp:** 2026-08-16 (session continued)
+- **Prompt (derived from the approved plan, Step 1, applied to the new workflow):**
+  "Design realistic Load-test parameters (threads, ramp-up, think-time, loop count,
+  duration) for the admin order-management workflow, and justify how it covers all
+  three endpoint groups."
+- **AI output:** See the design proposal below (posted to chat for your sign-off
+  before any `.jmx` or CSV is generated, per the runbook's Step 1 STOP).
+- **Audit / Correction (student):** _[pending — fill in after reviewing the design
+  message]_
 
 ---
 

@@ -5,9 +5,16 @@ performance analyses for a living.
 Ground rules for this whole assignment (SUT: EShop backend, `backend/server.js`,
 Express + `sqlite3`, base URL `http://localhost:3000`):
 
-1. ONE shared end-to-end workflow across all three test plans: login (auth-heavy) →
-   product search + product detail (read-heavy) → add-to-cart + checkout
-   (transactional). No plan may test a different workflow than the others.
+1. ONE shared end-to-end workflow across all three test plans — the **admin order
+   management** flow (chosen over the consumer login→search→cart→checkout flow
+   because a groupmate already tested that one; no two group members may test the
+   same workflow):
+   `POST /api/login` as admin (auth-heavy) → `GET /api/admin/orders` (read-heavy,
+   joins `orders`+`users`) → `PUT /api/admin/orders/:id/status` (transactional,
+   order state-machine transition). No plan may test a different workflow than the
+   others. Real admin credentials confirmed against `backend/database.sqlite`:
+   `admin@eshop.com` / `Admin123!` (note: `setup_guide.md` documents `admin123`,
+   which is wrong — the seed data uses `Admin123!`).
 2. Every test plan is CSV-driven (`jmeter/data/*.csv`). No hard-coded credentials or
    product IDs inside the `.jmx` samplers themselves.
 3. Respect the SUT's real account-lockout behavior instead of assuming a textbook
@@ -34,6 +41,33 @@ Express + `sqlite3`, base URL `http://localhost:3000`):
    "start" on the officially-graded runs — the student is the human-in-the-loop for
    all live execution and visual evidence. Before asking for a screenshot, check
    `evidence/screenshot_inventory.md` and batch requests where possible.
+
+Known SUT characteristics confirmed by reading `backend/server.js` and
+`backend/database.sqlite` directly (not assumed) — relevant to designing and
+interpreting this workflow's test plans:
+
+- `orders` table is empty on a fresh DB. The admin flow has nothing to read/manage
+  until it's seeded, so a **setUp Thread Group** (data seeding, not part of the
+  measured workflow) must register synthetic buyer users and run
+  register→login→cart→checkout enough times to create a large pool of `pending`
+  orders before the timed Load/Stress/Spike/Soak Thread Groups run.
+- `/api/admin/*` routes use only `authenticateToken` — there is no admin-role check.
+  Any authenticated user's token works on admin endpoints (matches the
+  authorization-bypass bug already logged in HW02's `bug_report.md`). Still login as
+  the real admin account for this workflow since that's the realistic scenario.
+- `PUT /api/admin/orders/:id/status` ([backend/server.js:525-568](../backend/server.js#L525))
+  reads the order's current status then writes the new one with no transaction/lock
+  — a plausible race condition if two requests hit the same order id concurrently
+  under Stress/Spike. Worth watching for in results (duplicate/invalid transitions)
+  and reporting as a bug if observed.
+- The transition table has a genuine logic bug: `canceled → delivered` is accepted
+  as valid ([backend/server.js:550-551](../backend/server.js#L550)), which should
+  never be allowed. Not something to design the load test around, but worth a
+  one-line note in `bug-reports/bug_report.md`.
+- Expect a mix of `200` (valid transition) and `400` (already-transitioned order,
+  invalid transition) responses once the seeded order pool is consumed — assertions
+  on this sampler must treat `400` as an acceptable business response and only fail
+  on `5xx` or timeouts, not assert strict `200`.
 
 Five mistakes I'm most likely to make if not careful (one sentence each):
 
