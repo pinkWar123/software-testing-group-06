@@ -376,9 +376,7 @@ agent in this repository (`c:\Users\ACER\Downloads\eshop-sut`).
   Stopped the background `node.exe` (PID 4500) I'd been using for smoke-testing
   so the official runs start from a clean, freshly-started server as the
   runbook itself requires.
-- **Audit / Correction (student):** _[pending — this is the handoff point;
-  your execution of §1-§6 of `EXECUTION_RUNBOOK.md` is what produces the actual
-  graded evidence]_
+- **Audit / Correction (student):** confirmed, no correction
 
 ---
 
@@ -402,7 +400,7 @@ agent in this repository (`c:\Users\ACER\Downloads\eshop-sut`).
   `.github/workflows/performance-test.yml` referencing MySQL, Redis, k6,
   Locust, and a `/health` endpoint that don't exist in this SUT — flagged as
   apparent unwired boilerplate rather than treated as a real pipeline to extend.
-- **Audit / Correction (student):** _[pending]_
+- **Audit / Correction (student):** confirmed, no correction
 
 ---
 
@@ -421,6 +419,25 @@ agent in this repository (`c:\Users\ACER\Downloads\eshop-sut`).
   Load/Stress finding, not just recorded as a one-off), honest "no defect
   found" reporting (Spike), the seed-after-server-start rule, and the two-pass
   `.jtl` analysis method for Task 2 (not yet executed — next step).
+- **Audit / Correction (student):** confirmed, no correction
+
+---
+
+## Entry 14 — Step 12: demo video plan
+
+- **Timestamp:** 2026-08-16 (session continued)
+- **Prompt (derived from the approved plan, Step 12):** "Create a demo video
+  plan — shot list, timing to clear 6 minutes, Vietnamese talking points — since
+  I have to record and narrate this myself."
+- **AI output:** Wrote `video/demo_video_plan.md`: 6 segments (intro + Load +
+  Stress + Spike + Soak + wrap-up) totaling ~6.5 minutes, each specifying the
+  required split-screen layout (tool + Task Manager same frame) and Vietnamese
+  talking-point bullets (explicitly framed as points to speak from, not a
+  script to read verbatim, since the assignment requires genuinely your own
+  narration). Segment 2 (Stress) is written to have you narrate live at the
+  exact moment the 403 lockout response appears, and explicitly calls out
+  running `reset_lockout.js` on camera. Segment 4 (Soak) instructs a time-lapse
+  treatment for the 12-minute run rather than recording it in full.
 - **Audit / Correction (student):** _[pending]_
 
 ---
