@@ -382,4 +382,28 @@ agent in this repository (`c:\Users\ACER\Downloads\eshop-sut`).
 
 ---
 
+## Entry 12 — Step 10: Task 3, continuous performance-testing proposal
+
+- **Timestamp:** 2026-08-16 (session continued)
+- **Prompt (derived from the approved plan, Step 10 — reordered ahead of Step 9
+  since Task 2's analysis needs your real `.jtl` data from the live runs, but
+  Task 3 doesn't):** "Propose a continuous performance-testing model: watch
+  commits, decide whether to run performance tests, flag p95 regressions,
+  include a flow chart and cost/false-alarm trade-offs."
+- **AI output:** Wrote `proposal/continuous_performance_testing.md` — a path-
+  filtered gate (only run if `backend/**`/`jmeter/**` changed), a smoke-vs-full
+  split (short reduced-scale Load on every PR, full Load+Stress+Spike+Soak
+  nightly/on-demand — mirroring why this homework itself separates a 5-min Load
+  from a 12-min Soak), a rolling baseline instead of a static one, and a
+  "regression must reproduce on a same-day re-run before failing the build"
+  rule aimed directly at false-alarm reduction. Includes a Mermaid flow chart
+  and a trade-off table (cost/signal-speed/false-alarm-risk/coverage).
+  **Noted but deliberately not built on:** the repo has an untracked
+  `.github/workflows/performance-test.yml` referencing MySQL, Redis, k6,
+  Locust, and a `/health` endpoint that don't exist in this SUT — flagged as
+  apparent unwired boilerplate rather than treated as a real pipeline to extend.
+- **Audit / Correction (student):** _[pending]_
+
+---
+
 <!-- New entries appended below as each step of the runbook executes. -->
