@@ -406,4 +406,23 @@ agent in this repository (`c:\Users\ACER\Downloads\eshop-sut`).
 
 ---
 
+## Entry 13 — Step 11: Agent Skill
+
+- **Timestamp:** 2026-08-16 (session continued)
+- **Prompt (derived from the approved plan, Step 11):** "Package the method used
+  across Steps 1-10 into a reusable Agent Skill, and install it live so it can
+  actually be invoked in future sessions, not just documented."
+- **AI output:** Wrote `agent-skills/performance-testing-skill/SKILL.md`
+  (submission copy) and `.claude/skills/performance-testing-skill/SKILL.md`
+  (live-installed copy with YAML frontmatter so it's invokable via the `Skill`
+  tool going forward). Both encode the principles actually exercised in this
+  session: read-the-SUT-first, draft→smoke-test→review→fix per scenario, the
+  JMeter success-flag/assertion distinction (explicitly generalized from the
+  Load/Stress finding, not just recorded as a one-off), honest "no defect
+  found" reporting (Spike), the seed-after-server-start rule, and the two-pass
+  `.jtl` analysis method for Task 2 (not yet executed — next step).
+- **Audit / Correction (student):** _[pending]_
+
+---
+
 <!-- New entries appended below as each step of the runbook executes. -->
