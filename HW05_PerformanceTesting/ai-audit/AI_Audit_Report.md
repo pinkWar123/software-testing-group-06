@@ -296,4 +296,59 @@ agent in this repository (`c:\Users\ACER\Downloads\eshop-sut`).
 - **Audit / Correction (student):** confirmed, no correction
 ---
 
+## Entry 09 — Step 5: Spike scenario design draft
+
+- **Timestamp:** 2026-08-16 (session continued)
+- **Prompt (derived from the approved plan, Step 5):** "Design realistic
+  Spike-test parameters for the same workflow: a sudden burst, then recovery."
+- **AI output:** Proposed three sequential Thread Groups (same
+  `serialize_threadgroups=true` technique as Stress) forming an actual
+  low→high→low shape in one `.jmx`:
+  1. **Baseline (before)** — 5 threads, 10s ramp, 30s duration. A calm reference
+     window so the report can show "before" vs. "during" vs. "after," not just a
+     cold-start-into-chaos number.
+  2. **Burst** — 150 threads, 3s ramp (near-instant), 30s duration — the actual
+     spike.
+  3. **Recovery (after)** — 5 threads, 10s ramp, 30s duration — same as baseline,
+     to observe whether latency/error rate return to normal or the SUT stays
+     degraded.
+  Same workflow/CSVs/JSR223 400-handling as Load and Stress in every group.
+  **Execution-method note (not a `.jmx` change, but important for Step 6):**
+  Apache JMeter's own documentation warns View Results Tree should not be used
+  to *generate* load in GUI mode (it holds full response data in memory live,
+  risking GUI freeze/OOM at 150 threads) — it's meant for script debugging. The
+  official evidence run should be headless (`-n`), same as Load/Stress; if the
+  demo video needs to visually show "View Results Tree" content, that's a quick
+  separate GUI-mode replay of the saved `.jtl`/a small-scale live demo, not the
+  actual 150-thread burst itself. This will go in the Step 6 runbook.
+- **Audit / Correction (student):** confirmed, no correction
+
+---
+
+## Entry 10 — Step 5: generate, smoke-test, and review Spike v1
+
+- **Timestamp:** 2026-08-16 (session continued)
+- **Prompt (derived from the approved plan, Step 5):** "Generate the signed-off
+  Spike test plan, smoke-test it, and review it before it's finalized."
+- **AI output:** Created `jmeter/23127102_Spike_20260816.jmx` (three sequential
+  Thread Groups — Baseline/Burst/Recovery — all `${__P()}`-parameterized, View
+  Results Tree listener). Smoke-tested with scaled-down overrides
+  (`baseline=1thr/3s, burst=5thr/1s-ramp/3s, recovery=1thr/3s`): 48 samples
+  across all three groups in sequence, `Err: 0.00%`, PUT's 200/400 mix all
+  showing `success=true`. **Human review finding this time: none new.** The
+  JSR223 400-acceptance pattern (the lesson from Load Entry 06 / Stress Entry 08)
+  was applied correctly to both PUT samplers on the first attempt — no defect
+  found, so there is no separate fix commit for Spike, unlike Load/Stress's
+  draft-then-fix pairs. What *is* being carried into the report as review
+  content instead is a design rationale, not a bug: the Burst group
+  intentionally omits the loop-boundary Uniform Timer that Load/Stress/Baseline/
+  Recovery all have — at peak burst intensity there's deliberately no "think
+  before repeating" pause, only the reduced 100-300ms timer between GET and PUT,
+  modeling a genuine traffic spike rather than many humans acting in sync. Also
+  carrying forward the GUI-vs-headless View Results Tree execution note from
+  Entry 09 into the Step 6 runbook.
+- **Audit / Correction (student):** _[pending]_
+
+---
+
 <!-- New entries appended below as each step of the runbook executes. -->
