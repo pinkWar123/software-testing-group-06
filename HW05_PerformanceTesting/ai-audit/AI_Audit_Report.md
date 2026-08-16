@@ -438,7 +438,28 @@ agent in this repository (`c:\Users\ACER\Downloads\eshop-sut`).
   exact moment the 403 lockout response appears, and explicitly calls out
   running `reset_lockout.js` on camera. Segment 4 (Soak) instructs a time-lapse
   treatment for the 12-minute run rather than recording it in full.
-- **Audit / Correction (student):** _[pending]_
+- **Audit / Correction (student):** confirmed, no correction
+
+---
+
+## Entry 15 — Step 8: bug report, BUG-HW05-001 verified
+
+- **Timestamp:** 2026-08-16 (session continued)
+- **Prompt (derived from the approved plan, Step 8 — pulled forward since it
+  doesn't depend on live load data):** "Verify and document the
+  canceled→delivered transition bug flagged during workflow design (Entry 03)."
+- **AI output:** Started the backend fresh, seeded one order directly with
+  `status='canceled'`, logged in as admin, and issued
+  `PUT /api/admin/orders/1/status {"status":"delivered"}` — reproduced for
+  real: server returned `200 {"message":"Order status updated"}` and the order
+  now shows `status: "delivered"`, confirming the logic bug at
+  `server.js:550-551`. Wrote `bug-reports/bug_report.md` (BUG-HW05-001) with
+  repro steps and the actual curl evidence. Did **not** file a GitHub issue —
+  per `AGENTS.md`, that requires your explicit go-ahead each time; a screenshot
+  still needs to be attached first too. Stopped the backend afterward so the
+  official runs in `EXECUTION_RUNBOOK.md` start clean.
+- **Audit / Correction (student):** _[pending — say the word when you want this
+  filed as a GitHub issue, ideally with a screenshot attached]_
 
 ---
 
