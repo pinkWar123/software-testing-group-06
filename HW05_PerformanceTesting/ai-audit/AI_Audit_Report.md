@@ -231,4 +231,74 @@ agent in this repository (`c:\Users\ACER\Downloads\eshop-sut`).
 
 ---
 
+## Entry 07 — Step 4: Stress scenario design draft
+
+- **Timestamp:** 2026-08-16 (session continued)
+- **Prompt (derived from the approved plan, Step 4):** "Design realistic
+  Stress-test parameters for the same admin order-management workflow, at higher
+  concurrency than Load, and explicitly cover the auth-heavy group's
+  account-lockout behavior as the assignment example calls for."
+- **AI output:** Proposed two Thread Groups in one `.jmx`, run **sequentially**
+  (`TestPlan.serialize_threadgroups=true`) so the deliberate lockout test doesn't
+  contaminate the main capacity measurement:
+  1. **Main stress group** — same workflow as Load (login once → GET orders →
+     think-time → PUT status → loop-boundary think-time), 80 threads (8x Load),
+     15s ramp-up (faster onboarding than Load's 20s), 180s sustained duration,
+     Gaussian think-time reduced to mean 500ms/dev 200ms (less "thinking" under
+     stress), loop-boundary Uniform timer reduced to 100-300ms. No JMeter
+     plugins are installed (checked: no `lib/ext` staged/stepping thread group
+     jars), so a true incrementally-staged ramp isn't available — approximating
+     stress as a single elevated, sustained thread count instead of true step
+     ramping is a real limitation being flagged, not silently worked around.
+  2. **Lockout validation group** — 1 thread, exercises `data/admin_login_lockout.csv`
+     (2 wrong-password rows) then a 3rd attempt with the correct password,
+     asserting the account is now locked (`403`, the Vietnamese lockout message).
+     Directly validates the real `+2`-per-attempt/180s logic documented in
+     `AGENTS.md` rather than assuming a textbook 3-strikes rule.
+  - Added `jmeter/reset_lockout.js` (direct-DB reset of `login_attempts`/
+    `locked_until` for the admin account) since 180s of dead time between runs
+    would be wasteful during the actual recorded session.
+  - **Operational risk flagged for explicit sign-off:** the lockout sub-test
+    locks the *real* `admin@eshop.com` account for 180s. Because all 80 main-group
+    threads share that same account, running the lockout group concurrently with
+    the main group would cascade-fail unrelated logins and corrupt the capacity
+    signal — hence running it strictly after the main group finishes, and
+    `reset_lockout.js` must be run before Spike (which also needs working admin
+    login).
+- **Audit / Correction (student):** Confirmed 80/15s/180s and the sequential
+  two-group structure. No changes.
+
+---
+
+## Entry 08 — Step 4: generate + smoke-test Stress v1
+
+- **Timestamp:** 2026-08-16 (session continued)
+- **Prompt (derived from the approved plan, Step 4):** "Generate the signed-off
+  Stress test plan and smoke-test it."
+- **AI output:** Created `jmeter/23127102_Stress_20260816.jmx` (two sequential
+  Thread Groups as designed). Smoke-tested with `-Jthreads=2 -Jrampup=1
+  -Jduration=6`: 16 samples, main group behaved correctly (login, GET, PUT with
+  200/400 mix, JSR223 400-acceptance carried over from Load and working). **Found
+  a real defect**: the lockout group's three samples (2x wrong-password login,
+  1x verify-locked) all came back marked `success=false` in the `.jtl`, even
+  though 401/401/403 are exactly the *expected, correct* responses for this
+  sub-test. Root cause is the identical issue already documented and fixed in
+  Load (Entry 06) — JMeter marks any response code ≥400 as a failed sample
+  *before* assertions run, so a plain `ResponseAssertion` checking "code equals
+  401" can pass while the sample itself still shows red. **Why this is worth
+  flagging on its own, not just as a repeat**: I had already found and fixed this
+  exact root cause once, in this same session, minutes earlier — and still wrote
+  three new samplers with the same unfixed pattern. That's a real, honest
+  illustration of a model limitation worth stating plainly in the report: fixing
+  one instance of a JMeter quirk doesn't make the fix "known" going forward the
+  way it would for a human who internalizes a lesson — every new element needs
+  the same scrutiny applied again, not a mental note that it's been handled.
+  **Fix:** replace the three `ResponseAssertion`s with `JSR223PostProcessor`s
+  that explicitly set `prev.setSuccessful(prev.getResponseCode() == "<expected
+  code>")` — so an unexpected code (e.g., a `200` on the wrong-password attempt,
+  which would mean the SUT let a bad password through) still correctly shows red.
+- **Audit / Correction (student):** _[pending]_
+
+---
+
 <!-- New entries appended below as each step of the runbook executes. -->
