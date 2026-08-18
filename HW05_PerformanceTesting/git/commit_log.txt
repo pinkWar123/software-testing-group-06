@@ -1,0 +1,690 @@
+HW05 Performance Testing - Git Commit Log
+Student: 23127102  Branch: week_5/23127102
+Range: a452565 (scaffold) .. 34f08fe (Task2 analysis)
+Generated: 2026-08-18 23:16:24 SEAST
+
+=== Oneline summary (14 commits) ===
+34f08fe [Task2] AI analysis + misinterpretation hunt + optimization judgment
+80e84ee [Load|Stress|Spike] execution evidence
+4e4d9b8 [Bugs] bug_report.md - BUG-HW05-001 verified
+ba32850 [Video] demo video plan
+9b3ec01 [Skill] performance-testing-skill
+4f12a2d [Task3] continuous performance testing proposal
+bf53fe1 [Soak] endurance test plan + live-execution runbook
+758002e [Spike] AI-drafted test plan, reviewed - no defect found
+8535fc9 [Stress] human review fixes + writeup
+91e4a10 [Stress] AI-drafted test plan + CSV data
+2369aef [Load] human review fixes + writeup
+e47ca53 [Load] AI-drafted test plan + CSV data
+fb6f62e [Setup] pivot workflow to admin order-management flow
+a452565 [Setup] scaffold HW05 folder structure + AGENTS.md
+
+=== Full log with stats ===
+commit 34f08fe8f328fa70a35567f4d28be999afdd244f
+Author: phucle04 <157397067+phucle04@users.noreply.github.com>
+Date:   Tue Aug 18 22:46:10 2026 +0700
+
+    [Task2] AI analysis + misinterpretation hunt + optimization judgment
+    
+    Real two-pass analysis of the live Load/Stress/Spike .jtl logs via
+    analysis/compute_stats.js. First pass (ai_analysis_raw.md) reads the
+    headline numbers at face value. Second pass (misinterpretation_hunt.md)
+    finds 5 real misreadings cited against raw values: "0% errors" masking
+    85-98% business-rejection 400s, GET/PUT "identical degradation"
+    ignoring a ~5x response-payload growth confound (342KB->1.7MB) versus
+    PUT's constant ~335 bytes, Spike's blended overall average hiding a
+    near-instant recovery to baseline, an implied linear thread-count
+    relationship that the data shows is sublinear, and a CSV-sharing
+    collision artifact behind Load's 10.6% PUT success rate.
+    optimization_judgment.md rules on the AI's 4 proposed optimizations
+    (WAL mode feasible, index and connection pool hallucinated for this
+    embedded single-writer SQLite stack, caching feasible but not
+    well-targeted) and flags pagination - the fix most directly supported
+    by the AI's own data - as conspicuously absent from its own proposals.
+
+ .../ai-audit/AI_Audit_Report.md                    |  50 ++++++++
+ .../analysis/ai_analysis_raw.md                    |  55 ++++++++
+ HW05_PerformanceTesting/analysis/compute_stats.js  |  67 ++++++++++
+ .../analysis/misinterpretation_hunt.md             | 141 +++++++++++++++++++++
+ .../analysis/optimization_judgment.md              |  86 +++++++++++++
+ .../evidence/screenshot_inventory.md               |  24 ++--
+ 6 files changed, 411 insertions(+), 12 deletions(-)
+
+commit 80e84eed09fd6d1494aefdf44f77d365813ecd38
+Author: phucle04 <157397067+phucle04@users.noreply.github.com>
+Date:   Tue Aug 18 22:45:57 2026 +0700
+
+    [Load|Stress|Spike] execution evidence
+    
+    Real raw .jtl logs and HTML reports from the official live runs
+    (load.jtl: 1115 samples, stress.jtl: 6465, spike.jtl: 2210), Task
+    Manager + JMeter resource-monitor screenshots for all three scenarios,
+    dxdiag hardware screenshot, jmeter.log, and the order_ids.csv snapshot
+    from the last official seed (6500 rows). Soak run skipped per student
+    decision - not attempted.
+
+ .../evidence/hardware/dxdiag.png                   |   Bin 0 -> 42456 bytes
+ .../evidence/resource-monitor/load.png             |   Bin 0 -> 1296711 bytes
+ .../evidence/resource-monitor/spike.png            |   Bin 0 -> 1636447 bytes
+ .../evidence/resource-monitor/stress.png           |   Bin 0 -> 1867856 bytes
+ HW05_PerformanceTesting/jmeter/data/order_ids.csv  |  6500 ++++++++++++
+ HW05_PerformanceTesting/jmeter/jmeter.log          |   906 ++
+ .../load/html-report/content/css/dashboard.css     |    48 +
+ .../load/html-report/content/css/jquery-ui.min.css |     7 +
+ .../content/css/jquery-ui.structure.min.css        |     5 +
+ .../content/css/jquery-ui.theme.min.css            |     5 +
+ .../load/html-report/content/css/legends.css       |    61 +
+ .../load/html-report/content/css/theme.blue.css    |   233 +
+ .../load/html-report/content/js/curvedLines.js     |   483 +
+ .../load/html-report/content/js/customGraph.js     |    50 +
+ .../html-report/content/js/dashboard-commons.js    |   462 +
+ .../load/html-report/content/js/dashboard.js       |   235 +
+ .../results/load/html-report/content/js/graph.js   |  1416 +++
+ .../load/html-report/content/js/hashtable.js       |   402 +
+ .../load/html-report/content/js/jquery-ui.min.js   |    13 +
+ .../load/html-report/content/js/jquery.cookie.js   |   117 +
+ .../html-report/content/js/jquery.flot.stack.js    |    83 +
+ .../content/js/jquery.numberformatter-1.2.3.min.js |     1 +
+ .../content/js/jquery.tablesorter.min.js           |     2 +
+ .../html-report/content/pages/CustomsGraphs.html   |   176 +
+ .../load/html-report/content/pages/OverTime.html   |   512 +
+ .../html-report/content/pages/ResponseTimes.html   |   373 +
+ .../load/html-report/content/pages/Throughput.html |   463 +
+ .../load/html-report/content/pages/icon-apache.png |   Bin 0 -> 4944 bytes
+ .../results/load/html-report/index.html            |   203 +
+ .../load/html-report/sbadmin2-1.0.7/README.md      |    27 +
+ .../load/html-report/sbadmin2-1.0.7/bower.json     |    39 +
+ .../bower_components/bootstrap/.bower.json         |    48 +
+ .../bower_components/bootstrap/README.md           |   134 +
+ .../bootstrap/dist/css/bootstrap.min.css           |     6 +
+ .../dist/fonts/glyphicons-halflings-regular.eot    |   Bin 0 -> 20127 bytes
+ .../dist/fonts/glyphicons-halflings-regular.svg    |   288 +
+ .../dist/fonts/glyphicons-halflings-regular.ttf    |   Bin 0 -> 45404 bytes
+ .../dist/fonts/glyphicons-halflings-regular.woff   |   Bin 0 -> 23424 bytes
+ .../dist/fonts/glyphicons-halflings-regular.woff2  |   Bin 0 -> 18028 bytes
+ .../bootstrap/dist/js/bootstrap.min.js             |     7 +
+ .../bower_components/flot-axislabels/.bower.json   |    14 +
+ .../bower_components/flot-axislabels/README.md     |   101 +
+ .../flot-axislabels/jquery.flot.axislabels.js      |   466 +
+ .../bower_components/flot.tooltip/.bower.json      |    24 +
+ .../bower_components/flot.tooltip/bower.json       |    13 +
+ .../flot.tooltip/js/excanvas.min.js                |     1 +
+ .../flot.tooltip/js/jquery.flot.js                 |  3168 ++++++
+ .../flot.tooltip/js/jquery.flot.tooltip.js         |   490 +
+ .../flot.tooltip/js/jquery.flot.tooltip.min.js     |    12 +
+ .../flot.tooltip/js/jquery.flot.tooltip.source.js  |   479 +
+ .../bower_components/flot/.bower.json              |    19 +
+ .../bower_components/flot/.travis.yml              |     3 +
+ .../sbadmin2-1.0.7/bower_components/flot/API.md    |  1498 +++
+ .../bower_components/flot/CONTRIBUTING.md          |    98 +
+ .../sbadmin2-1.0.7/bower_components/flot/FAQ.md    |    75 +
+ .../sbadmin2-1.0.7/bower_components/flot/Makefile  |    12 +
+ .../sbadmin2-1.0.7/bower_components/flot/NEWS.md   |  1026 ++
+ .../bower_components/flot/PLUGINS.md               |   143 +
+ .../sbadmin2-1.0.7/bower_components/flot/README.md |   110 +
+ .../bower_components/flot/component.json           |     8 +
+ .../bower_components/flot/excanvas.js              |  1428 +++
+ .../bower_components/flot/excanvas.min.js          |     1 +
+ .../bower_components/flot/flot.jquery.json         |    27 +
+ .../bower_components/flot/jquery.colorhelpers.js   |   180 +
+ .../bower_components/flot/jquery.flot.canvas.js    |   345 +
+ .../flot/jquery.flot.categories.js                 |   190 +
+ .../bower_components/flot/jquery.flot.crosshair.js |   176 +
+ .../bower_components/flot/jquery.flot.errorbars.js |   353 +
+ .../flot/jquery.flot.fillbetween.js                |   226 +
+ .../bower_components/flot/jquery.flot.image.js     |   241 +
+ .../bower_components/flot/jquery.flot.js           |  3168 ++++++
+ .../bower_components/flot/jquery.flot.navigate.js  |   346 +
+ .../bower_components/flot/jquery.flot.pie.js       |   820 ++
+ .../bower_components/flot/jquery.flot.resize.js    |    59 +
+ .../bower_components/flot/jquery.flot.selection.js |   360 +
+ .../bower_components/flot/jquery.flot.stack.js     |   188 +
+ .../bower_components/flot/jquery.flot.symbol.js    |    71 +
+ .../bower_components/flot/jquery.flot.threshold.js |   142 +
+ .../bower_components/flot/jquery.flot.time.js      |   432 +
+ .../bower_components/flot/package.json             |    11 +
+ .../bower_components/font-awesome/.bower.json      |    36 +
+ .../bower_components/font-awesome/.npmignore       |    42 +
+ .../bower_components/font-awesome/bower.json       |    23 +
+ .../font-awesome/css/font-awesome.css              |  1672 +++
+ .../font-awesome/css/font-awesome.min.css          |     4 +
+ .../font-awesome/fonts/FontAwesome.otf             |   Bin 0 -> 85908 bytes
+ .../font-awesome/fonts/fontawesome-webfont.eot     |   Bin 0 -> 56006 bytes
+ .../font-awesome/fonts/fontawesome-webfont.svg     |   520 +
+ .../font-awesome/fonts/fontawesome-webfont.ttf     |   Bin 0 -> 112160 bytes
+ .../font-awesome/fonts/fontawesome-webfont.woff    |   Bin 0 -> 65452 bytes
+ .../font-awesome/less/bordered-pulled.less         |    16 +
+ .../bower_components/font-awesome/less/core.less   |    11 +
+ .../bower_components/font-awesome/less/extras.less |     2 +
+ .../font-awesome/less/fixed-width.less             |     6 +
+ .../font-awesome/less/font-awesome.less            |    17 +
+ .../bower_components/font-awesome/less/icons.less  |   552 +
+ .../bower_components/font-awesome/less/larger.less |    13 +
+ .../bower_components/font-awesome/less/list.less   |    19 +
+ .../bower_components/font-awesome/less/mixins.less |    25 +
+ .../bower_components/font-awesome/less/path.less   |    14 +
+ .../font-awesome/less/rotated-flipped.less         |    20 +
+ .../font-awesome/less/spinning.less                |    29 +
+ .../font-awesome/less/stacked.less                 |    20 +
+ .../font-awesome/less/variables.less               |   561 +
+ .../font-awesome/scss/_bordered-pulled.scss        |    16 +
+ .../bower_components/font-awesome/scss/_core.scss  |    11 +
+ .../font-awesome/scss/_extras.scss                 |    44 +
+ .../font-awesome/scss/_fixed-width.scss            |     6 +
+ .../bower_components/font-awesome/scss/_icons.scss |   552 +
+ .../font-awesome/scss/_larger.scss                 |    13 +
+ .../bower_components/font-awesome/scss/_list.scss  |    19 +
+ .../font-awesome/scss/_mixins.scss                 |    25 +
+ .../bower_components/font-awesome/scss/_path.scss  |    14 +
+ .../font-awesome/scss/_rotated-flipped.scss        |    20 +
+ .../font-awesome/scss/_spinning.scss               |    29 +
+ .../font-awesome/scss/_stacked.scss                |    20 +
+ .../font-awesome/scss/_variables.scss              |   561 +
+ .../font-awesome/scss/font-awesome.scss            |    17 +
+ .../bower_components/jquery/.bower.json            |    37 +
+ .../bower_components/jquery/bower.json             |    27 +
+ .../bower_components/jquery/dist/jquery.js         | 10364 +++++++++++++++++++
+ .../bower_components/jquery/dist/jquery.min.js     |     2 +
+ .../bower_components/jquery/dist/jquery.min.map    |     1 +
+ .../bower_components/metisMenu/.bower.json         |    45 +
+ .../bower_components/metisMenu/README.md           |   113 +
+ .../metisMenu/dist/metisMenu.min.css               |    10 +
+ .../metisMenu/dist/metisMenu.min.js                |     9 +
+ .../sbadmin2-1.0.7/dist/css/sb-admin-2.css         |   431 +
+ .../sbadmin2-1.0.7/dist/js/sb-admin-2.js           |    36 +
+ .../html-report/sbadmin2-1.0.7/less/mixins.less    |     1 +
+ .../sbadmin2-1.0.7/less/sb-admin-2.less            |   366 +
+ .../html-report/sbadmin2-1.0.7/less/variables.less |    14 +
+ .../results/load/html-report/statistics.json       |    66 +
+ HW05_PerformanceTesting/results/load/load.jtl      |  1116 ++
+ .../spike/html-report/content/css/dashboard.css    |    48 +
+ .../html-report/content/css/jquery-ui.min.css      |     7 +
+ .../content/css/jquery-ui.structure.min.css        |     5 +
+ .../content/css/jquery-ui.theme.min.css            |     5 +
+ .../spike/html-report/content/css/legends.css      |    61 +
+ .../spike/html-report/content/css/theme.blue.css   |   233 +
+ .../spike/html-report/content/js/curvedLines.js    |   483 +
+ .../spike/html-report/content/js/customGraph.js    |    50 +
+ .../html-report/content/js/dashboard-commons.js    |   462 +
+ .../spike/html-report/content/js/dashboard.js      |   235 +
+ .../results/spike/html-report/content/js/graph.js  |  1416 +++
+ .../spike/html-report/content/js/hashtable.js      |   402 +
+ .../spike/html-report/content/js/jquery-ui.min.js  |    13 +
+ .../spike/html-report/content/js/jquery.cookie.js  |   117 +
+ .../html-report/content/js/jquery.flot.stack.js    |    83 +
+ .../content/js/jquery.numberformatter-1.2.3.min.js |     1 +
+ .../content/js/jquery.tablesorter.min.js           |     2 +
+ .../html-report/content/pages/CustomsGraphs.html   |   176 +
+ .../spike/html-report/content/pages/OverTime.html  |   512 +
+ .../html-report/content/pages/ResponseTimes.html   |   373 +
+ .../html-report/content/pages/Throughput.html      |   463 +
+ .../html-report/content/pages/icon-apache.png      |   Bin 0 -> 4944 bytes
+ .../results/spike/html-report/index.html           |   203 +
+ .../spike/html-report/sbadmin2-1.0.7/README.md     |    27 +
+ .../spike/html-report/sbadmin2-1.0.7/bower.json    |    39 +
+ .../bower_components/bootstrap/.bower.json         |    48 +
+ .../bower_components/bootstrap/README.md           |   134 +
+ .../bootstrap/dist/css/bootstrap.min.css           |     6 +
+ .../dist/fonts/glyphicons-halflings-regular.eot    |   Bin 0 -> 20127 bytes
+ .../dist/fonts/glyphicons-halflings-regular.svg    |   288 +
+ .../dist/fonts/glyphicons-halflings-regular.ttf    |   Bin 0 -> 45404 bytes
+ .../dist/fonts/glyphicons-halflings-regular.woff   |   Bin 0 -> 23424 bytes
+ .../dist/fonts/glyphicons-halflings-regular.woff2  |   Bin 0 -> 18028 bytes
+ .../bootstrap/dist/js/bootstrap.min.js             |     7 +
+ .../bower_components/flot-axislabels/.bower.json   |    14 +
+ .../bower_components/flot-axislabels/README.md     |   101 +
+ .../flot-axislabels/jquery.flot.axislabels.js      |   466 +
+ .../bower_components/flot.tooltip/.bower.json      |    24 +
+ .../bower_components/flot.tooltip/bower.json       |    13 +
+ .../flot.tooltip/js/excanvas.min.js                |     1 +
+ .../flot.tooltip/js/jquery.flot.js                 |  3168 ++++++
+ .../flot.tooltip/js/jquery.flot.tooltip.js         |   490 +
+ .../flot.tooltip/js/jquery.flot.tooltip.min.js     |    12 +
+ .../flot.tooltip/js/jquery.flot.tooltip.source.js  |   479 +
+ .../bower_components/flot/.bower.json              |    19 +
+ .../bower_components/flot/.travis.yml              |     3 +
+ .../sbadmin2-1.0.7/bower_components/flot/API.md    |  1498 +++
+ .../bower_components/flot/CONTRIBUTING.md          |    98 +
+ .../sbadmin2-1.0.7/bower_components/flot/FAQ.md    |    75 +
+ .../sbadmin2-1.0.7/bower_components/flot/Makefile  |    12 +
+ .../sbadmin2-1.0.7/bower_components/flot/NEWS.md   |  1026 ++
+ .../bower_components/flot/PLUGINS.md               |   143 +
+ .../sbadmin2-1.0.7/bower_components/flot/README.md |   110 +
+ .../bower_components/flot/component.json           |     8 +
+ .../bower_components/flot/excanvas.js              |  1428 +++
+ .../bower_components/flot/excanvas.min.js          |     1 +
+ .../bower_components/flot/flot.jquery.json         |    27 +
+ .../bower_components/flot/jquery.colorhelpers.js   |   180 +
+ .../bower_components/flot/jquery.flot.canvas.js    |   345 +
+ .../flot/jquery.flot.categories.js                 |   190 +
+ .../bower_components/flot/jquery.flot.crosshair.js |   176 +
+ .../bower_components/flot/jquery.flot.errorbars.js |   353 +
+ .../flot/jquery.flot.fillbetween.js                |   226 +
+ .../bower_components/flot/jquery.flot.image.js     |   241 +
+ .../bower_components/flot/jquery.flot.js           |  3168 ++++++
+ .../bower_components/flot/jquery.flot.navigate.js  |   346 +
+ .../bower_components/flot/jquery.flot.pie.js       |   820 ++
+ .../bower_components/flot/jquery.flot.resize.js    |    59 +
+ .../bower_components/flot/jquery.flot.selection.js |   360 +
+ .../bower_components/flot/jquery.flot.stack.js     |   188 +
+ .../bower_components/flot/jquery.flot.symbol.js    |    71 +
+ .../bower_components/flot/jquery.flot.threshold.js |   142 +
+ .../bower_components/flot/jquery.flot.time.js      |   432 +
+ .../bower_components/flot/package.json             |    11 +
+ .../bower_components/font-awesome/.bower.json      |    36 +
+ .../bower_components/font-awesome/.npmignore       |    42 +
+ .../bower_components/font-awesome/bower.json       |    23 +
+ .../font-awesome/css/font-awesome.css              |  1672 +++
+ .../font-awesome/css/font-awesome.min.css          |     4 +
+ .../font-awesome/fonts/FontAwesome.otf             |   Bin 0 -> 85908 bytes
+ .../font-awesome/fonts/fontawesome-webfont.eot     |   Bin 0 -> 56006 bytes
+ .../font-awesome/fonts/fontawesome-webfont.svg     |   520 +
+ .../font-awesome/fonts/fontawesome-webfont.ttf     |   Bin 0 -> 112160 bytes
+ .../font-awesome/fonts/fontawesome-webfont.woff    |   Bin 0 -> 65452 bytes
+ .../font-awesome/less/bordered-pulled.less         |    16 +
+ .../bower_components/font-awesome/less/core.less   |    11 +
+ .../bower_components/font-awesome/less/extras.less |     2 +
+ .../font-awesome/less/fixed-width.less             |     6 +
+ .../font-awesome/less/font-awesome.less            |    17 +
+ .../bower_components/font-awesome/less/icons.less  |   552 +
+ .../bower_components/font-awesome/less/larger.less |    13 +
+ .../bower_components/font-awesome/less/list.less   |    19 +
+ .../bower_components/font-awesome/less/mixins.less |    25 +
+ .../bower_components/font-awesome/less/path.less   |    14 +
+ .../font-awesome/less/rotated-flipped.less         |    20 +
+ .../font-awesome/less/spinning.less                |    29 +
+ .../font-awesome/less/stacked.less                 |    20 +
+ .../font-awesome/less/variables.less               |   561 +
+ .../font-awesome/scss/_bordered-pulled.scss        |    16 +
+ .../bower_components/font-awesome/scss/_core.scss  |    11 +
+ .../font-awesome/scss/_extras.scss                 |    44 +
+ .../font-awesome/scss/_fixed-width.scss            |     6 +
+ .../bower_components/font-awesome/scss/_icons.scss |   552 +
+ .../font-awesome/scss/_larger.scss                 |    13 +
+ .../bower_components/font-awesome/scss/_list.scss  |    19 +
+ .../font-awesome/scss/_mixins.scss                 |    25 +
+ .../bower_components/font-awesome/scss/_path.scss  |    14 +
+ .../font-awesome/scss/_rotated-flipped.scss        |    20 +
+ .../font-awesome/scss/_spinning.scss               |    29 +
+ .../font-awesome/scss/_stacked.scss                |    20 +
+ .../font-awesome/scss/_variables.scss              |   561 +
+ .../font-awesome/scss/font-awesome.scss            |    17 +
+ .../bower_components/jquery/.bower.json            |    37 +
+ .../bower_components/jquery/bower.json             |    27 +
+ .../bower_components/jquery/dist/jquery.js         | 10364 +++++++++++++++++++
+ .../bower_components/jquery/dist/jquery.min.js     |     2 +
+ .../bower_components/jquery/dist/jquery.min.map    |     1 +
+ .../bower_components/metisMenu/.bower.json         |    45 +
+ .../bower_components/metisMenu/README.md           |   113 +
+ .../metisMenu/dist/metisMenu.min.css               |    10 +
+ .../metisMenu/dist/metisMenu.min.js                |     9 +
+ .../sbadmin2-1.0.7/dist/css/sb-admin-2.css         |   431 +
+ .../sbadmin2-1.0.7/dist/js/sb-admin-2.js           |    36 +
+ .../html-report/sbadmin2-1.0.7/less/mixins.less    |     1 +
+ .../sbadmin2-1.0.7/less/sb-admin-2.less            |   366 +
+ .../html-report/sbadmin2-1.0.7/less/variables.less |    14 +
+ .../results/spike/html-report/statistics.json      |    66 +
+ HW05_PerformanceTesting/results/spike/spike.jtl    |  2211 ++++
+ .../stress/html-report/content/css/dashboard.css   |    48 +
+ .../html-report/content/css/jquery-ui.min.css      |     7 +
+ .../content/css/jquery-ui.structure.min.css        |     5 +
+ .../content/css/jquery-ui.theme.min.css            |     5 +
+ .../stress/html-report/content/css/legends.css     |    61 +
+ .../stress/html-report/content/css/theme.blue.css  |   233 +
+ .../stress/html-report/content/js/curvedLines.js   |   483 +
+ .../stress/html-report/content/js/customGraph.js   |    50 +
+ .../html-report/content/js/dashboard-commons.js    |   462 +
+ .../stress/html-report/content/js/dashboard.js     |   235 +
+ .../results/stress/html-report/content/js/graph.js |  1416 +++
+ .../stress/html-report/content/js/hashtable.js     |   402 +
+ .../stress/html-report/content/js/jquery-ui.min.js |    13 +
+ .../stress/html-report/content/js/jquery.cookie.js |   117 +
+ .../html-report/content/js/jquery.flot.stack.js    |    83 +
+ .../content/js/jquery.numberformatter-1.2.3.min.js |     1 +
+ .../content/js/jquery.tablesorter.min.js           |     2 +
+ .../html-report/content/pages/CustomsGraphs.html   |   176 +
+ .../stress/html-report/content/pages/OverTime.html |   512 +
+ .../html-report/content/pages/ResponseTimes.html   |   373 +
+ .../html-report/content/pages/Throughput.html      |   463 +
+ .../html-report/content/pages/icon-apache.png      |   Bin 0 -> 4944 bytes
+ .../results/stress/html-report/index.html          |   203 +
+ .../stress/html-report/sbadmin2-1.0.7/README.md    |    27 +
+ .../stress/html-report/sbadmin2-1.0.7/bower.json   |    39 +
+ .../bower_components/bootstrap/.bower.json         |    48 +
+ .../bower_components/bootstrap/README.md           |   134 +
+ .../bootstrap/dist/css/bootstrap.min.css           |     6 +
+ .../dist/fonts/glyphicons-halflings-regular.eot    |   Bin 0 -> 20127 bytes
+ .../dist/fonts/glyphicons-halflings-regular.svg    |   288 +
+ .../dist/fonts/glyphicons-halflings-regular.ttf    |   Bin 0 -> 45404 bytes
+ .../dist/fonts/glyphicons-halflings-regular.woff   |   Bin 0 -> 23424 bytes
+ .../dist/fonts/glyphicons-halflings-regular.woff2  |   Bin 0 -> 18028 bytes
+ .../bootstrap/dist/js/bootstrap.min.js             |     7 +
+ .../bower_components/flot-axislabels/.bower.json   |    14 +
+ .../bower_components/flot-axislabels/README.md     |   101 +
+ .../flot-axislabels/jquery.flot.axislabels.js      |   466 +
+ .../bower_components/flot.tooltip/.bower.json      |    24 +
+ .../bower_components/flot.tooltip/bower.json       |    13 +
+ .../flot.tooltip/js/excanvas.min.js                |     1 +
+ .../flot.tooltip/js/jquery.flot.js                 |  3168 ++++++
+ .../flot.tooltip/js/jquery.flot.tooltip.js         |   490 +
+ .../flot.tooltip/js/jquery.flot.tooltip.min.js     |    12 +
+ .../flot.tooltip/js/jquery.flot.tooltip.source.js  |   479 +
+ .../bower_components/flot/.bower.json              |    19 +
+ .../bower_components/flot/.travis.yml              |     3 +
+ .../sbadmin2-1.0.7/bower_components/flot/API.md    |  1498 +++
+ .../bower_components/flot/CONTRIBUTING.md          |    98 +
+ .../sbadmin2-1.0.7/bower_components/flot/FAQ.md    |    75 +
+ .../sbadmin2-1.0.7/bower_components/flot/Makefile  |    12 +
+ .../sbadmin2-1.0.7/bower_components/flot/NEWS.md   |  1026 ++
+ .../bower_components/flot/PLUGINS.md               |   143 +
+ .../sbadmin2-1.0.7/bower_components/flot/README.md |   110 +
+ .../bower_components/flot/component.json           |     8 +
+ .../bower_components/flot/excanvas.js              |  1428 +++
+ .../bower_components/flot/excanvas.min.js          |     1 +
+ .../bower_components/flot/flot.jquery.json         |    27 +
+ .../bower_components/flot/jquery.colorhelpers.js   |   180 +
+ .../bower_components/flot/jquery.flot.canvas.js    |   345 +
+ .../flot/jquery.flot.categories.js                 |   190 +
+ .../bower_components/flot/jquery.flot.crosshair.js |   176 +
+ .../bower_components/flot/jquery.flot.errorbars.js |   353 +
+ .../flot/jquery.flot.fillbetween.js                |   226 +
+ .../bower_components/flot/jquery.flot.image.js     |   241 +
+ .../bower_components/flot/jquery.flot.js           |  3168 ++++++
+ .../bower_components/flot/jquery.flot.navigate.js  |   346 +
+ .../bower_components/flot/jquery.flot.pie.js       |   820 ++
+ .../bower_components/flot/jquery.flot.resize.js    |    59 +
+ .../bower_components/flot/jquery.flot.selection.js |   360 +
+ .../bower_components/flot/jquery.flot.stack.js     |   188 +
+ .../bower_components/flot/jquery.flot.symbol.js    |    71 +
+ .../bower_components/flot/jquery.flot.threshold.js |   142 +
+ .../bower_components/flot/jquery.flot.time.js      |   432 +
+ .../bower_components/flot/package.json             |    11 +
+ .../bower_components/font-awesome/.bower.json      |    36 +
+ .../bower_components/font-awesome/.npmignore       |    42 +
+ .../bower_components/font-awesome/bower.json       |    23 +
+ .../font-awesome/css/font-awesome.css              |  1672 +++
+ .../font-awesome/css/font-awesome.min.css          |     4 +
+ .../font-awesome/fonts/FontAwesome.otf             |   Bin 0 -> 85908 bytes
+ .../font-awesome/fonts/fontawesome-webfont.eot     |   Bin 0 -> 56006 bytes
+ .../font-awesome/fonts/fontawesome-webfont.svg     |   520 +
+ .../font-awesome/fonts/fontawesome-webfont.ttf     |   Bin 0 -> 112160 bytes
+ .../font-awesome/fonts/fontawesome-webfont.woff    |   Bin 0 -> 65452 bytes
+ .../font-awesome/less/bordered-pulled.less         |    16 +
+ .../bower_components/font-awesome/less/core.less   |    11 +
+ .../bower_components/font-awesome/less/extras.less |     2 +
+ .../font-awesome/less/fixed-width.less             |     6 +
+ .../font-awesome/less/font-awesome.less            |    17 +
+ .../bower_components/font-awesome/less/icons.less  |   552 +
+ .../bower_components/font-awesome/less/larger.less |    13 +
+ .../bower_components/font-awesome/less/list.less   |    19 +
+ .../bower_components/font-awesome/less/mixins.less |    25 +
+ .../bower_components/font-awesome/less/path.less   |    14 +
+ .../font-awesome/less/rotated-flipped.less         |    20 +
+ .../font-awesome/less/spinning.less                |    29 +
+ .../font-awesome/less/stacked.less                 |    20 +
+ .../font-awesome/less/variables.less               |   561 +
+ .../font-awesome/scss/_bordered-pulled.scss        |    16 +
+ .../bower_components/font-awesome/scss/_core.scss  |    11 +
+ .../font-awesome/scss/_extras.scss                 |    44 +
+ .../font-awesome/scss/_fixed-width.scss            |     6 +
+ .../bower_components/font-awesome/scss/_icons.scss |   552 +
+ .../font-awesome/scss/_larger.scss                 |    13 +
+ .../bower_components/font-awesome/scss/_list.scss  |    19 +
+ .../font-awesome/scss/_mixins.scss                 |    25 +
+ .../bower_components/font-awesome/scss/_path.scss  |    14 +
+ .../font-awesome/scss/_rotated-flipped.scss        |    20 +
+ .../font-awesome/scss/_spinning.scss               |    29 +
+ .../font-awesome/scss/_stacked.scss                |    20 +
+ .../font-awesome/scss/_variables.scss              |   561 +
+ .../font-awesome/scss/font-awesome.scss            |    17 +
+ .../bower_components/jquery/.bower.json            |    37 +
+ .../bower_components/jquery/bower.json             |    27 +
+ .../bower_components/jquery/dist/jquery.js         | 10364 +++++++++++++++++++
+ .../bower_components/jquery/dist/jquery.min.js     |     2 +
+ .../bower_components/jquery/dist/jquery.min.map    |     1 +
+ .../bower_components/metisMenu/.bower.json         |    45 +
+ .../bower_components/metisMenu/README.md           |   113 +
+ .../metisMenu/dist/metisMenu.min.css               |    10 +
+ .../metisMenu/dist/metisMenu.min.js                |     9 +
+ .../sbadmin2-1.0.7/dist/css/sb-admin-2.css         |   431 +
+ .../sbadmin2-1.0.7/dist/js/sb-admin-2.js           |    36 +
+ .../html-report/sbadmin2-1.0.7/less/mixins.less    |     1 +
+ .../sbadmin2-1.0.7/less/sb-admin-2.less            |   366 +
+ .../html-report/sbadmin2-1.0.7/less/variables.less |    14 +
+ .../results/stress/html-report/statistics.json     |    98 +
+ HW05_PerformanceTesting/results/stress/stress.jtl  |  6466 ++++++++++++
+ 390 files changed, 133913 insertions(+)
+
+commit 4e4d9b8b89436f1f6c19b240cf4bfef89fe12cff
+Author: phucle04 <157397067+phucle04@users.noreply.github.com>
+Date:   Sun Aug 16 20:34:57 2026 +0700
+
+    [Bugs] bug_report.md - BUG-HW05-001 verified
+    
+    Reproduced the canceled->delivered transition logic bug for real
+    (server.js:550-551): seeded a canceled order, PUT .../status with
+    delivered, server returned 200 and accepted it instead of the expected
+    400. Documented repro steps + curl evidence. Not filed as a GitHub
+    issue yet - needs a screenshot and explicit go-ahead first.
+
+ .../ai-audit/AI_Audit_Report.md                    | 23 ++++++-
+ HW05_PerformanceTesting/bug-reports/bug_report.md  | 73 ++++++++++++++++++++++
+ 2 files changed, 95 insertions(+), 1 deletion(-)
+
+commit ba328501b6a4e3238911502d7f821a0036b84099
+Author: phucle04 <157397067+phucle04@users.noreply.github.com>
+Date:   Sun Aug 16 20:29:03 2026 +0700
+
+    [Video] demo video plan
+    
+    6-segment shot list (intro/Load/Stress/Spike/Soak/wrap-up) totaling
+    ~6.5 min, each specifying the required tool+TaskManager split-screen
+    layout and Vietnamese talking points to speak from (not a script -
+    narration must genuinely be the student's own). Stress segment times
+    narration to the live 403 lockout moment; Soak segment uses a
+    time-lapse treatment for the 12-minute run.
+
+ .../ai-audit/AI_Audit_Report.md                    |  25 ++++-
+ HW05_PerformanceTesting/video/demo_video_plan.md   | 102 +++++++++++++++++++++
+ 2 files changed, 123 insertions(+), 4 deletions(-)
+
+commit 9b3ec01a8b00a969fc8cbe94c04e2b3cc2818aba
+Author: phucle04 <157397067+phucle04@users.noreply.github.com>
+Date:   Sun Aug 16 20:26:31 2026 +0700
+
+    [Skill] performance-testing-skill
+    
+    Packages the draft->smoke-test->review->fix method used across
+    Load/Stress/Spike/Soak into a reusable skill: read-the-SUT-first, the
+    JMeter success-flag/assertion distinction generalized as a standing
+    principle (not just a one-off fix), honest no-defect-found reporting,
+    seed-after-server-start discipline, and the two-pass .jtl analysis
+    method for Task 2. Installed live at .claude/skills/ (invokable) plus
+    the submission copy under HW05_PerformanceTesting/agent-skills/.
+
+ .claude/skills/performance-testing-skill/SKILL.md  | 124 +++++++++++++++++++++
+ .../performance-testing-skill/SKILL.md             | 118 ++++++++++++++++++++
+ .../ai-audit/AI_Audit_Report.md                    |  19 ++++
+ 3 files changed, 261 insertions(+)
+
+commit 4f12a2d097d0efe6ed6a4c4bbfe21bfb7e07dac3
+Author: phucle04 <157397067+phucle04@users.noreply.github.com>
+Date:   Sun Aug 16 20:21:10 2026 +0700
+
+    [Task3] continuous performance testing proposal
+    
+    Path-filtered gate + smoke-vs-full split (short Load on every PR, full
+    Load/Stress/Spike/Soak nightly) + rolling baseline + reproduce-before-
+    failing rule to cut false alarms from noisy shared CI runners. Mermaid
+    flow chart + cost/signal-speed/false-alarm/coverage trade-off table.
+    Grounded in the real Express+sqlite3 stack, not the untracked
+    .github/workflows/performance-test.yml stub which references
+    infrastructure (MySQL/Redis/k6/Locust/health endpoint) this SUT doesn't
+    have.
+
+ .../ai-audit/AI_Audit_Report.md                    | 24 +++++++
+ .../proposal/continuous_performance_testing.md     | 81 ++++++++++++++++++++++
+ 2 files changed, 105 insertions(+)
+
+commit bf53fe14e1037f3209a7133c66e5c2b1d6a88085
+Author: phucle04 <157397067+phucle04@users.noreply.github.com>
+Date:   Sun Aug 16 20:18:27 2026 +0700
+
+    [Soak] endurance test plan + live-execution runbook
+    
+    23127102_Soak_20260816.jmx: single sustained Thread Group (25 threads/
+    30s ramp/720s=12min default), same reviewed workflow as Load. Smoke-
+    tested, Err 0.00%. evidence/hardware/spec_table.md pre-filled with real
+    machine specs (systeminfo/wmic, not guessed). EXECUTION_RUNBOOK.md is
+    the Step 6+7 handoff: exact headless jmeter commands per scenario,
+    seed-count guidance, the server-restart-wipes-DB sequencing found
+    during Load smoke-testing, the Stress->Spike lockout-reset handoff, and
+    soak methodology (pick thread count from real Stress data, 3 resource
+    screenshots across 12 min). This is where live execution takes over -
+    everything from here produces the actual graded evidence.
+
+ HW05_PerformanceTesting/EXECUTION_RUNBOOK.md       | 158 ++++++++++++++
+ .../ai-audit/AI_Audit_Report.md                    |  33 ++-
+ .../evidence/hardware/spec_table.md                |  28 +++
+ .../jmeter/23127102_Soak_20260816.jmx              | 239 +++++++++++++++++++++
+ 4 files changed, 457 insertions(+), 1 deletion(-)
+
+commit 758002e140feef3f4a37e63da299e855da61c494
+Author: phucle04 <157397067+phucle04@users.noreply.github.com>
+Date:   Sun Aug 16 20:03:41 2026 +0700
+
+    [Spike] AI-drafted test plan, reviewed - no defect found
+    
+    23127102_Spike_20260816.jmx: three sequential Thread Groups (Baseline 5
+    threads/30s -> Burst 150 threads/3s ramp/30s -> Recovery 5 threads/30s),
+    same admin order-management workflow as Load/Stress. View Results Tree
+    listener (third distinct report type). Smoke-tested at scaled-down
+    thread counts across all three groups: 48/48 samples pass, Err 0.00%.
+    Unlike Load/Stress, the JSR223 400-acceptance fix was applied correctly
+    on the first attempt, so no separate fix commit here - documented in
+    AI_Audit_Report.md Entry 10 along with an execution-method note (View
+    Results Tree should run headless, not live in GUI mode, at 150 threads)
+    and the intentional loop-boundary-timer omission during the burst.
+
+ .../ai-audit/AI_Audit_Report.md                    |  55 +++
+ .../jmeter/23127102_Spike_20260816.jmx             | 477 +++++++++++++++++++++
+ 2 files changed, 532 insertions(+)
+
+commit 8535fc99f1eac3c4eec7b32551756788122651ef
+Author: phucle04 <157397067+phucle04@users.noreply.github.com>
+Date:   Sun Aug 16 19:43:16 2026 +0700
+
+    [Stress] human review fixes + writeup
+    
+    Same root cause as Load's fix (Entry 06), reproduced here: JMeter fails
+    any response code >=400 before assertions run, so plain ResponseAssertions
+    checking "code equals 401/403" passed while the samples themselves still
+    showed red - even though 401/401/403 are the deliberately-expected,
+    correct outcomes for the lockout sub-test. Replaced with JSR223
+    PostProcessors that explicitly set success = (code == expected). An
+    unexpected code (e.g. 200, meaning the bad password or the lockout logic
+    itself failed) still correctly fails. Verified via smoke test: all three
+    lockout samples now show success=true, Err 0.00%.
+
+ .../ai-audit/AI_Audit_Report.md                    | 21 +++++-------
+ .../jmeter/23127102_Stress_20260816.jmx            | 40 +++++++++++++---------
+ 2 files changed, 32 insertions(+), 29 deletions(-)
+
+commit 91e4a108e86aedfcca20002faef1b9aa2793c8fd
+Author: phucle04 <157397067+phucle04@users.noreply.github.com>
+Date:   Sun Aug 16 19:39:18 2026 +0700
+
+    [Stress] AI-drafted test plan + CSV data
+    
+    23127102_Stress_20260816.jmx: main group (80 threads/15s ramp/180s,
+    same admin order-management workflow as Load at higher concurrency,
+    reduced think-time) + a sequential lockout-validation group exercising
+    the real +2-per-attempt/180s account lockout. serialize_threadgroups=true
+    so the lockout test can't cascade-fail the main group's shared admin
+    account mid-measurement. reset_lockout.js added for repeatable runs.
+    Smoke-tested: main group correct; lockout group's 401/403 samples show
+    success=false (same JMeter assertion/status-code interaction bug fixed
+    in Load, reproduced here - documented in AI_Audit_Report.md Entry 08,
+    fixed in the next commit).
+
+ .../ai-audit/AI_Audit_Report.md                    |  70 +++++
+ .../jmeter/23127102_Stress_20260816.jmx            | 331 +++++++++++++++++++++
+ HW05_PerformanceTesting/jmeter/reset_lockout.js    |  17 ++
+ 3 files changed, 418 insertions(+)
+
+commit 2369aef551ad6628f3e682031760702ff0069eec
+Author: phucle04 <157397067+phucle04@users.noreply.github.com>
+Date:   Sun Aug 16 19:23:21 2026 +0700
+
+    [Load] human review fixes + writeup
+    
+    Fix 1: a plain Response Assertion can't rescue a >=400 sample - JMeter's
+    HTTPSampler marks the sample failed before assertions run. Replaced with
+    a JSR223 PostProcessor that explicitly accepts 400 (invalid transition,
+    expected once the seeded order pool is exhausted) as successful, while
+    leaving real 5xx/timeout failures alone. Fix 2: added a loop-boundary
+    Uniform Random Timer (300-900ms) so the next GET doesn't fire the instant
+    the PUT completes. Verified via smoke test: a PUT against an
+    already-confirmed order correctly returns 400 with success=true.
+
+ .../ai-audit/AI_Audit_Report.md                    |  6 +++++
+ .../jmeter/23127102_Load_20260816.jmx              | 29 ++++++++++++++++------
+ 2 files changed, 27 insertions(+), 8 deletions(-)
+
+commit e47ca5366987fb45d6ca16139fd13609f74645ea
+Author: phucle04 <157397067+phucle04@users.noreply.github.com>
+Date:   Sun Aug 16 19:19:50 2026 +0700
+
+    [Load] AI-drafted test plan + CSV data
+    
+    23127102_Load_20260816.jmx: admin login (Once Only Controller) -> JSON
+    Extractor for token -> GET /api/admin/orders -> Gaussian think-time ->
+    PUT /api/admin/orders/:id/status. CSV-driven (admin_login.csv,
+    order_ids.csv), threads/rampup/duration parameterized via __P() for
+    smoke testing. seed_orders.js seeds the empty orders table directly in
+    SQLite (documented reasoning in AI_Audit_Report.md Entry 04/05).
+    Smoke-tested: 4/4 samples pass, token correlation confirmed working.
+
+ .../ai-audit/AI_Audit_Report.md                    |  116 +-
+ .../jmeter/23127102_Load_20260816.jmx              |  226 +++
+ .../jmeter/data/admin_login.csv                    |    2 +
+ .../jmeter/data/admin_login_lockout.csv            |    3 +
+ HW05_PerformanceTesting/jmeter/data/order_ids.csv  | 1501 ++++++++++++++++++++
+ HW05_PerformanceTesting/jmeter/seed_orders.js      |   59 +
+ 6 files changed, 1903 insertions(+), 4 deletions(-)
+
+commit fb6f62ea672202777a08a7c0ef652dd7d928af98
+Author: phucle04 <157397067+phucle04@users.noreply.github.com>
+Date:   Sun Aug 16 19:06:17 2026 +0700
+
+    [Setup] pivot workflow to admin order-management flow
+    
+    Avoid duplicating a groupmate's login->search->cart->checkout workflow.
+    New shared workflow: admin login -> GET /api/admin/orders (read) ->
+    PUT /api/admin/orders/:id/status (transactional). Documents real SUT
+    findings backing the choice: empty orders table needs setUp seeding,
+    real admin credential is Admin123! (setup_guide.md says admin123),
+    no admin-role check on /api/admin/*, and a read-then-write race /
+    canceled->delivered transition bug in the status handler.
+
+ HW05_PerformanceTesting/AGENTS.md                  | 40 ++++++++++++++--
+ .../ai-audit/AI_Audit_Report.md                    | 53 ++++++++++++++++++----
+ 2 files changed, 81 insertions(+), 12 deletions(-)
+
+commit a452565a2941ffa2a3acb5dbafccfe8982a22627
+Author: phucle04 <157397067+phucle04@users.noreply.github.com>
+Date:   Sun Aug 16 18:25:28 2026 +0700
+
+    [Setup] scaffold HW05 folder structure + AGENTS.md
+    
+    Create HW05_PerformanceTesting tree (jmeter/results/evidence/analysis/
+    proposal/bug-reports/video/agent-skills/ai-audit/git), AGENTS.md ground
+    rules covering the shared login->search->cart->checkout workflow and the
+    real +2-per-attempt/180s lockout logic found in backend/server.js, an
+    AI_Audit_Report.md seeded with the planning-phase entries, and a
+    screenshot/evidence inventory skeleton.
+
+ HW05_PerformanceTesting/AGENTS.md                  | 51 +++++++++++++
+ .../ai-audit/AI_Audit_Report.md                    | 85 ++++++++++++++++++++++
+ .../evidence/screenshot_inventory.md               | 22 ++++++
+ 3 files changed, 158 insertions(+)

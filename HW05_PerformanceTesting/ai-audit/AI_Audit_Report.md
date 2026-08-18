@@ -513,4 +513,30 @@ agent in this repository (`c:\Users\ACER\Downloads\eshop-sut`).
 
 ---
 
+## Entry 17 — Step 13: final assembly
+
+- **Timestamp:** 2026-08-18 (session continued)
+- **Prompt (verbatim):** "do it" (confirming the final-assembly offer:
+  `main_report.md`, `README.md` self-assessment, `AI_Critique.md`,
+  `git/commit_log.txt`).
+- **AI output:** Generated `git/commit_log.txt` (`git log --stat` scoped to
+  the 14 HW05-specific commits, `a452565..34f08fe`). Wrote
+  `ai-audit/AI_Critique.md` (~278 words): the JSR223 recurrence
+  (Load→Stress) as the "got something wrong, why it missed it" example, and
+  the optimization-judgment pagination gap as the "incomplete" example, with
+  the standing lesson ("AI output is only as reliable as the specific check
+  just run, not a standing property of the model going forward"). Wrote
+  `README.md`: workflow summary, test summary table, deliverables map, and
+  the assignment's self-assessment table with the "Self-Assessed Grade"
+  column deliberately left for you (not something I should fill in myself),
+  plus an explicit, non-buried note that the soak/endurance threshold was not
+  determined. Wrote `main_report.md` synthesizing everything: real
+  parameters/results tables per scenario, the human-review findings, the
+  Task 2 misinterpretation-hunt summary, Task 3/Skill summaries, and the
+  bug/evidence index — cross-referencing rather than duplicating the detail
+  files.
+- **Audit / Correction (student):** _[pending]_
+
+---
+
 <!-- New entries appended below as each step of the runbook executes. -->
