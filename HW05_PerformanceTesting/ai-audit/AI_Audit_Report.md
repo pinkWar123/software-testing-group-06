@@ -463,4 +463,54 @@ agent in this repository (`c:\Users\ACER\Downloads\eshop-sut`).
 
 ---
 
+## Entry 16 — Step 9: Task 2, two-pass analysis of the real `.jtl` logs
+
+- **Timestamp:** 2026-08-16 (session continued)
+- **Prompt (verbatim):** "i done it already, except soak test, don't care
+  about it anymore. [YouTube link]. this is the link of demo video, now do
+  task 2 and task 3 and agent skill for me." (Task 3 and Agent Skill were
+  already complete — Entries 12/13 — so this entry covers only the genuinely
+  new work: Task 2.)
+- **AI output:** Confirmed the real result files exist:
+  `results/load/load.jtl` (1,115 samples), `results/stress/stress.jtl` (6,465
+  samples), `results/spike/spike.jtl` (2,210 samples) — no soak `.jtl`, per
+  your call to skip it. Wrote `analysis/compute_stats.js` to compute real
+  per-label statistics (percentiles, error rate, throughput, response bytes)
+  directly from the raw CSVs, then:
+  - `analysis/ai_analysis_raw.md` — a genuine first-pass read of the headline
+    numbers, proposed thresholds, and 4 proposed optimizations (index,
+    connection pool, WAL mode, caching — matching the assignment's example
+    categories).
+  - `analysis/misinterpretation_hunt.md` — 5 real misinterpretations found in
+    that first pass, each with the exact raw values that contradict it: (1)
+    "0% errors" hid that 85-98% of PUT calls were business-rejection 400s: Load
+    58/549 fresh 200s, Stress 381/3179, Spike-burst 17/937; (2) "GET and PUT
+    degrade identically → pure concurrency saturation" ignored that GET's avg
+    response size grew ~5x (342,796→1,716,940 bytes) between Load and Stress
+    while PUT's stayed ~335 bytes constant, yet PUT slowed by a similar
+    *factor* anyway — pointing at unbounded/unpaginated JSON serialization
+    blocking Node's single event loop, not thread count alone, as a major
+    contributor; (3) Spike's blended "overall avg 1,789ms" hid that Recovery
+    (avg 20.5ms, n=61) returns to Baseline levels (avg 21.2ms, n=58) almost
+    immediately after Burst (avg 1,890.0ms, n=2,091) — the AI's summary never
+    mentioned Recovery at all; (4) 80→150 threads (1.875x) only produced a
+    1.32x latency increase (1,432.6ms→1,890.0ms), a sublinear relationship the
+    AI's phrasing implied was closer to proportional; (5) Load's 10.6% PUT
+    success rate (58/549 ≈ 1-in-9.5, close to the 10-thread count) is a CSV
+    `shareMode.thread`-driven collision artifact, not evidence the endpoint
+    "often rejects" updates.
+  - `analysis/optimization_judgment.md` — judged all 4 AI-proposed
+    optimizations against the real stack (index: hallucinated, already
+    keyed on indexed PKs; connection pool: hallucinated, imports a
+    client-server mental model onto embedded single-writer SQLite; WAL mode:
+    feasible, confirmed unset in `database.js`; caching: feasible but not
+    well-targeted) **plus one the AI never proposed at all** — pagination on
+    `GET /api/admin/orders`, the fix most directly supported by the AI's own
+    analyzed data (the `bytes` column), flagged as the most useful finding of
+    the judgment pass: the AI defaulted to generic textbook advice instead of
+    reasoning from the numbers in front of it.
+- **Audit / Correction (student):** _[pending]_
+
+---
+
 <!-- New entries appended below as each step of the runbook executes. -->
