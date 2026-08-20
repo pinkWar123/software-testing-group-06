@@ -18,10 +18,10 @@ Use this file to track completion. Record evidence paths, links, counts, and com
 - [x] Cover applicable state transitions.
 - [x] Cover security requirements SEC-01–SEC-07, including injection, IDOR, and role escalation where applicable.
 - [x] Cover exact response-schema validation.
-- [ ] Human-review and label every AI case VALID / INVALID / INCOMPLETE with reasoning.
-- [ ] Correct every INVALID or INCOMPLETE case.
-- [ ] Add at least 5 original student test cases AI missed.
-- [ ] Explain why each missed case was not generated (prompt quality, model limitation, or API characteristic).
+- [x] Human-review and label every AI case VALID / INVALID / INCOMPLETE with reasoning. (37 VALID / 0 INVALID / 3 INCOMPLETE)
+- [x] Correct every INVALID or INCOMPLETE case. (LOGIN-015, LOGIN-029, LOGIN-034 corrected in `artifacts/api1_login_test_cases.csv`)
+- [x] Add at least 5 original student test cases AI missed. (6 added: SLOGIN-001–006)
+- [x] Explain why each missed case was not generated (prompt quality, model limitation, or API characteristic). (reason captured per case in `HumanReview` and report §7.5)
 - [ ] Execute the complete API 1 suite with Postman + Newman, Karate, or RestAssured.
 - [ ] Ensure every request carries `X-Student-Id: {StudentID}`; capture the required console evidence manually.
 - [ ] Produce and attach the Newman/HTML report or equivalent execution report.

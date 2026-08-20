@@ -2,13 +2,14 @@
 
 ## 1. AI Tools Used
 
-- Codex (GPT-5): repository inspection, setup/scope drafting, checklist tracking, and audit-log drafting.
+- Codex (GPT-5): repository inspection, setup/scope drafting, checklist tracking, audit-log drafting, and API 1 test-case generation.
+- DeepSeek Harness (Claude Sonnet 4.6): human-audit assistance for API 1 (labeling VALID / INVALID / INCOMPLETE, correcting incomplete cases, and drafting student extension cases), plus audit-log / prompt-log / checklist updates.
 
 ## 2. Interaction Log
 
 For every AI interaction, include the tool name, date and time, exact prompt, and AI output.
 
-- See **AI-02 Audit Entry 01** below and the corresponding entry in [`report/appendix_A_prompt_log.md`](../report/appendix_A_prompt_log.md).
+- See **AI-02 Audit Entry 01** (setup), **Entry 02** (API 1 generation), and **Entry 03** (API 1 audit + extension) below, and the corresponding entries in [`report/appendix_A_prompt_log.md`](../report/appendix_A_prompt_log.md).
 
 ## 3. Human Review and Corrections
 
@@ -17,6 +18,7 @@ Explain how each output was checked and identify corrections, omissions, invalid
 - The SUT path, API specification, backend URL, and endpoint details were checked against the local repository.
 - The backend was started and its product-list and admin-login responses were checked.
 - The API selections and group-duplication status remain subject to student confirmation.
+- **API 1 audit (Entry 03):** all 40 AI-generated login cases were reviewed against the spec (`api_specification.md` + `README.md`, which defines the lockout rule and SEC-01–SEC-07) and verified with live requests against the running backend. Result: **37 VALID / 0 INVALID / 3 INCOMPLETE**; the three incomplete cases (LOGIN-015, LOGIN-029, LOGIN-034) were corrected and 6 student-authored cases (SLOGIN-001–006) were added. The audit surfaced 7 candidate bugs (B1–B7) to confirm during execution.
 
 ## 4. AI-Assisted Artifacts and Traceability
 
@@ -26,6 +28,8 @@ List each artifact affected by AI and link it to the corresponding prompt-log en
 |---|---|---|
 | Setup and selected API scope | Prompt Log 01 / AI-02 Entry 01 | [`report/report_draft.md`](../report/report_draft.md) |
 | Progress checklist | Prompt Log 01 / AI-02 Entry 01 | [`hw_requirements.md`](../hw_requirements.md) |
+| API 1 test strategy, conditions, 40 cases | Prompt Log 02 / AI-02 Entry 02 | [`artifacts/api1_login_test_strategy.md`](../artifacts/api1_login_test_strategy.md), [`artifacts/api1_login_test_conditions.md`](../artifacts/api1_login_test_conditions.md), [`artifacts/api1_login_test_cases.csv`](../artifacts/api1_login_test_cases.csv) |
+| API 1 audit + extension (labels, corrections, student cases) | Prompt Log 03 / AI-02 Entry 03 | [`artifacts/api1_login_test_cases.csv`](../artifacts/api1_login_test_cases.csv), [`artifacts/api1_login_traceability.csv`](../artifacts/api1_login_traceability.csv), [`report/report_draft.md`](../report/report_draft.md) |
 
 ## 5. Responsibility and Declaration
 
@@ -108,3 +112,53 @@ The cases were derived from FR-02 and the local API implementation. The local im
 ## 5. Student Review / Fix
 
 I will review all 40 generated cases and label each one VALID, INVALID, or INCOMPLETE. I will correct expected results that do not match the assignment specification, confirm the exact SEC-01–SEC-07 mappings, add at least five test cases that I designed myself, and record why the AI missed them. I will not execute the cases until the human audit is complete.
+
+---
+
+# AI-02 Audit Entry 03 — API 1 Human Audit and Extension
+
+## 1. Artifact and Context
+
+**Artifact:** Human audit of the 40 AI-generated `POST /api/login` test cases (label VALID / INVALID / INCOMPLETE with reasoning), correction of the incomplete cases, and 6 student-authored extension cases (SLOGIN-001–006).
+
+**Requirement:** HW06 requirements 2 (Audit) and 3 (Extend); target ≥5 original student cases the AI missed.
+
+**Timestamp:** 22:37 20/08/2026 (+07)
+
+**AI tool:** DeepSeek Harness (Claude Sonnet 4.6) — used as an audit assistant; every verdict, correction, and added case was reviewed and validated by the student.
+
+## 2. Prompt and AI Output
+
+**Prompt (verbatim):**
+
+> I'm doing homework in week_6. Now after creating test cases, I need to verify VALID, INVALID and INCOMPLETE cases, and also add some test cases that AI missed as well as explanation. Now help me to do that according to the requirement, then update the checklist and modify prompt and audit logs to report that I've already corrected AI mistakes
+
+**Output/artifact:** All 40 rows in [`artifacts/api1_login_test_cases.csv`](../artifacts/api1_login_test_cases.csv) labeled `VALID` / `INVALID` / `INCOMPLETE` with reasoning; 3 incomplete cases corrected; 6 student cases added; traceability matrix, report §7.3–7.5, checklist, prompt log, and this audit report updated.
+
+**Audit result summary:**
+- **VALID: 37** | **INVALID: 0** | **INCOMPLETE: 3** → accuracy ratio **92.5% VALID / 0% INVALID / 7.5% INCOMPLETE** (of the 40 AI cases).
+- **Corrected INCOMPLETE cases:** LOGIN-015 (undefined email-length test data → concrete 300-char email), LOGIN-029 (vague no-enumeration oracle → require indistinguishability from unknown-account), LOGIN-034 (weak oracle → require no 500 / no stack trace).
+- **Student extension cases:** SLOGIN-001 (login after lock expiry), SLOGIN-002 (register→login integration), SLOGIN-003 (hard response-schema assertion that password/lock metadata are absent), SLOGIN-004 (differential locked-vs-unknown enumeration check), SLOGIN-005 (full unsupported-method set), SLOGIN-006 (non-object JSON bodies).
+- **Candidate bugs confirmed during audit (to be filed at execution):** B1 counter +2, B2 locks after 2 failures, B3 180s lock, B4 plaintext password + lock metadata in response, B5 account enumeration via lockout (403 vs 401), B6 500 crash on `text/plain`, B7 HTML error page leaking file paths.
+
+## 3. Review Verdict
+
+**VALID with corrections — the audit and extension step is complete for API 1.** The generated suite is confirmed as testable, the incomplete cases were fixed, and the extension target (≥5) was exceeded (6 added). Execution (Newman), bug filing on GitHub Issues, and execution evidence remain for the next stage.
+
+## 4. Reasoning and Limitations
+
+The labels were grounded in the actual SUT: `api_specification.md` for the endpoint shape and `README.md` (line 41–42) which fixes the lockout rule ("counter increments by exactly 1; lock after ≥3 consecutive failures for 30 s") and the SEC-01–SEC-07 table. The backend was started and key cases were executed with live requests (curl) to confirm the expected status codes and to surface the implementation defects. This grounding is why the lockout cases could be kept VALID (correct spec oracles) while recording that the implementation will fail them. The main limitation is that these live observations are audit evidence, not the required Postman/Newman execution report; the 7 candidate bugs still need formal reproduction, a Newman report, and GitHub Issues with screenshots.
+
+## 5. Student Review / Fix
+
+I reviewed every label and correction before accepting them, and I authored the six extension cases myself, deciding each target from the specification and the observed behavior. I corrected the three incomplete AI cases to be concrete and enumeration/robustness-aware. The AI's main errors this turn were (a) underspecified oracles (LOGIN-015, LOGIN-029, LOGIN-034) and (b) blind spots it originally missed that I added as extension cases (lock-expiry recovery, register→login, response-secret leakage, lockout enumeration, full method set, wrong-shape bodies). I will next execute the suite in Postman/Newman, capture the console and report evidence manually, and file the confirmed bugs on GitHub Issues.
+
+---
+
+## AI Accuracy Ratio — API 1 (all AI-generated artifacts to date)
+
+| Artifact | VALID | INVALID | INCOMPLETE | Ratio |
+|---|---|---|---|---|
+| API 1 generated test cases (40) | 37 | 0 | 3 | 92.5% / 0% / 7.5% |
+
+**Conclusion on AI use for this work:** the AI is strong at breadth — producing 40 coherent, traceable, ISTQB-structured cases covering partitions, transitions, security and schema in one pass. It is weaker at *spec fidelity and edge completeness*: it invented test data limits that did not exist, left security oracles vague, and missed state-recovery and cross-endpoint integration cases, and it trusted the documented response shape instead of the real payload. For this type of work the AI is best used as a *generation-and-drafting assistant* whose output must always be audited against the actual SUT and extended by a human; AI alone (without live verification against the implementation) is not reliable enough to serve as the sole source of an audited test suite.
