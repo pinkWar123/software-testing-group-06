@@ -1,0 +1,7 @@
+Requirement,RequirementText,CoveringTestCases,CoverageStatus,Notes
+FR-02,"Login with email and password; valid login returns JWT; failed attempts lock account",LOGIN-001|LOGIN-002|LOGIN-003|LOGIN-004|LOGIN-005|LOGIN-025|LOGIN-026|LOGIN-027|LOGIN-028|LOGIN-030,Planned,"Stateful cases require isolated disposable account or database reseed"
+FR-02-domain,"Email and password input partitions",LOGIN-006|LOGIN-007|LOGIN-008|LOGIN-009|LOGIN-010|LOGIN-011|LOGIN-012|LOGIN-013|LOGIN-014|LOGIN-015|LOGIN-018|LOGIN-019|LOGIN-020|LOGIN-021|LOGIN-024,Planned,"Human audit must confirm expected status for implementation"
+SEC-01,"Injection and hostile input resistance",LOGIN-016|LOGIN-017|LOGIN-022|LOGIN-023,Planned,"Exact SEC-01 wording should be confirmed from course material"
+SEC-07,"Sensitive response data must not be disclosed",LOGIN-039,Planned,"Verify against final response schema"
+Schema,"JWT and response shape",LOGIN-031|LOGIN-039,Planned,"Add Postman JSON-schema assertions during implementation"
+HW06-header,"Every request carries X-Student-Id header",LOGIN-040,Planned,"Manual console screenshot required"

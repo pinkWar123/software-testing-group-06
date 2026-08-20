@@ -69,3 +69,42 @@ The AI could infer the SUT URL and endpoint details from the repository specific
 ## 5. Student Review / Fix
 
 I reviewed the setup output. I will confirm that `POST /api/login`, `POST /api/checkout`, and `PUT /api/admin/orders/:id/status` are not duplicated by another group member. If a duplicate is found, I will replace the affected API and update the report. I will also capture the required Postman console screenshot and real execution reports manually; I will not treat the setup curl output as a substitute for those requirements.
+
+---
+
+# AI-02 Audit Entry 02 — API 1 Test Design and Generated Cases
+
+## 1. Artifact and Context
+
+**Artifact:** API 1 (`POST /api/login`) test strategy, test conditions, traceability matrix, and 40 generated test cases.
+
+**Requirement:** FR-02, Pool A; target is at least 35 AI-generated cases.
+
+**Timestamp:** 16:19 20/08/2026 (+07)
+
+**AI tool:** Codex (GPT-5), using the breakdown-test, qa-manual-istqb, and qa-test-planner workflows.
+
+## 2. Prompt and AI Output
+
+**Prompt (verbatim):**
+
+> Now help me to start with API 1. Apply $breakdown-test $qa-manual-istqb $qa-test-planner to complete the checklists related to documentation, design, and generate test cases for API 1
+
+**Output:** 40 CSV cases covering valid/invalid credentials, field partitions, boundaries, account-lockout transitions, injection and hostile input, schema/security checks, protocol robustness, and the Student-ID header. Supporting artifacts:
+
+- [`api1_login_test_strategy.md`](../artifacts/api1_login_test_strategy.md)
+- [`api1_login_test_conditions.md`](../artifacts/api1_login_test_conditions.md)
+- [`api1_login_test_cases.csv`](../artifacts/api1_login_test_cases.csv)
+- [`api1_login_traceability.csv`](../artifacts/api1_login_traceability.csv)
+
+## 3. Review Verdict
+
+**INCOMPLETE — generated design requires human audit.** The output meets the numerical generation target and has traceability fields, but no generated case has yet been independently labeled VALID / INVALID / INCOMPLETE. No student-authored extension cases or execution results exist yet.
+
+## 4. Reasoning and Limitations
+
+The cases were derived from FR-02 and the local API implementation. The local implementation and assignment specification differ in important details: the implementation adds failed attempts by 2 rather than 1 and sets a 180-second lock rather than the required 30 seconds; it also returns the user object containing a plaintext password. These are intentionally recorded as expected-risk checks, not accepted behavior. The exact wording of SEC-01–SEC-07 was not present in the local API specification, so security mapping is provisional and must be reconciled with the course source. Stateful cases may also be order-dependent unless the database is reseeded or a disposable account is used.
+
+## 5. Student Review / Fix
+
+I will review all 40 generated cases and label each one VALID, INVALID, or INCOMPLETE. I will correct expected results that do not match the assignment specification, confirm the exact SEC-01–SEC-07 mappings, add at least five test cases that I designed myself, and record why the AI missed them. I will not execute the cases until the human audit is complete.

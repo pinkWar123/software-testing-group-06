@@ -58,21 +58,39 @@ Initial connectivity evidence collected during setup:
 
 ## 6. Test Design and Coverage Strategy
 
+The API 1 design applies equivalence partitioning, boundary value analysis, decision tables, state-transition testing, security/error guessing, and response-schema validation. The detailed strategy, conditions, and traceability artifacts are stored in [`artifacts/api1_login_test_strategy.md`](../artifacts/api1_login_test_strategy.md), [`artifacts/api1_login_test_conditions.md`](../artifacts/api1_login_test_conditions.md), and [`artifacts/api1_login_traceability.csv`](../artifacts/api1_login_traceability.csv).
+
 ### 6.1 Domain Partitions
+
+The test design partitions known versus unknown emails, correct versus incorrect passwords, missing/null/empty/whitespace values, malformed and overlong emails, hostile payloads, and malformed protocol bodies. Boundary cases include the first, second, and third failed-login attempts and the lockout period.
 
 ### 6.2 State Transitions
 
+The planned state model is `UNLOCKED → FAILED(1) → FAILED(2) → LOCKED → UNLOCKED after expiry`, with a successful login resetting the failure state. Stateful cases use an isolated account or a database reseed.
+
 ### 6.3 Security Requirements SEC-01–SEC-07
 
+API 1 covers injection and hostile input resistance, account-enumeration resistance, brute-force lockout, JWT integrity, unexpected-field role escalation, sensitive response disclosure, and mandatory Student-ID header evidence. Exact SEC-01–SEC-07 wording will be reconciled against the course specification during human audit.
+
 ### 6.4 Response Schema Validation
+
+The planned assertions verify HTTP status, required JSON keys and types, JWT syntax and identity claims, absence of a token on failure, and absence of plaintext passwords, reset tokens, lock metadata, or other unnecessary secrets.
 
 ## 7. API 1 Full Pipeline
 
 ### 7.1 Specification and Scope
 
+API 1 is `POST /api/login` for FR-02. It accepts `email` and `password`, returns a JWT on success, rejects invalid credentials, and applies an account lockout after at least three consecutive failures. The request must include `X-Student-Id: 22127345`.
+
+See [`artifacts/api1_login_test_strategy.md`](../artifacts/api1_login_test_strategy.md) and [`artifacts/api1_login_test_conditions.md`](../artifacts/api1_login_test_conditions.md).
+
 ### 7.2 AI Generation Process
 
+The AI was instructed to derive test conditions before cases and to use the API specification plus the local implementation as test basis. It was instructed to cover every request parameter, FR-02 lockout transitions, security examples, schema validation, robustness, and the HW06 Student-ID requirement. The generated output is recorded in [`artifacts/api1_login_test_cases.csv`](../artifacts/api1_login_test_cases.csv).
+
 ### 7.3 AI-Generated Test Cases (Target: at least 35)
+
+**Generated count: 40.** Cases span functional, negative, security, robustness, state-transition, schema, and traceability checks. All rows are currently labeled `AI-GENERATED / PENDING HUMAN AUDIT`; they must be individually labeled VALID / INVALID / INCOMPLETE and corrected before execution.
 
 ### 7.4 Human Audit: VALID / INVALID / INCOMPLETE
 

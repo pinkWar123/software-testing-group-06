@@ -12,12 +12,12 @@ Use this file to track completion. Record evidence paths, links, counts, and com
 
 ## API 1 — Pool A (30 points)
 
-- [ ] Document API 1 specification, feature, endpoint, request, response, and expected behavior.
-- [ ] Use AI step-by-step with the specification to generate at least 35 test cases.
-- [ ] Cover domain partitions for every parameter.
-- [ ] Cover applicable state transitions.
-- [ ] Cover security requirements SEC-01–SEC-07, including injection, IDOR, and role escalation where applicable.
-- [ ] Cover exact response-schema validation.
+- [x] Document API 1 specification, feature, endpoint, request, response, and expected behavior.
+- [x] Use AI step-by-step with the specification to generate at least 35 test cases (40 generated).
+- [x] Cover domain partitions for every parameter.
+- [x] Cover applicable state transitions.
+- [x] Cover security requirements SEC-01–SEC-07, including injection, IDOR, and role escalation where applicable.
+- [x] Cover exact response-schema validation.
 - [ ] Human-review and label every AI case VALID / INVALID / INCOMPLETE with reasoning.
 - [ ] Correct every INVALID or INCOMPLETE case.
 - [ ] Add at least 5 original student test cases AI missed.
