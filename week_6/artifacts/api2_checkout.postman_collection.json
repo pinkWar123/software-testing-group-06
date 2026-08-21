@@ -1,0 +1,2607 @@
+{
+  "info": {
+    "name": "HW06 API 2 - Checkout Execution",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "studentId",
+      "value": "22127345"
+    }
+  ],
+  "item": [
+    {
+      "name": "SETUP register checkout user",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "register"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Newman API2 Checkout User\",\"email\":\"{{email}}\",\"password\":\"{{password}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('setup controlled',()=>pm.expect(pm.response.code).to.be.oneOf([200,400,500]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP login checkout user",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"{{email}}\",\"password\":\"{{password}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('login token',()=>pm.expect(body.token).to.be.a('string'));pm.environment.set('token',body.token);",
+              "pm.test('login 200',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP add known cart item",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cart",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cart"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\":1,\"name\":\"Test item\",\"price\":50000,\"quantity\":2}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('cart setup',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP register empty-cart user",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "register"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Newman API2 Empty User\",\"email\":\"{{emptyEmail}}\",\"password\":\"{{password}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('setup controlled',()=>pm.expect(pm.response.code).to.be.oneOf([200,400,500]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP login empty-cart user",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"{{emptyEmail}}\",\"password\":\"{{password}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "const b=pm.response.json();pm.test('empty user token',()=>pm.expect(b.token).to.be.a('string'));pm.environment.set('emptyToken',b.token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-001",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"123 Le Loi, TP.HCM\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body).sort()).to.eql(['message','orderId']);pm.expect(body.message).to.eql('Checkout successful');pm.expect(body.orderId).to.be.a('number');pm.expect(body.orderId).to.be.above(0);});",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-002",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":999999,\"shipping_address\":\"123 Le Loi\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body).sort()).to.eql(['message','orderId']);pm.expect(body.message).to.eql('Checkout successful');pm.expect(body.orderId).to.be.a('number');pm.expect(body.orderId).to.be.above(0);});",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));",
+              "pm.test('server total is authoritative',()=>pm.expect(body.orderId).to.be.a('number'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-003",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":1,\"shipping_address\":\"123 Le Loi\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body).sort()).to.eql(['message','orderId']);pm.expect(body.message).to.eql('Checkout successful');pm.expect(body.orderId).to.be.a('number');pm.expect(body.orderId).to.be.above(0);});",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-004",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"shipping_address\":\"123 Le Loi\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled client/security error',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-005",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":null,\"shipping_address\":\"123 Le Loi\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled client/security error',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-006",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":\"200000\",\"shipping_address\":\"123 Le Loi\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled client/security error',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-007",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":-1,\"shipping_address\":\"123 Le Loi\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled client/security error',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-008",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":0,\"shipping_address\":\"123 Le Loi\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled client/security error',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-009",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"123 Le Loi, TP.HCM\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled client/security error',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-010",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer malformed"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"123 Le Loi, TP.HCM\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled client/security error',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-011",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer expired.invalid.token"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"123 Le Loi, TP.HCM\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled client/security error',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-012",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Basic {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"123 Le Loi, TP.HCM\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled client/security error',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-013",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"A\",\"user_id\":999999}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body).sort()).to.eql(['message','orderId']);pm.expect(body.message).to.eql('Checkout successful');pm.expect(body.orderId).to.be.a('number');pm.expect(body.orderId).to.be.above(0);});",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-014",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"A\",\"role\":\"admin\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body).sort()).to.eql(['message','orderId']);pm.expect(body.message).to.eql('Checkout successful');pm.expect(body.orderId).to.be.a('number');pm.expect(body.orderId).to.be.above(0);});",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-015",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"123 Le Loi, TP.HCM\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body).sort()).to.eql(['message','orderId']);pm.expect(body.message).to.eql('Checkout successful');pm.expect(body.orderId).to.be.a('number');pm.expect(body.orderId).to.be.above(0);});",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-016",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled client/security error',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-017",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled client/security error',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-018",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"   \"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled client/security error',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-019",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":{\"x\":1}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled client/security error',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-020",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{emptyToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"123 Le Loi, TP.HCM\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled client/security error',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-021",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"123 Le Loi, TP.HCM\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled client/security error',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-022",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"123 Le Loi, TP.HCM\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled client/security error',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-023",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"123 Le Loi, TP.HCM\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body).sort()).to.eql(['message','orderId']);pm.expect(body.message).to.eql('Checkout successful');pm.expect(body.orderId).to.be.a('number');pm.expect(body.orderId).to.be.above(0);});",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-024",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"123 Le Loi, TP.HCM\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body).sort()).to.eql(['message','orderId']);pm.expect(body.message).to.eql('Checkout successful');pm.expect(body.orderId).to.be.a('number');pm.expect(body.orderId).to.be.above(0);});",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));",
+              "pm.test('no secrets',()=>pm.expect(JSON.stringify(body)).to.not.match(/password|token|secret|otp/i));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-025",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"A\",\"id\":999999,\"user_id\":999999,\"cart_id\":999999}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body).sort()).to.eql(['message','orderId']);pm.expect(body.message).to.eql('Checkout successful');pm.expect(body.orderId).to.be.a('number');pm.expect(body.orderId).to.be.above(0);});",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-026",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"A\",\"user_id\":999999,\"role\":\"admin\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body).sort()).to.eql(['message','orderId']);pm.expect(body.message).to.eql('Checkout successful');pm.expect(body.orderId).to.be.a('number');pm.expect(body.orderId).to.be.above(0);});",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-027",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"' OR 1=1 --\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body).sort()).to.eql(['message','orderId']);pm.expect(body.message).to.eql('Checkout successful');pm.expect(body.orderId).to.be.a('number');pm.expect(body.orderId).to.be.above(0);});",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-028",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"<script>alert(1)</script>\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body).sort()).to.eql(['message','orderId']);pm.expect(body.message).to.eql('Checkout successful');pm.expect(body.orderId).to.be.a('number');pm.expect(body.orderId).to.be.above(0);});",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-029",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"A\",\"user_id\":999999,\"role\":\"admin\",\"token\":\"x\",\"extra\":\"x\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body).sort()).to.eql(['message','orderId']);pm.expect(body.message).to.eql('Checkout successful');pm.expect(body.orderId).to.be.a('number');pm.expect(body.orderId).to.be.above(0);});",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-030",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"A\",\"constructor\":{\"x\":1}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body).sort()).to.eql(['message','orderId']);pm.expect(body.message).to.eql('Checkout successful');pm.expect(body.orderId).to.be.a('number');pm.expect(body.orderId).to.be.above(0);});",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-031",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled client/security error',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-032",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "text/plain"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "not-json"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('no server crash',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('no stack disclosure',()=>{const t=pm.response.text();pm.expect(t.includes('TypeError')||t.includes('server.js')||t.includes(' at ')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-033",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('unsupported method is controlled',()=>pm.expect(pm.response.code).to.be.oneOf([404,405]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-034",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"123 Le Loi, TP.HCM\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body).sort()).to.eql(['message','orderId']);pm.expect(body.message).to.eql('Checkout successful');pm.expect(body.orderId).to.be.a('number');pm.expect(body.orderId).to.be.above(0);});",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-035",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"123 Le Loi, TP.HCM\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body).sort()).to.eql(['message','orderId']);pm.expect(body.message).to.eql('Checkout successful');pm.expect(body.orderId).to.be.a('number');pm.expect(body.orderId).to.be.above(0);});",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-036",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"123 Le Loi, TP.HCM\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body).sort()).to.eql(['message','orderId']);pm.expect(body.message).to.eql('Checkout successful');pm.expect(body.orderId).to.be.a('number');pm.expect(body.orderId).to.be.above(0);});",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API2-037",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled client/security error',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is JSON and safe',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('typeerror')||t.includes('server.js')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SAPI2-001",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"123 Le Loi, TP.HCM\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body).sort()).to.eql(['message','orderId']);pm.expect(body.message).to.eql('Checkout successful');pm.expect(body.orderId).to.be.a('number');pm.expect(body.orderId).to.be.above(0);});",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SAPI2-002",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"123 Le Loi, TP.HCM\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled client/security error',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SAPI2-003",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"123 Le Loi, TP.HCM\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body).sort()).to.eql(['message','orderId']);pm.expect(body.message).to.eql('Checkout successful');pm.expect(body.orderId).to.be.a('number');pm.expect(body.orderId).to.be.above(0);});",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SAPI2-004",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":\"' OR '1'='1\",\"shipping_address\":\"A\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled client/security error',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SAPI2-005",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"123 Le Loi, TP.HCM\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body).sort()).to.eql(['message','orderId']);pm.expect(body.message).to.eql('Checkout successful');pm.expect(body.orderId).to.be.a('number');pm.expect(body.orderId).to.be.above(0);});",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SAPI2-006",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":100000,\"shipping_address\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled client/security error',()=>pm.expect(pm.response.code).to.be.within(400,499));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

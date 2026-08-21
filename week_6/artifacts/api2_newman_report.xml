@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="HW06 API 2 - Checkout Execution" tests="48" time="0.111">
+  <testsuite name="SETUP register checkout user" id="1a466267-7ba4-44db-ad86-37526e213978" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="0" errors="0" time="0.013">
+    <testcase name="Student-ID header is present" time="0.013" classname="SetupRegisterCheckoutUser"/>
+    <testcase name="setup controlled" time="0.013" classname="SetupRegisterCheckoutUser"/>
+  </testsuite>
+  <testsuite name="SETUP login checkout user" id="c5002fd8-a261-49f8-a6a6-133e3eef2e70" timestamp="2026-08-21T16:15:01.957Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="SetupLoginCheckoutUser"/>
+    <testcase name="login token" time="0.002" classname="SetupLoginCheckoutUser"/>
+    <testcase name="login 200" time="0.002" classname="SetupLoginCheckoutUser"/>
+  </testsuite>
+  <testsuite name="SETUP add known cart item" id="ac6e1c15-5679-4bbf-82bc-5de8217e93da" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="SetupAddKnownCartItem"/>
+    <testcase name="cart setup" time="0.002" classname="SetupAddKnownCartItem"/>
+  </testsuite>
+  <testsuite name="SETUP register empty-cart user" id="6c501914-f4fc-4244-989b-d0dfa4859c79" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="SetupRegisterEmptyCartUser"/>
+    <testcase name="setup controlled" time="0.002" classname="SetupRegisterEmptyCartUser"/>
+  </testsuite>
+  <testsuite name="SETUP login empty-cart user" id="e0bd59ea-c08c-407f-ab27-629772dd8ef2" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="SetupLoginEmptyCartUser"/>
+    <testcase name="empty user token" time="0.002" classname="SetupLoginEmptyCartUser"/>
+  </testsuite>
+  <testsuite name="API2-001" id="e6a3074f-90f1-45b1-9db3-5e8647141af1" timestamp="2026-08-21T16:15:01.957Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api2001"/>
+    <testcase name="success schema" time="0.002" classname="Api2001"/>
+    <testcase name="HTTP 200" time="0.002" classname="Api2001"/>
+  </testsuite>
+  <testsuite name="API2-002" id="f90e100f-08b2-4818-a2bd-621c28f05ff1" timestamp="2026-08-21T16:15:01.957Z" tests="4" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api2002"/>
+    <testcase name="success schema" time="0.002" classname="Api2002"/>
+    <testcase name="HTTP 200" time="0.002" classname="Api2002"/>
+    <testcase name="server total is authoritative" time="0.002" classname="Api2002"/>
+  </testsuite>
+  <testsuite name="API2-003" id="baa174e4-d47e-479d-8ac3-2b42cd4a3fbf" timestamp="2026-08-21T16:15:01.957Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api2003"/>
+    <testcase name="success schema" time="0.002" classname="Api2003"/>
+    <testcase name="HTTP 200" time="0.002" classname="Api2003"/>
+  </testsuite>
+  <testsuite name="API2-004" id="0217a4ef-e5e0-4812-9815-562c7c152035" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="1" errors="0" time="0.003">
+    <testcase name="Student-ID header is present" time="0.003" classname="Api2004"/>
+    <testcase name="controlled client/security error" time="0.003" classname="Api2004">
+      <failure type="AssertionFailure" message="expected 200 to be within 400..499">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 6d8bfdf0-8939-4305-a328-aee57011d523.]]>
+        <![CDATA[Collection name: HW06 API 2 - Checkout Execution.]]>
+        <![CDATA[Request name: API2-004.]]>
+        <![CDATA[Test description: controlled client/security error.]]>
+        <![CDATA[Error message: expected 200 to be within 400..499.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 200 to be within 400..499
+   at Object.eval sandbox-script.js:2:9).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="API2-005" id="445fb6bc-7b8c-4e54-a1f7-0173f68e7713" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="1" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api2005"/>
+    <testcase name="controlled client/security error" time="0.002" classname="Api2005">
+      <failure type="AssertionFailure" message="expected 200 to be within 400..499">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 6d8bfdf0-8939-4305-a328-aee57011d523.]]>
+        <![CDATA[Collection name: HW06 API 2 - Checkout Execution.]]>
+        <![CDATA[Request name: API2-005.]]>
+        <![CDATA[Test description: controlled client/security error.]]>
+        <![CDATA[Error message: expected 200 to be within 400..499.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 200 to be within 400..499
+   at Object.eval sandbox-script.js:2:10).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="API2-006" id="a971c46a-8d8f-429b-9841-e5d5d3252c06" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="1" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api2006"/>
+    <testcase name="controlled client/security error" time="0.002" classname="Api2006">
+      <failure type="AssertionFailure" message="expected 200 to be within 400..499">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 6d8bfdf0-8939-4305-a328-aee57011d523.]]>
+        <![CDATA[Collection name: HW06 API 2 - Checkout Execution.]]>
+        <![CDATA[Request name: API2-006.]]>
+        <![CDATA[Test description: controlled client/security error.]]>
+        <![CDATA[Error message: expected 200 to be within 400..499.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 200 to be within 400..499
+   at Object.eval sandbox-script.js:2:11).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="API2-007" id="53508a4e-3385-407c-a4db-4ea4eaa277de" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="1" errors="0" time="0.003">
+    <testcase name="Student-ID header is present" time="0.003" classname="Api2007"/>
+    <testcase name="controlled client/security error" time="0.003" classname="Api2007">
+      <failure type="AssertionFailure" message="expected 200 to be within 400..499">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 6d8bfdf0-8939-4305-a328-aee57011d523.]]>
+        <![CDATA[Collection name: HW06 API 2 - Checkout Execution.]]>
+        <![CDATA[Request name: API2-007.]]>
+        <![CDATA[Test description: controlled client/security error.]]>
+        <![CDATA[Error message: expected 200 to be within 400..499.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 200 to be within 400..499
+   at Object.eval sandbox-script.js:2:12).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="API2-008" id="1bb4b1ba-d762-46f8-aa40-c7921453b76c" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="1" errors="0" time="0.006">
+    <testcase name="Student-ID header is present" time="0.006" classname="Api2008"/>
+    <testcase name="controlled client/security error" time="0.006" classname="Api2008">
+      <failure type="AssertionFailure" message="expected 200 to be within 400..499">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 6d8bfdf0-8939-4305-a328-aee57011d523.]]>
+        <![CDATA[Collection name: HW06 API 2 - Checkout Execution.]]>
+        <![CDATA[Request name: API2-008.]]>
+        <![CDATA[Test description: controlled client/security error.]]>
+        <![CDATA[Error message: expected 200 to be within 400..499.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 200 to be within 400..499
+   at Object.eval sandbox-script.js:2:13).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="API2-009" id="afce9156-9aae-4746-8137-75ce360a2888" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api2009"/>
+    <testcase name="controlled client/security error" time="0.002" classname="Api2009"/>
+  </testsuite>
+  <testsuite name="API2-010" id="0184769c-9907-4684-8bdb-241833a1f8a2" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api2010"/>
+    <testcase name="controlled client/security error" time="0.001" classname="Api2010"/>
+  </testsuite>
+  <testsuite name="API2-011" id="6c1c927f-1b60-4efc-a82c-a40ca593920c" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api2011"/>
+    <testcase name="controlled client/security error" time="0.001" classname="Api2011"/>
+  </testsuite>
+  <testsuite name="API2-012" id="c613e596-ce50-4fb2-9ad3-eecbea33c06f" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="1" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api2012"/>
+    <testcase name="controlled client/security error" time="0.002" classname="Api2012">
+      <failure type="AssertionFailure" message="expected 200 to be within 400..499">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 6d8bfdf0-8939-4305-a328-aee57011d523.]]>
+        <![CDATA[Collection name: HW06 API 2 - Checkout Execution.]]>
+        <![CDATA[Request name: API2-012.]]>
+        <![CDATA[Test description: controlled client/security error.]]>
+        <![CDATA[Error message: expected 200 to be within 400..499.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 200 to be within 400..499
+   at Object.eval sandbox-script.js:2:17).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="API2-013" id="78e8c294-a7a0-4648-92b0-988f28c52b35" timestamp="2026-08-21T16:15:01.957Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api2013"/>
+    <testcase name="success schema" time="0.002" classname="Api2013"/>
+    <testcase name="HTTP 200" time="0.002" classname="Api2013"/>
+  </testsuite>
+  <testsuite name="API2-014" id="a9c1ee7f-3069-4fce-b837-2ccaa5a2ddfb" timestamp="2026-08-21T16:15:01.957Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api2014"/>
+    <testcase name="success schema" time="0.002" classname="Api2014"/>
+    <testcase name="HTTP 200" time="0.002" classname="Api2014"/>
+  </testsuite>
+  <testsuite name="API2-015" id="a182be9e-e145-49ba-a056-f0fd1a4d5725" timestamp="2026-08-21T16:15:01.957Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api2015"/>
+    <testcase name="success schema" time="0.001" classname="Api2015"/>
+    <testcase name="HTTP 200" time="0.001" classname="Api2015"/>
+  </testsuite>
+  <testsuite name="API2-016" id="2ed5d5ff-2de9-4b55-911e-872bcd817513" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="1" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api2016"/>
+    <testcase name="controlled client/security error" time="0.002" classname="Api2016">
+      <failure type="AssertionFailure" message="expected 200 to be within 400..499">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 6d8bfdf0-8939-4305-a328-aee57011d523.]]>
+        <![CDATA[Collection name: HW06 API 2 - Checkout Execution.]]>
+        <![CDATA[Request name: API2-016.]]>
+        <![CDATA[Test description: controlled client/security error.]]>
+        <![CDATA[Error message: expected 200 to be within 400..499.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 200 to be within 400..499
+   at Object.eval sandbox-script.js:2:21).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="API2-017" id="5d8b6726-6373-4133-b6b9-68577b956215" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="1" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api2017"/>
+    <testcase name="controlled client/security error" time="0.002" classname="Api2017">
+      <failure type="AssertionFailure" message="expected 200 to be within 400..499">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 6d8bfdf0-8939-4305-a328-aee57011d523.]]>
+        <![CDATA[Collection name: HW06 API 2 - Checkout Execution.]]>
+        <![CDATA[Request name: API2-017.]]>
+        <![CDATA[Test description: controlled client/security error.]]>
+        <![CDATA[Error message: expected 200 to be within 400..499.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 200 to be within 400..499
+   at Object.eval sandbox-script.js:2:22).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="API2-018" id="86f1ec47-b568-4b80-bd56-2c3807d3104e" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="1" errors="0" time="0.006">
+    <testcase name="Student-ID header is present" time="0.006" classname="Api2018"/>
+    <testcase name="controlled client/security error" time="0.006" classname="Api2018">
+      <failure type="AssertionFailure" message="expected 200 to be within 400..499">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 6d8bfdf0-8939-4305-a328-aee57011d523.]]>
+        <![CDATA[Collection name: HW06 API 2 - Checkout Execution.]]>
+        <![CDATA[Request name: API2-018.]]>
+        <![CDATA[Test description: controlled client/security error.]]>
+        <![CDATA[Error message: expected 200 to be within 400..499.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 200 to be within 400..499
+   at Object.eval sandbox-script.js:2:23).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="API2-019" id="3c3bd089-39ac-4a76-a8c4-511f5695f7f5" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="1" errors="0" time="0.003">
+    <testcase name="Student-ID header is present" time="0.003" classname="Api2019"/>
+    <testcase name="controlled client/security error" time="0.003" classname="Api2019">
+      <failure type="AssertionFailure" message="expected 200 to be within 400..499">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 6d8bfdf0-8939-4305-a328-aee57011d523.]]>
+        <![CDATA[Collection name: HW06 API 2 - Checkout Execution.]]>
+        <![CDATA[Request name: API2-019.]]>
+        <![CDATA[Test description: controlled client/security error.]]>
+        <![CDATA[Error message: expected 200 to be within 400..499.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 200 to be within 400..499
+   at Object.eval sandbox-script.js:2:24).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="API2-020" id="3250898b-6b3d-47e1-b532-6eddfdd0a640" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="1" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api2020"/>
+    <testcase name="controlled client/security error" time="0.001" classname="Api2020">
+      <failure type="AssertionFailure" message="expected 200 to be within 400..499">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 6d8bfdf0-8939-4305-a328-aee57011d523.]]>
+        <![CDATA[Collection name: HW06 API 2 - Checkout Execution.]]>
+        <![CDATA[Request name: API2-020.]]>
+        <![CDATA[Test description: controlled client/security error.]]>
+        <![CDATA[Error message: expected 200 to be within 400..499.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 200 to be within 400..499
+   at Object.eval sandbox-script.js:2:25).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="API2-021" id="acd85836-a19d-4bb8-98b5-f4128a248de5" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="1" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api2021"/>
+    <testcase name="controlled client/security error" time="0.002" classname="Api2021">
+      <failure type="AssertionFailure" message="expected 200 to be within 400..499">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 6d8bfdf0-8939-4305-a328-aee57011d523.]]>
+        <![CDATA[Collection name: HW06 API 2 - Checkout Execution.]]>
+        <![CDATA[Request name: API2-021.]]>
+        <![CDATA[Test description: controlled client/security error.]]>
+        <![CDATA[Error message: expected 200 to be within 400..499.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 200 to be within 400..499
+   at Object.eval sandbox-script.js:2:26).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="API2-022" id="f7ba26d7-10a7-4272-ade3-30fba41ba4a1" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="1" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api2022"/>
+    <testcase name="controlled client/security error" time="0.002" classname="Api2022">
+      <failure type="AssertionFailure" message="expected 200 to be within 400..499">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 6d8bfdf0-8939-4305-a328-aee57011d523.]]>
+        <![CDATA[Collection name: HW06 API 2 - Checkout Execution.]]>
+        <![CDATA[Request name: API2-022.]]>
+        <![CDATA[Test description: controlled client/security error.]]>
+        <![CDATA[Error message: expected 200 to be within 400..499.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 200 to be within 400..499
+   at Object.eval sandbox-script.js:2:27).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="API2-023" id="e8b78076-d46c-4d7e-830f-66ec5466f89d" timestamp="2026-08-21T16:15:01.957Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api2023"/>
+    <testcase name="success schema" time="0.002" classname="Api2023"/>
+    <testcase name="HTTP 200" time="0.002" classname="Api2023"/>
+  </testsuite>
+  <testsuite name="API2-024" id="bde8f3b0-9fd1-482c-bdbf-21ce00bd5dec" timestamp="2026-08-21T16:15:01.957Z" tests="4" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api2024"/>
+    <testcase name="success schema" time="0.002" classname="Api2024"/>
+    <testcase name="HTTP 200" time="0.002" classname="Api2024"/>
+    <testcase name="no secrets" time="0.002" classname="Api2024"/>
+  </testsuite>
+  <testsuite name="API2-025" id="f6c8323b-2b89-4ecf-aa24-c593242f4aba" timestamp="2026-08-21T16:15:01.957Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api2025"/>
+    <testcase name="success schema" time="0.001" classname="Api2025"/>
+    <testcase name="HTTP 200" time="0.001" classname="Api2025"/>
+  </testsuite>
+  <testsuite name="API2-026" id="792076ad-60a5-4132-976d-e7ea3b58363c" timestamp="2026-08-21T16:15:01.957Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api2026"/>
+    <testcase name="success schema" time="0.002" classname="Api2026"/>
+    <testcase name="HTTP 200" time="0.002" classname="Api2026"/>
+  </testsuite>
+  <testsuite name="API2-027" id="3ecefbe5-cf21-4a3f-899d-1dae375a576c" timestamp="2026-08-21T16:15:01.957Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api2027"/>
+    <testcase name="success schema" time="0.001" classname="Api2027"/>
+    <testcase name="HTTP 200" time="0.001" classname="Api2027"/>
+  </testsuite>
+  <testsuite name="API2-028" id="a3aefa0d-18ac-48bc-b61f-5fdc1b12ed35" timestamp="2026-08-21T16:15:01.957Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api2028"/>
+    <testcase name="success schema" time="0.002" classname="Api2028"/>
+    <testcase name="HTTP 200" time="0.002" classname="Api2028"/>
+  </testsuite>
+  <testsuite name="API2-029" id="25f02ea0-0a93-4556-9ea0-2b7d2fef4359" timestamp="2026-08-21T16:15:01.957Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api2029"/>
+    <testcase name="success schema" time="0.002" classname="Api2029"/>
+    <testcase name="HTTP 200" time="0.002" classname="Api2029"/>
+  </testsuite>
+  <testsuite name="API2-030" id="f22e2d73-d513-4e86-94db-d56a58d2fcc0" timestamp="2026-08-21T16:15:01.957Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api2030"/>
+    <testcase name="success schema" time="0.001" classname="Api2030"/>
+    <testcase name="HTTP 200" time="0.001" classname="Api2030"/>
+  </testsuite>
+  <testsuite name="API2-031" id="63d3ff46-b22c-44f0-9c0b-015b6e6d6984" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api2031"/>
+    <testcase name="controlled client/security error" time="0.001" classname="Api2031"/>
+  </testsuite>
+  <testsuite name="API2-032" id="0ce41783-d4e9-4455-b7a9-11e6e2e26b8b" timestamp="2026-08-21T16:15:01.957Z" tests="3" failures="2" errors="0" time="0.006">
+    <testcase name="Student-ID header is present" time="0.006" classname="Api2032"/>
+    <testcase name="no server crash" time="0.006" classname="Api2032">
+      <failure type="AssertionFailure" message="expected 500 to be within 400..499">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 6d8bfdf0-8939-4305-a328-aee57011d523.]]>
+        <![CDATA[Collection name: HW06 API 2 - Checkout Execution.]]>
+        <![CDATA[Request name: API2-032.]]>
+        <![CDATA[Test description: no server crash.]]>
+        <![CDATA[Error message: expected 500 to be within 400..499.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 500 to be within 400..499
+   at Object.eval sandbox-script.js:2:37).]]>
+      </failure>
+    </testcase>
+    <testcase name="no stack disclosure" time="0.006" classname="Api2032">
+      <failure type="AssertionFailure" message="expected true to deeply equal false">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 6d8bfdf0-8939-4305-a328-aee57011d523.]]>
+        <![CDATA[Collection name: HW06 API 2 - Checkout Execution.]]>
+        <![CDATA[Request name: API2-032.]]>
+        <![CDATA[Test description: no stack disclosure.]]>
+        <![CDATA[Error message: expected true to deeply equal false.]]>
+        <![CDATA[Stacktrace: AssertionError: expected true to deeply equal false
+   at Object.eval sandbox-script.js:3:37).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="API2-033" id="455623e0-2fc9-4cd6-beae-074e2e67dd9f" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api2033"/>
+    <testcase name="unsupported method is controlled" time="0.001" classname="Api2033"/>
+  </testsuite>
+  <testsuite name="API2-034" id="f15de37a-fb71-4eb8-98ed-187b5bbaa67f" timestamp="2026-08-21T16:15:01.957Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api2034"/>
+    <testcase name="success schema" time="0.001" classname="Api2034"/>
+    <testcase name="HTTP 200" time="0.001" classname="Api2034"/>
+  </testsuite>
+  <testsuite name="API2-035" id="4d78e023-73ee-490c-bdeb-561d659b401e" timestamp="2026-08-21T16:15:01.957Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api2035"/>
+    <testcase name="success schema" time="0.002" classname="Api2035"/>
+    <testcase name="HTTP 200" time="0.002" classname="Api2035"/>
+  </testsuite>
+  <testsuite name="API2-036" id="547c5fc3-f24f-4b94-85d2-6c94d9521c46" timestamp="2026-08-21T16:15:01.957Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api2036"/>
+    <testcase name="success schema" time="0.002" classname="Api2036"/>
+    <testcase name="HTTP 200" time="0.002" classname="Api2036"/>
+  </testsuite>
+  <testsuite name="API2-037" id="fdeee92a-4351-4696-aa2b-b15107e05d59" timestamp="2026-08-21T16:15:01.957Z" tests="3" failures="1" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api2037"/>
+    <testcase name="controlled client/security error" time="0.002" classname="Api2037">
+      <failure type="AssertionFailure" message="expected 200 to be within 400..499">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 6d8bfdf0-8939-4305-a328-aee57011d523.]]>
+        <![CDATA[Collection name: HW06 API 2 - Checkout Execution.]]>
+        <![CDATA[Request name: API2-037.]]>
+        <![CDATA[Test description: controlled client/security error.]]>
+        <![CDATA[Error message: expected 200 to be within 400..499.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 200 to be within 400..499
+   at Object.eval sandbox-script.js:2:42).]]>
+      </failure>
+    </testcase>
+    <testcase name="error is JSON and safe" time="0.002" classname="Api2037"/>
+  </testsuite>
+  <testsuite name="SAPI2-001" id="851bce49-56a8-4446-9450-b571986b59f9" timestamp="2026-08-21T16:15:01.957Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Sapi2001"/>
+    <testcase name="success schema" time="0.001" classname="Sapi2001"/>
+    <testcase name="HTTP 200" time="0.001" classname="Sapi2001"/>
+  </testsuite>
+  <testsuite name="SAPI2-002" id="57149702-1b1c-4b35-bd2b-4447d1ca2804" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="1" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Sapi2002"/>
+    <testcase name="controlled client/security error" time="0.002" classname="Sapi2002">
+      <failure type="AssertionFailure" message="expected 200 to be within 400..499">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 6d8bfdf0-8939-4305-a328-aee57011d523.]]>
+        <![CDATA[Collection name: HW06 API 2 - Checkout Execution.]]>
+        <![CDATA[Request name: SAPI2-002.]]>
+        <![CDATA[Test description: controlled client/security error.]]>
+        <![CDATA[Error message: expected 200 to be within 400..499.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 200 to be within 400..499
+   at Object.eval sandbox-script.js:2:44).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="SAPI2-003" id="6b239597-e2de-48d7-86e8-aa33d150cd81" timestamp="2026-08-21T16:15:01.957Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Sapi2003"/>
+    <testcase name="success schema" time="0.002" classname="Sapi2003"/>
+    <testcase name="HTTP 200" time="0.002" classname="Sapi2003"/>
+  </testsuite>
+  <testsuite name="SAPI2-004" id="05d223ee-9a4b-4afb-99d7-a20c7ce5a28a" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="1" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Sapi2004"/>
+    <testcase name="controlled client/security error" time="0.002" classname="Sapi2004">
+      <failure type="AssertionFailure" message="expected 200 to be within 400..499">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 6d8bfdf0-8939-4305-a328-aee57011d523.]]>
+        <![CDATA[Collection name: HW06 API 2 - Checkout Execution.]]>
+        <![CDATA[Request name: SAPI2-004.]]>
+        <![CDATA[Test description: controlled client/security error.]]>
+        <![CDATA[Error message: expected 200 to be within 400..499.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 200 to be within 400..499
+   at Object.eval sandbox-script.js:2:46).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="SAPI2-005" id="a2955c7d-75f2-4084-a497-27ac85ebabd6" timestamp="2026-08-21T16:15:01.957Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Sapi2005"/>
+    <testcase name="success schema" time="0.002" classname="Sapi2005"/>
+    <testcase name="HTTP 200" time="0.002" classname="Sapi2005"/>
+  </testsuite>
+  <testsuite name="SAPI2-006" id="e24f14f9-a0e8-4166-9a3a-282262e2f30e" timestamp="2026-08-21T16:15:01.957Z" tests="2" failures="1" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Sapi2006"/>
+    <testcase name="controlled client/security error" time="0.002" classname="Sapi2006">
+      <failure type="AssertionFailure" message="expected 200 to be within 400..499">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 6d8bfdf0-8939-4305-a328-aee57011d523.]]>
+        <![CDATA[Collection name: HW06 API 2 - Checkout Execution.]]>
+        <![CDATA[Request name: SAPI2-006.]]>
+        <![CDATA[Test description: controlled client/security error.]]>
+        <![CDATA[Error message: expected 200 to be within 400..499.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 200 to be within 400..499
+   at Object.eval sandbox-script.js:2:48).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+</testsuites>

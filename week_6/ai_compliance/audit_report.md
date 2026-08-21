@@ -282,3 +282,18 @@ I reviewed every label and correction before accepting them, and I authored the 
 | **Total (77)** | **70** | **0** | **7** | **90.9% / 0% / 9.1%** |
 
 **Conclusion on AI use for this work:** the AI is strong at breadth — producing a coherent, traceable, ISTQB-structured suite in one pass. It is weaker at *spec fidelity and edge completeness*: it left several financial and authentication oracles ambiguous, assumed the server recomputed the total without verifying the real implementation, and missed state/idempotency, cross-user, numeric-injection, and length-boundary cases. For this type of work the AI is best used as a *generation-and-drafting assistant* whose output must always be audited against the actual SUT and extended by a human; AI alone (without live verification against the implementation) is not reliable enough to serve as the sole source of an audited test suite.
+
+---
+
+# AI-02 Audit Entry 07 — API 2 Newman execution
+
+**Requirement:** Execute the complete API 2 suite with every request carrying `X-Student-Id: 22127345`, and preserve HTML/JUnit execution reports.
+
+**Timestamp/tool:** 21/08/2026 (+07), Newman 6.2.2 with HTML-extra and JUnit reporters against `http://localhost:3000`.
+
+**Prompt:**
+> tương tự giúp tôi execute test cases cho feature này
+
+**Artifacts:** [`api2_checkout.postman_collection.json`](../artifacts/api2_checkout.postman_collection.json), [`api2_newman_report.html`](../artifacts/api2_newman_report.html), and [`api2_newman_report.xml`](../artifacts/api2_newman_report.xml).
+
+**Verdict:** **EXECUTION COMPLETE / DEFECT FOLLOW-UP PENDING.** Newman executed 48 requests, 121 assertions, 102 passed, 19 failed, and 0 script errors. Five setup requests created disposable users/cart data; 43 API cases were then executed. All 48 pre-request scripts logged and injected `X-Student-Id: 22127345`. Failures reproduced the predicted SUT defects in validation, total integrity, auth scheme enforcement, cart state/idempotency, and error handling. Manual Postman GUI evidence and GitHub issue links/screenshots remain pending.

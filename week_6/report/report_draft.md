@@ -196,11 +196,11 @@ The design artifacts are [`api2_checkout_test_strategy.md`](../artifacts/api2_ch
 
 ### 8.2 AI Generation Process
 
-The AI was given the local API specification and the FR-07/FR-08/FR-10 and SEC-01–SEC-07 test basis, then instructed to derive conditions before generating atomic cases. The output was constrained to cover every request parameter, authentication, cart/order state transitions, client-total tampering, injection, IDOR, role escalation, malformed protocol input, Student-ID evidence, and exact success/error schemas. **37 AI-generated cases** were produced in `artifacts/api2_checkout_test_cases.csv`. They are explicitly marked `AI-GENERATED-PENDING-AUDIT`; no human VALID/INVALID/INCOMPLETE verdict is claimed yet.
+The AI was given the local API specification and the FR-07/FR-08/FR-10 and SEC-01–SEC-07 test basis, then instructed to derive conditions before generating atomic cases. The output was constrained to cover every request parameter, authentication, cart/order state transitions, client-total tampering, injection, IDOR, role escalation, malformed protocol input, Student-ID evidence, and exact success/error schemas. **37 AI-generated cases** were produced in `artifacts/api2_checkout_test_cases.csv`; they were subsequently audited and four incomplete oracles were corrected.
 
 ### 8.3 AI-Generated Test Cases (Target: at least 35)
 
-The initial generation target is met: **37 cases** (`API2-001`–`API2-037`). Coverage is partitioned across P0/P1/P2 functional, security, state, robustness, protocol, and schema cases. The traceability matrix maps the cases to FR-08, FR-07, and SEC-01–SEC-07. The human audit (§8.4) and student-added cases (§8.5) are complete; execution is the next API 2 action.
+The initial generation target is met: **37 cases** (`API2-001`–`API2-037`), extended with six student-authored cases (`SAPI2-001`–`SAPI2-006`). Coverage is partitioned across P0/P1/P2 functional, security, state, robustness, protocol, and schema cases. The traceability matrix maps the cases to FR-08, FR-07, and SEC-01–SEC-07.
 
 ### 8.4 Human Audit: VALID / INVALID / INCOMPLETE
 
@@ -225,7 +225,7 @@ The audit confirmed genuine implementation defects (verified via live requests) 
 | C5 | `text/plain` body causes a **500 crash** with a full stack trace | API2-032 |
 | C6 | Malformed JSON returns an **HTML error page leaking absolute file paths** / error paths leak stack+paths | API2-031/037 |
 
-These will be confirmed and filed as GitHub Issues during the execution phase.
+The Newman execution below reproduced the predicted failures. GitHub issue filing remains pending for API 2.
 
 ### 8.5 Student-Added Test Cases (At least 5)
 
@@ -244,7 +244,19 @@ These will be confirmed and filed as GitHub Issues during the execution phase.
 
 ### 8.6 Execution Results
 
+The audited API 2 suite was executed with Newman against `http://localhost:3000` on 21/08/2026. The collection contains 43 API cases plus five stateful setup requests, for **48 requests** total. Runtime variables supplied disposable credentials; no password was stored in the collection. The pre-request script injected and logged `X-Student-Id: 22127345` for all 48 requests.
+
+| Run | Requests | Assertions | Passed | Failed | Script errors | Avg. response |
+|---|---:|---:|---:|---:|---:|---:|
+| Newman CLI | 48 | 121 | 102 | 19 | 0 | 2 ms |
+
+The 19 failed assertions are expected defect observations, not tool failures: API2-004–008, API2-012, API2-016–022, API2-032, API2-037, and SAPI2-002/004/006. They reproduce client-total trust and missing validation, acceptance of `Basic <JWT>`, checkout from an empty cart and duplicate checkout, a `text/plain` 500 with stack disclosure, unsafe error handling, numeric-field injection acceptance, and overlong-address acceptance. Authentication cases API2-009–011 and unsupported-method case API2-033 passed. The generated artifacts are [`api2_checkout.postman_collection.json`](../artifacts/api2_checkout.postman_collection.json), [`api2_newman_report.html`](../artifacts/api2_newman_report.html), and [`api2_newman_report.xml`](../artifacts/api2_newman_report.xml).
+
+The Newman report is the automated evidence. The assignment's manual Postman console/header screenshot still needs to be captured in the GUI for the anti-cheating evidence requirement.
+
 ### 8.7 Bugs Found and Links
+
+The run confirms the six candidate defects C1–C6 listed in §8.4. They should be filed as separate GitHub Issues with request/response screenshots before submission; no API 2 issue links are claimed yet.
 
 ## 9. API 3 Full Pipeline
 

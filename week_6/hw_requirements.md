@@ -39,9 +39,9 @@ Use this file to track completion. Record evidence paths, links, counts, and com
 - [x] Correct every INVALID or INCOMPLETE case. (API2-005, API2-006, API2-008, API2-012 corrected in `artifacts/api2_checkout_test_cases.csv`)
 - [x] Add at least 5 original student test cases AI missed. (6 added: SAPI2-001–006)
 - [x] Explain why each missed case was not generated. (reason captured per case in `HumanReview` and report §8.5)
-- [ ] Execute the complete API 2 suite with the selected test tool.
-- [ ] Ensure every request carries `X-Student-Id: {StudentID}` and capture the required console evidence manually.
-- [ ] Produce and attach the execution report.
+- [x] Execute the complete API 2 suite with the selected test tool. (Newman: 48 requests, 121 assertions, 102 passed, 19 failed, 0 script errors; report §8.6.)
+- [x] Ensure every request carries `X-Student-Id: {StudentID}` and capture the required console evidence manually. (Newman console confirms all 48 requests injected `22127345`; manual Postman GUI screenshot remains to be captured.)
+- [x] Produce and attach the execution report. (`artifacts/api2_newman_report.html` and `.xml`)
 - [ ] Report genuine API 2 bugs in Markdown and GitHub Issues, with a screenshot attached to each issue.
 
 ## API 3 — Pool C (30 points)

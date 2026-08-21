@@ -80,6 +80,18 @@ For each interaction, record:
 
 ---
 
+## [23:15 21/08/2026] — Codex (GPT-5)
+**Purpose**: Execute the audited API 2 checkout suite against the local SUT with Postman/Newman and produce execution evidence.
+
+**Prompt**:
+> tương tự giúp tôi execute test cases cho feature này
+
+**Artifacts produced**: `artifacts/build_api2_postman_collection.mjs`, `artifacts/api2_checkout.postman_collection.json`, `artifacts/api2_newman_report.html`, and `artifacts/api2_newman_report.xml`.
+
+**Execution result**: 48 requests (5 setup + 43 API cases), 121 assertions, 102 passed, 19 failed, 0 script errors. All 48 pre-request scripts logged and injected `X-Student-Id: 22127345`. Failures reproduced weak validation, client-total trust, lax Bearer scheme enforcement, empty-cart/duplicate checkout, `text/plain` 500/stack disclosure, numeric-field injection acceptance, and overlong-address acceptance. Manual Postman GUI screenshot and API 2 GitHub issue links remain pending.
+
+---
+
 ## [18:12 21/08/2026] — DeepSeek Harness (Claude Sonnet 4.6)
 **Purpose**: HW06 API 2 (Pool B / FR-08) — human audit of the 37 AI-generated `POST /api/checkout` test cases (label VALID / INVALID / INCOMPLETE, correct incomplete ones) and extension with student-authored cases the AI missed. Serves HW06 requirements 2 (Audit) and 3 (Extend). The exact request wording is not logged here; this entry records the correction and extension work for the tutor.
 
