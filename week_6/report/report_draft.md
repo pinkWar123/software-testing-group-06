@@ -335,7 +335,7 @@ The API 3 collection [`artifacts/api3_admin_order_status.postman_collection.json
 
 | Tool/run | Requests | Assertions | Passed | Failed | Request/script errors | Avg. response |
 |---|---:|---:|---:|---:|---:|---:|
-| Newman CLI | 74 | 197 | 195 | 2 | 0 | 1 ms |
+| Newman CLI baseline | 74 | 197 | 195 | 2 | 0 | 1 ms |
 
 All 74 requests executed the pre-request script and the automated Student-ID assertion passed for every request with `X-Student-Id: 22127345`. The Postman Runner result supplied as human evidence is shown below; it records 197 tests, 195 passed, 2 failed, 0 skipped, and 0 errors. The separate manual console screenshot required by the assignment is still pending and is not claimed complete here.
 
@@ -343,12 +343,13 @@ All 74 requests executed the pre-request script and the automated Student-ID ass
 
 *Figure 9.1 — Postman Runner execution result for API 3.*
 
-The only failed test case was `API3-035` and it produced two failed assertions: the `text/plain` request returned HTTP 500 instead of a controlled 4xx response, and the response contained stack-trace disclosure. This is execution evidence of an API robustness/security defect. The defect is tracked as [GitHub Issue #77 — API3-035: Not-JSON payload crashes server when admin checks order status](https://github.com/pinkWar123/software-testing-group-06/issues/77). The generated HTML and JUnit reports are [`artifacts/api3_newman_report.html`](../artifacts/api3_newman_report.html) and [`artifacts/api3_newman_report.xml`](../artifacts/api3_newman_report.xml).
+The local baseline run recorded `API3-035` as the failed case and produced two failed assertions: the `text/plain` request returned HTTP 500 instead of a controlled 4xx response, and the response contained stack-trace disclosure. The first CI run then reproduced two failing API 3 cases: `API3-011` produced HTTP 200 for a normal user token and failed both the controlled-4xx and safe-JSON assertions, while `API3-035` again produced HTTP 500 and stack disclosure. `API3-011` is therefore a newly confirmed authorization/role-escalation defect and still requires a GitHub Issue. `API3-035` is tracked as [GitHub Issue #77 — API3-035: Not-JSON payload crashes server when admin checks order status](https://github.com/pinkWar123/software-testing-group-06/issues/77). The CI run is [GitHub Actions run 32512927751](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32512927751), and its Newman outputs are available in [artifact 9457705183](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32512927751/artifacts/9457705183). The earlier generated HTML and JUnit reports are [`artifacts/api3_newman_report.html`](../artifacts/api3_newman_report.html) and [`artifacts/api3_newman_report.xml`](../artifacts/api3_newman_report.xml).
 
 ### 9.7 Bugs Found and Links
 
 | Test case | Defect | Evidence / tracking |
 |---|---|---|
+| API3-011 | A normal user Bearer token is accepted for the admin order-status endpoint and returns HTTP 200 instead of a controlled authorization failure. This indicates missing role enforcement / privilege escalation. | [GitHub Actions run 32512927751](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32512927751); [Newman artifact 9457705183](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32512927751/artifacts/9457705183); GitHub Issue pending |
 | API3-035 | A `text/plain` request causes HTTP 500 and stack-trace disclosure instead of a controlled client error. | [GitHub Issue #77](https://github.com/pinkWar123/software-testing-group-06/issues/77); [Postman Runner screenshot](../artifacts/evidence/api3/01_postman_runner_api3.png); [Newman HTML report](../artifacts/api3_newman_report.html) |
 
 ## 10. Postman / Karate / RestAssured Features Used
@@ -370,13 +371,15 @@ The CI workflow is defined in [`.github/workflows/api-tests.yml`](../../.github/
 
 ### 12.1 Pipeline Configuration
 
-Pending first GitHub Actions run. The workflow intentionally treats failed assertions as a failed quality gate; the current SUT contains documented defects, so the initial baseline is expected to fail while still producing reports for diagnosis.
+The workflow intentionally treats failed assertions as a failed quality gate; the current SUT contains documented defects, so the initial baseline is expected to fail while still producing reports for diagnosis.
 
 ### 12.2 All-Passing Sample Run
 
 ### 12.3 Intentionally Failing Sample Run
 
 ### 12.4 Screenshots and Links
+
+The first baseline CI execution is [run 32512927751](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32512927751). It completed SUT startup and all three Newman suites, then failed the quality gate because API 1, API 2, and API 3 contained assertion failures. Newman HTML/JUnit outputs and the backend log are available in [artifact 9457705183](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32512927751/artifacts/9457705183). The all-passing sample, intentionally failing sample, and CI screenshots remain pending.
 
 ## 13. AI-Driven API Test Generator
 

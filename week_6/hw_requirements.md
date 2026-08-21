@@ -56,15 +56,15 @@ Use this file to track completion. Record evidence paths, links, counts, and com
 - [x] Correct every INVALID or INCOMPLETE case. (API3-008–013 structure corrected in `artifacts/api3_admin_order_status_test_cases.csv`)
 - [x] Add at least 5 original student test cases AI missed. (6 added: SAPI3-001–006)
 - [x] Explain why each missed case was not generated. (reason captured per case in `HumanReview` and report §9.5)
-- [x] Execute the complete API 3 suite with the selected test tool. (Postman/Newman: 74 requests, 197 assertions, 195 passed, 2 failed, 0 request/script errors; `API3-035` failed on HTTP 500 and stack disclosure.)
+- [x] Execute the complete API 3 suite with the selected test tool. (Local baseline: 74 requests, 197 assertions, 195 passed, 2 failed. CI run reproduced `API3-011` and `API3-035`; API3-011 returned 200 for a normal user token and API3-035 returned HTTP 500 with stack disclosure.)
 - [x] Ensure every request carries `X-Student-Id: {StudentID}` and capture the required console evidence manually.
 - [x] Produce and attach the execution report. (`artifacts/api3_newman_report.html` and `.xml`; collection/environment artifacts also saved.)
-- [x] Report genuine API 3 bugs in Markdown and GitHub Issues, with execution evidence. (`API3-035` → [GitHub Issue #77](https://github.com/pinkWar123/software-testing-group-06/issues/77); Runner screenshot: `artifacts/evidence/api3/01_postman_runner_api3.png`)
+- [ ] Report all genuine API 3 bugs in Markdown and GitHub Issues, with execution evidence. (`API3-035` → [GitHub Issue #77](https://github.com/pinkWar123/software-testing-group-06/issues/77); newly confirmed `API3-011` is documented in report §9.7 but its GitHub Issue is pending.)
 
 ## Cross-suite technical requirements
 
 - [ ] Use and document as many available Postman features as reasonably applicable: workspace, collection, variables, environment, data-driven runner, monitors, mock server, or equivalent Karate/RestAssured features.
-- [ ] Add the API tests to a CI/CD pipeline for the SUT. (Workflow prepared at `.github/workflows/api-tests.yml`; pending first GitHub Actions run.)
+- [x] Add the API tests to a CI/CD pipeline for the SUT. (Workflow: `.github/workflows/api-tests.yml`; first baseline run: [GitHub Actions run 32512927751](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32512927751); artifacts: [9457705183](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32512927751/artifacts/9457705183).)
 - [ ] Write the CI/CD report describing the configuration and both required runs.
 - [ ] Provide one sample commit whose pipeline run has all API tests passing.
 - [ ] Provide one sample commit whose pipeline run has one test case failing.
