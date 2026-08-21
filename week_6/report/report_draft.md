@@ -289,13 +289,45 @@ The AI generation step used the API specification, FR-10/FR-18 requirements, SEC
 
 ### 9.3 AI-Generated Test Cases (Target: at least 35)
 
-**Generated count: 40.** Cases cover positive transitions, invalid and terminal transitions, authentication and role boundaries, path/status partitions, injection, malformed protocol inputs, response schema, side-effect isolation, and Student-ID evidence. All rows remain `AI-GENERATED / PENDING-AUDIT`; VALID / INVALID / INCOMPLETE labeling will be completed in the audit phase.
+**Generated count: 40.** Cases cover positive transitions, invalid and terminal transitions, authentication and role boundaries, path/status partitions, injection, malformed protocol inputs, response schema, side-effect isolation, and Student-ID evidence. All rows have now been human-labeled `VALID` / `INVALID` / `INCOMPLETE` in the audit below (§9.4).
 
 See [`artifacts/api3_admin_order_status_test_cases.csv`](../artifacts/api3_admin_order_status_test_cases.csv), [`artifacts/api3_admin_order_status_test_conditions.md`](../artifacts/api3_admin_order_status_test_conditions.md), and [`artifacts/api3_admin_order_status_traceability.csv`](../artifacts/api3_admin_order_status_traceability.csv).
 
 ### 9.4 Human Audit: VALID / INVALID / INCOMPLETE
 
+Every AI-generated API 3 case was reviewed against the spec (`api_specification.md` + `README.md`, which defines FR-18, the FR-10 state machine and SEC-01–SEC-07) and verified with live requests against the running backend. **Result: 34 VALID / 0 INVALID / 6 INCOMPLETE.**
+
+- **VALID (34).** Oracles correctly encode the FR-10 transition rules, the SEC requirements, and the response schema. This includes the terminal-state and authorization cases whose oracles are correct even though the implementation violates them (see bugs).
+- **INVALID (0).** No AI case contradicted the specification outright.
+- **INCOMPLETE (6) — all corrected for structure.** API3-008 through API3-013 were malformed records: the AI merged the expected-result text into the `TestData` field, leaving `ExpectedResult` empty. I split each into proper `TestData` / `ExpectedResult` columns. The underlying security oracles were correct, so the verdict after the structural fix is VALID for each; the six rows are labelled `INCOMPLETE (corrected)` to record the fix.
+
+The audit confirmed genuine implementation defects (verified via live requests) that the correct spec-based cases will catch at execution:
+
+| # | Bug (verified) | Detected by |
+|---|---|---|
+| D1 | **No `role=admin` check** — a regular `role=user` JWT successfully updates any order (SEC-03 violation) | API3-011/013, SAPI3-002 |
+| D2 | **`canceled → delivered` wrongly allowed** — a canceled (terminal) order can be revived to delivered | SAPI3-001 |
+| D3 | **Bearer scheme not enforced** — a valid JWT sent as `Basic <jwt>` is accepted | API3-012 |
+| D4 | `text/plain` body causes a **500 crash** with a full stack trace | API3-035 |
+| D5 | Malformed JSON returns an **HTML error page leaking absolute file paths** (and error paths leak stack/paths) | API3-034/038 |
+| D6 | Invalid-transition error message discloses the current order status (`Invalid state transition from X to Y`) — minor enumeration | API3-023-028 |
+
+These will be confirmed and filed as GitHub Issues during the execution phase.
+
 ### 9.5 Student-Added Test Cases (At least 5)
+
+6 original student-authored cases (SAPI3-001–006) were added — see [`artifacts/api3_admin_order_status_test_cases.csv`](../artifacts/api3_admin_order_status_test_cases.csv). Each targets a gap the AI missed, with the reason it was missed:
+
+| ID | Focus | Why the AI missed it |
+|---|---|---|
+| SAPI3-001 | `canceled → delivered` must be rejected (terminal-state edge) | AI tested only canceled→confirmed; it asserted "canceled is terminal" generally without enumerating every out-edge, so the unusual `canceled→delivered` bug was missed. |
+| SAPI3-002 | Non-admin token cannot update another user's order (SEC-03, explicit role check) | AI assumed role enforcement existed instead of verifying that the middleware only checks token validity. |
+| SAPI3-003 | **Read-back** via GET confirms the persisted status and that only the target order changed | AI asserted success/persistence only in oracle text, without a GET verification step. |
+| SAPI3-004 | Repeated transition (confirmed→confirmed) is rejected — documented non-idempotent behavior | AI modeled forward transitions but never re-transition/idempotency of an already-reached state. |
+| SAPI3-005 | Huge order ID (BVA upper bound, 2^31+) is rejected | AI's boundary set covered 0/−1/decimal but omitted the large/overflow side. |
+| SAPI3-006 | Status carrying embedded/trailing characters (e.g. `confirmed\n`) is rejected (exact match) | AI tested empty/whitespace/case/numeric statuses but not a valid token wrapped in extra characters. |
+
+**Why each was missed (categories):** SAPI3-001, SAPI3-002, SAPI3-003 are **model limitations** (incomplete state-graph/authorization/verification modelling); SAPI3-004, SAPI3-005, SAPI3-006 are **prompt quality** (missing idempotency, large-boundary, and hostile-status variants).
 
 ### 9.6 Execution Results
 
