@@ -199,3 +199,33 @@ The run confirmed defects involving early lockout, unsafe `text/plain` handling,
 ## 5. Student Review / Fix
 
 I reviewed the collection assertions and reran the suite after isolating the success account from the deliberately locked account. I supplied the Postman screenshots and confirmed that the Student-ID header was injected on the executed requests. The four screenshots are stored under `artifacts/evidence/api1/` and embedded in report §7.6. The four confirmed defects are filed as [Issue #66](https://github.com/pinkWar123/software-testing-group-06/issues/66), [Issue #67](https://github.com/pinkWar123/software-testing-group-06/issues/67), [Issue #68](https://github.com/pinkWar123/software-testing-group-06/issues/68), and [Issue #69](https://github.com/pinkWar123/software-testing-group-06/issues/69). Credentials were passed as runtime variables rather than stored in the collection.
+
+---
+
+# AI-02 Audit Entry 05 — API 2 Design and Initial Generation
+
+## 1. Artifact and context
+
+**Artifact:** API 2 checkout strategy, test conditions, 37-case initial test suite, and traceability matrix.
+
+**Requirement:** HW06 API 2 actions 1–6: specification, at least 35 generated cases, domain partitions, state transitions, SEC-01–SEC-07, and exact response-schema validation.
+
+**Timestamp:** 21/08/2026 (+07)
+
+**AI tool:** Codex (GPT-5), used with the QA Test Planner, ISTQB manual QA, and test-breakdown guidance.
+
+## 2. Prompt and output
+
+**Prompt (verbatim):**
+
+> $qa-test-planner $qa-manual-istqb $breakdown-test Design docs as suggested in API 2 - pool B in week_6/hw_requirements.md . Just do the first 6 actions
+
+**Output/artifacts:** [`api2_checkout_test_strategy.md`](../artifacts/api2_checkout_test_strategy.md), [`api2_checkout_test_conditions.md`](../artifacts/api2_checkout_test_conditions.md), [`api2_checkout_test_cases.csv`](../artifacts/api2_checkout_test_cases.csv), [`api2_checkout_traceability.csv`](../artifacts/api2_checkout_traceability.csv), and report §8.1–§8.3.
+
+## 3. Review verdict
+
+**DESIGN COMPLETE / AUDIT PENDING.** The first six checklist actions are supported by artifacts and 37 generated cases. The test cases are intentionally labeled `AI-GENERATED-PENDING-AUDIT`; no claim is made that they are yet VALID, corrected, executed, or student-extended.
+
+## 4. Human review and limitations
+
+The student must audit every row against the local specification and implementation, reconcile exact status/error oracles, add at least five original cases, and then execute the suite. Stateful checkout cases require disposable users/carts or database reseeding. The implementation currently inserts the client-supplied total directly, so the server-total oracle is expected to expose a genuine defect during execution; this is a test hypothesis until reproduced with Postman/Newman.

@@ -71,3 +71,14 @@ For each interaction, record:
 **Human evidence incorporated**: Postman Runner summary — 48 requests, 164 assertions, 155 passed, 9 failed, 0 errors; pre-request script, post-response assertions, console log, and request-header evidence showing `X-Student-Id: 22127345`. GitHub Issue screenshots remain pending.
 
 ---
+
+## [current session 21/08/2026] — Codex (GPT-5)
+**Purpose**: HW06 API 2 / Pool B design stage — complete the first six API 2 checklist actions for `POST /api/checkout`.
+**Prompt**:
+> $qa-test-planner $qa-manual-istqb $breakdown-test Design docs as suggested in API 2 - pool B in week_6/hw_requirements.md . Just do the first 6 actions
+
+**Artifacts produced**: `artifacts/api2_checkout_test_strategy.md`, `artifacts/api2_checkout_test_conditions.md`, `artifacts/api2_checkout_test_cases.csv` (37 generated cases), `artifacts/api2_checkout_traceability.csv`, report §8.1–§8.3, and the first six API 2 checklist items.
+
+**Human review / changes**: The six design requirements are now documented and traceable. The 37 cases remain `AI-GENERATED-PENDING-AUDIT`; VALID / INVALID / INCOMPLETE labeling, corrections, student extensions, execution, evidence, and GitHub bug filing are intentionally not marked complete.
+
+---

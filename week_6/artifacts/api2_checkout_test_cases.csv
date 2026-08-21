@@ -1,0 +1,38 @@
+ID,Title,Type,Priority,Precondition,TestData,ExpectedResult,ReviewStatus
+API2-001,Checkout populated cart with correct total,Functional,P0,User token and cart with known items,total_amount=cart total; valid address,200; pending order; orderId positive; cart cleared,AI-GENERATED-PENDING-AUDIT
+API2-002,Checkout ignores a larger client total,Security/Functional,P0,User cart total known,total_amount=999999; valid address,Order total equals server cart total not 999999,AI-GENERATED-PENDING-AUDIT
+API2-003,Checkout ignores a smaller client total,Security/Functional,P0,User cart total known,total_amount=1; valid address,Order total equals server cart total; no undercharge,AI-GENERATED-PENDING-AUDIT
+API2-004,Missing total_amount,Validation,P1,Authenticated populated cart,body omits total_amount,Controlled 4xx; no order; cart unchanged,AI-GENERATED-PENDING-AUDIT
+API2-005,Null total_amount,Validation,P1,Authenticated populated cart,total_amount=null,Controlled 4xx or documented ignore; no invalid order,AI-GENERATED-PENDING-AUDIT
+API2-006,String total_amount,Validation,P1,Authenticated populated cart,total_amount="200000",Controlled 4xx or documented ignore; server total remains authoritative,AI-GENERATED-PENDING-AUDIT
+API2-007,Negative total_amount,Validation,P1,Authenticated populated cart,total_amount=-1,No negative persisted order; controlled 4xx,AI-GENERATED-PENDING-AUDIT
+API2-008,Zero total_amount,Boundary,P1,Authenticated populated cart,total_amount=0,No zero-price tampering; controlled 4xx or server total used,AI-GENERATED-PENDING-AUDIT
+API2-009,Missing Authorization header,Security,P0,Known populated cart,No Authorization header,401/403; no order,AI-GENERATED-PENDING-AUDIT
+API2-010,Malformed bearer token,Security,P0,Known populated cart,Authorization=Bearer malformed,401/403; no order,AI-GENERATED-PENDING-AUDIT
+API2-011,Expired JWT,Security,P0,Known populated cart,Expired runtime token,401/403; no order,AI-GENERATED-PENDING-AUDIT
+API2-012,JWT wrong scheme,Security,P1,Known populated cart,Authorization=Basic token,401/403; no order,AI-GENERATED-PENDING-AUDIT
+API2-013,User token cannot impersonate another user,Security,P0,Two users and isolated carts,User A token plus User B-like body fields,Order owner remains A; B data untouched,AI-GENERATED-PENDING-AUDIT
+API2-014,Role field cannot escalate user,Security,P0,Normal user token,body includes role=admin,No role change or admin privilege; request rejected/ignored,AI-GENERATED-PENDING-AUDIT
+API2-015,Valid ordinary shipping address,Functional,P1,Authenticated populated cart,shipping_address="123 Le Loi, TP.HCM",Accepted with exact safe value,AI-GENERATED-PENDING-AUDIT
+API2-016,Missing shipping address,Validation,P1,Authenticated populated cart,body omits shipping_address,Controlled 4xx; no order,AI-GENERATED-PENDING-AUDIT
+API2-017,Empty shipping address,Boundary,P1,Authenticated populated cart,shipping_address="",Controlled 4xx; no order,AI-GENERATED-PENDING-AUDIT
+API2-018,Whitespace shipping address,Boundary,P1,Authenticated populated cart,shipping_address="   ",Controlled 4xx; no order,AI-GENERATED-PENDING-AUDIT
+API2-019,Non-string shipping address,Validation,P1,Authenticated populated cart,shipping_address object/array/number,Controlled 4xx; no crash,AI-GENERATED-PENDING-AUDIT
+API2-020,Checkout empty cart,State/Functional,P0,Authenticated user cart empty,valid total/address,Controlled 4xx; no order,AI-GENERATED-PENDING-AUDIT
+API2-021,Checkout after successful checkout with cleared cart,State,P1,Same user has just checked out,repeat same request,No duplicate order without a new cart; controlled 4xx,AI-GENERATED-PENDING-AUDIT
+API2-022,Malformed cart item does not create invalid order,Robustness,P1,Cart contains malformed item,valid checkout body,Controlled 4xx or safe rejection; no invalid persisted total,AI-GENERATED-PENDING-AUDIT
+API2-023,Response does not disclose password,Security,P0,Successful checkout,valid request,Response has no password or credential fields,AI-GENERATED-PENDING-AUDIT
+API2-024,Response does not disclose JWT or reset secret,Security,P0,Successful checkout,valid request,Response has no token/reset/OTP fields,AI-GENERATED-PENDING-AUDIT
+API2-025,IDOR via order/cart identifiers is rejected,Security,P0,Two users with separate data,Inject id/user_id/cart_id fields,No cross-user access or mutation,AI-GENERATED-PENDING-AUDIT
+API2-026,Admin token cannot select arbitrary user ownership,Authorization,P1,Admin and normal user tokens,body includes user_id of another user,Ownership derives from JWT; body cannot override it,AI-GENERATED-PENDING-AUDIT
+API2-027,SQL injection in shipping address,Security,P0,Authenticated populated cart,shipping_address="' OR 1=1 --",No query bypass/data exposure; controlled result,AI-GENERATED-PENDING-AUDIT
+API2-028,HTML/script address treated as data,Security,P1,Authenticated populated cart,shipping_address="<script>alert(1)</script>",No execution; safe persistence/response,AI-GENERATED-PENDING-AUDIT
+API2-029,Duplicate and unknown fields ignored safely,Robustness,P2,Authenticated populated cart,body includes user_id/role/token/extra,No privilege/ownership change; schema stable,AI-GENERATED-PENDING-AUDIT
+API2-030,Prototype-like JSON keys are harmless,Security,P2,Authenticated populated cart,body includes __proto__/constructor keys,No crash or privilege change,AI-GENERATED-PENDING-AUDIT
+API2-031,Malformed JSON body,Robustness,P1,Authenticated request,Invalid JSON bytes,Controlled 4xx JSON; no order or stack trace,AI-GENERATED-PENDING-AUDIT
+API2-032,Wrong content type,Robustness,P1,Authenticated request,text/plain body,Controlled 4xx; no 5xx/stack trace,AI-GENERATED-PENDING-AUDIT
+API2-033,Unsupported HTTP methods,Protocol,P2,Route available,GET/PUT/PATCH/DELETE /api/checkout,405/404 controlled response; no checkout side effect,AI-GENERATED-PENDING-AUDIT
+API2-034,Missing X-Student-Id header,Compliance,P1,Valid authenticated request,No X-Student-Id,Behavior is documented; request evidence flags missing required header,AI-GENERATED-PENDING-AUDIT
+API2-035,Success response exact keys,Schema,P0,Successful checkout,valid request,JSON keys exactly message and orderId with string/integer types,AI-GENERATED-PENDING-AUDIT
+API2-036,Success response message exact value,Schema,P1,Successful checkout,valid request,message="Checkout successful",AI-GENERATED-PENDING-AUDIT
+API2-037,Error response schema and disclosure,Schema/Security,P0,Rejected request,invalid auth/body,JSON error shape; no stack/path/SQL/JWT/password leakage,AI-GENERATED-PENDING-AUDIT

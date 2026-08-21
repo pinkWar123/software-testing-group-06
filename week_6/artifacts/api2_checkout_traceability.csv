@@ -1,0 +1,11 @@
+Requirement,Test cases,Design technique,Oracle
+FR-08 checkout success,API2-001 API2-002 API2-003,Use case/state transition,200; pending order; server total; cart cleared
+FR-08 total integrity,API2-004 API2-005 API2-006 API2-007 API2-008,EP/BVA,Client total ignored; persisted total equals cart total
+FR-08 address validation,API2-015 API2-016 API2-017 API2-018 API2-019,EP/BVA,Valid address accepted; invalid input controlled 4xx
+FR-07 cart dependency,API2-020 API2-021 API2-022,State transition,Empty/malformed cart does not create order
+SEC-01/SEC-07 disclosure,API2-023 API2-024 API2-035 API2-036,Schema/security,No credentials/secrets; exact response keys
+SEC-02 authentication,API2-009 API2-010 API2-011 API2-012,EP/error guessing,Unauthorized requests rejected
+SEC-03/SEC-06 authorization/role,API2-013 API2-014 API2-025 API2-026,Decision table/IDOR,Ownership and role cannot be escalated
+SEC-04/SEC-05 injection,API2-027 API2-028 API2-029 API2-030,Error guessing,Payload treated as data; no crash/query bypass
+Robustness/protocol,API2-031 API2-032 API2-033 API2-034,EP/error guessing,Controlled 4xx and no side effects
+Response schema,API2-035 API2-036 API2-037,Schema validation,Exact JSON shape and types

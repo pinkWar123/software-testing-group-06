@@ -29,12 +29,12 @@ Use this file to track completion. Record evidence paths, links, counts, and com
 
 ## API 2 — Pool B (30 points)
 
-- [ ] Document API 2 specification, feature, endpoint, request, response, and expected behavior.
-- [ ] Use AI step-by-step with the specification to generate at least 35 test cases.
-- [ ] Cover domain partitions for every parameter.
-- [ ] Cover state transitions, especially order transitions and cancellation rules where applicable.
-- [ ] Cover security requirements SEC-01–SEC-07, including injection, IDOR, and role escalation where applicable.
-- [ ] Cover exact response-schema validation.
+- [x] Document API 2 specification, feature, endpoint, request, response, and expected behavior. (`artifacts/api2_checkout_test_strategy.md` and report §8.1)
+- [x] Use AI step-by-step with the specification to generate at least 35 test cases. (37 generated in `artifacts/api2_checkout_test_cases.csv`; human audit remains pending.)
+- [x] Cover domain partitions for every parameter. (`artifacts/api2_checkout_test_conditions.md`)
+- [x] Cover state transitions, especially order transitions and cancellation rules where applicable. (`artifacts/api2_checkout_test_conditions.md`)
+- [x] Cover security requirements SEC-01–SEC-07, including injection, IDOR, and role escalation where applicable. (`artifacts/api2_checkout_test_conditions.md`)
+- [x] Cover exact response-schema validation. (`artifacts/api2_checkout_test_conditions.md` and traceability CSV)
 - [ ] Human-review and label every AI case VALID / INVALID / INCOMPLETE with reasoning.
 - [ ] Correct every INVALID or INCOMPLETE case.
 - [ ] Add at least 5 original student test cases AI missed.

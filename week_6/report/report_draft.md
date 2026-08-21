@@ -190,9 +190,17 @@ The Newman/Postman execution confirmed the following defects. All four confirmed
 
 ### 8.1 Specification and Scope
 
+API 2 is `POST /api/checkout` for FR-08 Checkout. It requires a JWT Bearer token and the assignment Student-ID header `X-Student-Id: 22127345`. The documented request is `{ "total_amount": 200000, "shipping_address": "123 Le Loi, TP.HCM" }`; the expected implementation must recalculate the amount from the authenticated user's cart, create a `pending` order, and clear that user's cart. The success schema is `{ "message": "Checkout successful", "orderId": <positive integer> }`. Negative cases cover authentication, validation, empty/malformed carts, ownership, injection, role escalation, side effects, and exact error handling.
+
+The design artifacts are [`api2_checkout_test_strategy.md`](../artifacts/api2_checkout_test_strategy.md), [`api2_checkout_test_conditions.md`](../artifacts/api2_checkout_test_conditions.md), [`api2_checkout_test_cases.csv`](../artifacts/api2_checkout_test_cases.csv), and [`api2_checkout_traceability.csv`](../artifacts/api2_checkout_traceability.csv).
+
 ### 8.2 AI Generation Process
 
+The AI was given the local API specification and the FR-07/FR-08/FR-10 and SEC-01–SEC-07 test basis, then instructed to derive conditions before generating atomic cases. The output was constrained to cover every request parameter, authentication, cart/order state transitions, client-total tampering, injection, IDOR, role escalation, malformed protocol input, Student-ID evidence, and exact success/error schemas. **37 AI-generated cases** were produced in `artifacts/api2_checkout_test_cases.csv`. They are explicitly marked `AI-GENERATED-PENDING-AUDIT`; no human VALID/INVALID/INCOMPLETE verdict is claimed yet.
+
 ### 8.3 AI-Generated Test Cases (Target: at least 35)
+
+The initial generation target is met: **37 cases** (`API2-001`–`API2-037`). Coverage is partitioned across P0/P1/P2 functional, security, state, robustness, protocol, and schema cases. The traceability matrix maps the cases to FR-08, FR-07, and SEC-01–SEC-07. Human review, correction, and student-added cases are the next API 2 actions and remain pending.
 
 ### 8.4 Human Audit: VALID / INVALID / INCOMPLETE
 
