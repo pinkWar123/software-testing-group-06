@@ -35,19 +35,27 @@ jobs:
       - name: Seed and start the SUT
         working-directory: ${{ runner.temp }}/eshop-sut/backend
         run: |
-          node database.js
           nohup node server.js > "$RUNNER_TEMP/eshop-sut-backend.log" 2>&1 &
           echo $! > "$RUNNER_TEMP/eshop-sut.pid"
-          curl --fail --retry 20 --retry-delay 1 http://127.0.0.1:3000/api/products
+          server_pid=$!
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:3000/api/products > /dev/null; then
+              echo "SUT is ready after ${attempt} attempt(s)."
+              exit 0
+            fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              echo "SUT exited before becoming ready. Backend log:"
+              cat "$RUNNER_TEMP/eshop-sut-backend.log"
+              exit 1
+            fi
+            sleep 1
+          done
+          echo "SUT did not become ready within 60 seconds. Backend log:"
+          cat "$RUNNER_TEMP/eshop-sut-backend.log"
+          exit 1
 
       - name: Install Newman and reporters
         run: npm install --no-save newman newman-reporter-htmlextra
-
-      - name: Regenerate committed collections
-        run: |
-          node week_6/artifacts/build_api1_postman_collection.mjs
-          node week_6/artifacts/build_api2_postman_collection.mjs
-          node week_6/artifacts/build_api3_postman_collection.mjs
 
       - name: Run API suites
         env:

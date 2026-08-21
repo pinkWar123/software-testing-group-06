@@ -366,7 +366,7 @@ The submitted Postman evidence includes the pre-request script, post-response as
 
 ## 12. CI/CD Integration
 
-The CI workflow is defined in [`.github/workflows/api-tests.yml`](../../.github/workflows/api-tests.yml). On pushes and pull requests to `main`, GitHub Actions checks out this homework repository, clones the public SUT repository [`ttbhanh/eshop-sut`](https://github.com/ttbhanh/eshop-sut), installs the backend dependencies, recreates the SQLite seed database, starts the backend, regenerates the three Postman collections, and executes all suites with Newman. The workflow uploads JUnit/XML-compatible results, HTML-extra reports, and the backend log as artifacts. Newman exit codes are combined so all three suites run even when an earlier suite exposes a known defect.
+The CI workflow is defined in [`.github/workflows/api-tests.yml`](../../.github/workflows/api-tests.yml). On pushes and pull requests to `main`, GitHub Actions checks out this homework repository, clones the public SUT repository [`ttbhanh/eshop-sut`](https://github.com/ttbhanh/eshop-sut), installs the backend dependencies, initializes the SQLite database through `server.js`, starts the backend, and executes the three committed Postman collections with Newman. The workflow uploads JUnit/XML-compatible results, HTML-extra reports, and the backend log as artifacts. Newman exit codes are combined so all three suites run even when an earlier suite exposes a known defect.
 
 ### 12.1 Pipeline Configuration
 
