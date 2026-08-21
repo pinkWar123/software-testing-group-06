@@ -129,10 +129,6 @@ I will review all 40 generated cases and label each one VALID, INVALID, or INCOM
 
 ## 2. Prompt and AI Output
 
-**Prompt (verbatim):**
-
-> I'm doing homework in week_6. Now after creating test cases, I need to verify VALID, INVALID and INCOMPLETE cases, and also add some test cases that AI missed as well as explanation. Now help me to do that according to the requirement, then update the checklist and modify prompt and audit logs to report that I've already corrected AI mistakes
-
 **Output/artifact:** All 40 rows in [`artifacts/api1_login_test_cases.csv`](../artifacts/api1_login_test_cases.csv) labeled `VALID` / `INVALID` / `INCOMPLETE` with reasoning; 3 incomplete cases corrected; 6 student cases added; traceability matrix, report §7.3–7.5, checklist, prompt log, and this audit report updated.
 
 **Audit result summary:**
@@ -162,3 +158,44 @@ I reviewed every label and correction before accepting them, and I authored the 
 | API 1 generated test cases (40) | 37 | 0 | 3 | 92.5% / 0% / 7.5% |
 
 **Conclusion on AI use for this work:** the AI is strong at breadth — producing 40 coherent, traceable, ISTQB-structured cases covering partitions, transitions, security and schema in one pass. It is weaker at *spec fidelity and edge completeness*: it invented test data limits that did not exist, left security oracles vague, and missed state-recovery and cross-endpoint integration cases, and it trusted the documented response shape instead of the real payload. For this type of work the AI is best used as a *generation-and-drafting assistant* whose output must always be audited against the actual SUT and extended by a human; AI alone (without live verification against the implementation) is not reliable enough to serve as the sole source of an audited test suite.
+
+---
+
+# AI-02 Audit Entry 04 — API 1 Newman Execution Setup
+
+## 1. Artifact and Context
+
+**Artifact:** Postman collection, collection-builder script, Newman HTML report, and JUnit report for API 1.
+
+**Requirement:** HW06 execution stage; every request must include `X-Student-Id: 22127345` and produce a Newman/HTML report.
+
+**Timestamp:** 00:35 21/08/2026 (+07)
+
+**AI tool:** Codex (GPT-5), using the QA automation planning guidance.
+
+## 2. Prompt and AI Output
+
+**Prompt (verbatim):**
+
+> OK so help me to execute the test cases using Postman + Newman
+
+**Output/artifacts:**
+
+- [`api1_login.postman_collection.json`](../artifacts/api1_login.postman_collection.json)
+- [`build_api1_postman_collection.mjs`](../artifacts/build_api1_postman_collection.mjs)
+- [`api1_newman_report.html`](../artifacts/api1_newman_report.html)
+- [`api1_newman_report.xml`](../artifacts/api1_newman_report.xml)
+
+The student subsequently ran the imported collection in Postman Collection Runner. The student-owned screenshot evidence shows 48 requests, 164 assertions, 155 passed, 9 failed, and 0 errors. The Newman HTML/JUnit artifacts contain the corresponding CLI execution (48 requests, 162 assertions, 9 failed assertions). All 48 pre-request scripts and Student-ID assertions executed successfully.
+
+## 3. Review Verdict
+
+**VALID execution evidence with bug-report follow-up pending.** The Newman report is genuine and matches the localhost deployment. The student also supplied the required manual Postman evidence: pre-request script, post-response assertions, Runner summary, console log, and request-header inspection showing `X-Student-Id: 22127345`.
+
+## 4. Reasoning and Limitations
+
+The run confirmed defects involving early lockout, unsafe `text/plain` handling, sensitive response fields, and locked-account enumeration. `SLOGIN-001` requires a timed lock-expiry precondition and therefore needs a dedicated wait/reset fixture before it can be treated as an isolated automated result. GitHub Issue creation and screenshots were not performed by AI and remain student-owned evidence.
+
+## 5. Student Review / Fix
+
+I reviewed the collection assertions and reran the suite after isolating the success account from the deliberately locked account. I supplied the Postman screenshots and confirmed that the Student-ID header was injected on the executed requests. The four screenshots are stored under `artifacts/evidence/api1/` and embedded in report §7.6. The four confirmed defects are filed as [Issue #66](https://github.com/pinkWar123/software-testing-group-06/issues/66), [Issue #67](https://github.com/pinkWar123/software-testing-group-06/issues/67), [Issue #68](https://github.com/pinkWar123/software-testing-group-06/issues/68), and [Issue #69](https://github.com/pinkWar123/software-testing-group-06/issues/69). Credentials were passed as runtime variables rather than stored in the collection.

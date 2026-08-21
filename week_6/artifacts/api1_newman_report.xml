@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="HW06 API 1 - Login Execution" tests="48" time="0.063">
+  <testsuite name="SETUP - create disposable execution user" id="021aedbe-f7a1-4853-9b89-bb0c2414a718" timestamp="2026-08-20T17:32:39.427Z" tests="1" failures="0" errors="0" time="0.016">
+    <testcase name="Setup returns a controlled result" time="0.016" classname="SetupCreateDisposableExecutionUser"/>
+  </testsuite>
+  <testsuite name="SETUP - create independent success user" id="a688b03b-a8a5-4cf0-b069-db917e93f675" timestamp="2026-08-20T17:32:39.427Z" tests="1" failures="0" errors="0" time="0.003">
+    <testcase name="Independent user setup returns a controlled result" time="0.003" classname="SetupCreateIndependentSuccessUser"/>
+  </testsuite>
+  <testsuite name="LOGIN-001" id="bfa3d7ac-a896-4e7d-9204-52785a9c5383" timestamp="2026-08-20T17:32:39.427Z" tests="5" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login001"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login001"/>
+    <testcase name="Expected successful login" time="0.001" classname="Login001"/>
+    <testcase name="Success response has JWT" time="0.001" classname="Login001"/>
+    <testcase name="Success response has user object" time="0.001" classname="Login001"/>
+  </testsuite>
+  <testsuite name="LOGIN-002" id="73d71dc5-1625-4f17-b737-da71b3264d6f" timestamp="2026-08-20T17:32:39.427Z" tests="5" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login002"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login002"/>
+    <testcase name="Expected successful login" time="0.001" classname="Login002"/>
+    <testcase name="Success response has JWT" time="0.001" classname="Login002"/>
+    <testcase name="Success response has user object" time="0.001" classname="Login002"/>
+  </testsuite>
+  <testsuite name="LOGIN-003" id="2b6d8df3-636a-4bc8-9227-ad09b4f3d154" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login003"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login003"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login003"/>
+  </testsuite>
+  <testsuite name="LOGIN-004" id="469443ad-b618-4e57-b27d-4dd4f6592574" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login004"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login004"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login004"/>
+  </testsuite>
+  <testsuite name="LOGIN-005" id="6e8445ef-ad29-4d0d-8cc1-874c0faa50d6" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login005"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login005"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login005"/>
+  </testsuite>
+  <testsuite name="LOGIN-006" id="fd6a3c02-6313-463f-bf4e-4623439d0348" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login006"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login006"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login006"/>
+  </testsuite>
+  <testsuite name="LOGIN-007" id="f178b207-c101-4be8-91fb-13a0ff445635" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Login007"/>
+    <testcase name="Response is not a server crash" time="0.002" classname="Login007"/>
+    <testcase name="Negative case returns 4xx" time="0.002" classname="Login007"/>
+  </testsuite>
+  <testsuite name="LOGIN-008" id="2c564134-a48d-49a5-8560-b3721b3e8eb8" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login008"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login008"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login008"/>
+  </testsuite>
+  <testsuite name="LOGIN-009" id="111f566b-b30f-4e25-858a-85ec500805cf" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login009"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login009"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login009"/>
+  </testsuite>
+  <testsuite name="LOGIN-010" id="4b499cd6-a33d-4ee0-9b02-267d91d8608e" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login010"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login010"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login010"/>
+  </testsuite>
+  <testsuite name="LOGIN-011" id="03eeeddd-3048-4073-bcbb-f3be76957b43" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login011"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login011"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login011"/>
+  </testsuite>
+  <testsuite name="LOGIN-012" id="3bce6589-11b0-4d4e-b9f9-f1b7ea1e725a" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login012"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login012"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login012"/>
+  </testsuite>
+  <testsuite name="LOGIN-013" id="d5281a58-ec76-4328-a77f-e67b89cb9fd8" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login013"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login013"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login013"/>
+  </testsuite>
+  <testsuite name="LOGIN-014" id="82c3af30-7254-4902-a0be-745224f16da5" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login014"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login014"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login014"/>
+  </testsuite>
+  <testsuite name="LOGIN-015" id="caa62d4c-e7c9-4d09-a77e-c5ce3b35c974" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login015"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login015"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login015"/>
+  </testsuite>
+  <testsuite name="LOGIN-016" id="b9bc6107-5212-4a62-ac6e-580f7c82b472" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login016"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login016"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login016"/>
+  </testsuite>
+  <testsuite name="LOGIN-017" id="66c38f71-4e3c-4eac-b2d0-7bfc1697ba22" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login017"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login017"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login017"/>
+  </testsuite>
+  <testsuite name="LOGIN-018" id="7e52f6f0-0ad2-4391-b0d3-4c70537fea00" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login018"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login018"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login018"/>
+  </testsuite>
+  <testsuite name="LOGIN-019" id="1f0156df-51bf-4131-bb25-4910e92d78fa" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login019"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login019"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login019"/>
+  </testsuite>
+  <testsuite name="LOGIN-020" id="de9e929f-c320-49d7-a9c7-a59177d51f6d" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.000">
+    <testcase name="Student-ID header is present" time="0.000" classname="Login020"/>
+    <testcase name="Response is not a server crash" time="0.000" classname="Login020"/>
+    <testcase name="Negative case returns 4xx" time="0.000" classname="Login020"/>
+  </testsuite>
+  <testsuite name="LOGIN-021" id="e65c58d2-6550-4e96-8763-2c7950f31261" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.000">
+    <testcase name="Student-ID header is present" time="0.000" classname="Login021"/>
+    <testcase name="Response is not a server crash" time="0.000" classname="Login021"/>
+    <testcase name="Negative case returns 4xx" time="0.000" classname="Login021"/>
+  </testsuite>
+  <testsuite name="LOGIN-022" id="07450ff0-a2e9-4eb0-a55a-1bb7633c327e" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login022"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login022"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login022"/>
+  </testsuite>
+  <testsuite name="LOGIN-023" id="db0897ff-1085-491e-87c2-968c942af868" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login023"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login023"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login023"/>
+  </testsuite>
+  <testsuite name="LOGIN-024" id="49dc0fa9-000f-4e79-88ee-e8ec2fdb9dcf" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login024"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login024"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login024"/>
+  </testsuite>
+  <testsuite name="LOGIN-025" id="a93e92f1-2298-43d1-90db-b31a9099391d" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login025"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login025"/>
+    <testcase name="Failed login follows documented 401 oracle" time="0.001" classname="Login025"/>
+  </testsuite>
+  <testsuite name="LOGIN-026" id="ecf2d403-cd61-4135-8e98-ffcea58f2d16" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login026"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login026"/>
+    <testcase name="Failed login follows documented 401 oracle" time="0.001" classname="Login026"/>
+  </testsuite>
+  <testsuite name="LOGIN-027" id="3b219c85-0353-4889-be61-a08b3ad61ca0" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="1" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login027"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login027"/>
+    <testcase name="Failed login follows documented 401 oracle" time="0.001" classname="Login027">
+      <failure type="AssertionFailure" message="expected 403 to deeply equal 401">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 7a125844-be7a-48c6-9229-1c6c2cf5deaa.]]>
+        <![CDATA[Collection name: HW06 API 1 - Login Execution.]]>
+        <![CDATA[Request name: LOGIN-027.]]>
+        <![CDATA[Test description: Failed login follows documented 401 oracle.]]>
+        <![CDATA[Error message: expected 403 to deeply equal 401.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 403 to deeply equal 401
+   at Object.eval sandbox-script.js:3:29).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="LOGIN-028" id="1a1830e1-ece8-454e-b093-933a23d4786b" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login028"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login028"/>
+    <testcase name="Locked account is rejected with 403" time="0.001" classname="Login028"/>
+  </testsuite>
+  <testsuite name="LOGIN-029" id="ca1bed0e-3ea9-471a-bd9c-5d923852faad" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login029"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login029"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login029"/>
+  </testsuite>
+  <testsuite name="LOGIN-030" id="cd369d20-abc4-4a73-b842-2f80c472f424" timestamp="2026-08-20T17:32:39.427Z" tests="5" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login030"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login030"/>
+    <testcase name="Expected successful login" time="0.001" classname="Login030"/>
+    <testcase name="Success response has JWT" time="0.001" classname="Login030"/>
+    <testcase name="Success response has user object" time="0.001" classname="Login030"/>
+  </testsuite>
+  <testsuite name="LOGIN-031" id="958cd2cb-2b6f-42a2-b354-a66356038f9d" timestamp="2026-08-20T17:32:39.427Z" tests="5" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login031"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login031"/>
+    <testcase name="Expected successful login" time="0.001" classname="Login031"/>
+    <testcase name="Success response has JWT" time="0.001" classname="Login031"/>
+    <testcase name="Success response has user object" time="0.001" classname="Login031"/>
+  </testsuite>
+  <testsuite name="LOGIN-032" id="d682f81b-abff-483a-bf54-25dab834642f" timestamp="2026-08-20T17:32:39.427Z" tests="5" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login032"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login032"/>
+    <testcase name="Expected successful login" time="0.001" classname="Login032"/>
+    <testcase name="Success response has JWT" time="0.001" classname="Login032"/>
+    <testcase name="Success response has user object" time="0.001" classname="Login032"/>
+  </testsuite>
+  <testsuite name="LOGIN-033" id="566b28bb-63ee-48f5-bb66-5b19f6900903" timestamp="2026-08-20T17:32:39.427Z" tests="5" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login033"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login033"/>
+    <testcase name="Expected successful login" time="0.001" classname="Login033"/>
+    <testcase name="Success response has JWT" time="0.001" classname="Login033"/>
+    <testcase name="Success response has user object" time="0.001" classname="Login033"/>
+  </testsuite>
+  <testsuite name="LOGIN-034" id="2fa6d314-32e9-4867-9841-33ef2b019141" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="2" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login034"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login034">
+      <failure type="AssertionFailure" message="expected 500 to be below 500">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 7a125844-be7a-48c6-9229-1c6c2cf5deaa.]]>
+        <![CDATA[Collection name: HW06 API 1 - Login Execution.]]>
+        <![CDATA[Request name: LOGIN-034.]]>
+        <![CDATA[Test description: Response is not a server crash.]]>
+        <![CDATA[Error message: expected 500 to be below 500.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 500 to be below 500
+   at Object.eval sandbox-script.js:2:36).]]>
+      </failure>
+    </testcase>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login034">
+      <failure type="AssertionFailure" message="expected 500 to be within 400..499">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 7a125844-be7a-48c6-9229-1c6c2cf5deaa.]]>
+        <![CDATA[Collection name: HW06 API 1 - Login Execution.]]>
+        <![CDATA[Request name: LOGIN-034.]]>
+        <![CDATA[Test description: Negative case returns 4xx.]]>
+        <![CDATA[Error message: expected 500 to be within 400..499.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 500 to be within 400..499
+   at Object.eval sandbox-script.js:3:36).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="LOGIN-035" id="3ef61ea8-85bc-4b73-97f8-ded9f8044b36" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login035"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login035"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login035"/>
+  </testsuite>
+  <testsuite name="LOGIN-036" id="5d9d7c51-251c-42c8-83d5-238a90997049" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login036"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login036"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login036"/>
+  </testsuite>
+  <testsuite name="LOGIN-037" id="7843bdcb-09cf-4e81-9d30-4c168a0cac92" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login037"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login037"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login037"/>
+  </testsuite>
+  <testsuite name="LOGIN-038" id="0b571d61-0c08-4b83-a6a8-d59703a3d954" timestamp="2026-08-20T17:32:39.427Z" tests="5" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login038"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login038"/>
+    <testcase name="Expected successful login" time="0.001" classname="Login038"/>
+    <testcase name="Success response has JWT" time="0.001" classname="Login038"/>
+    <testcase name="Success response has user object" time="0.001" classname="Login038"/>
+  </testsuite>
+  <testsuite name="LOGIN-039" id="e6abac96-f0ff-42bd-a516-3a3bcc9f2f3a" timestamp="2026-08-20T17:32:39.427Z" tests="6" failures="1" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login039"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login039"/>
+    <testcase name="Expected successful login" time="0.001" classname="Login039"/>
+    <testcase name="Success response has JWT" time="0.001" classname="Login039"/>
+    <testcase name="Success response has user object" time="0.001" classname="Login039"/>
+    <testcase name="No sensitive user fields are disclosed" time="0.001" classname="Login039">
+      <failure type="AssertionFailure" message="password must not be disclosed: expected { id: 1, name: 'Admin User', …(8) } to not have property 'password'">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 7a125844-be7a-48c6-9229-1c6c2cf5deaa.]]>
+        <![CDATA[Collection name: HW06 API 1 - Login Execution.]]>
+        <![CDATA[Request name: LOGIN-039.]]>
+        <![CDATA[Test description: No sensitive user fields are disclosed.]]>
+        <![CDATA[Error message: password must not be disclosed: expected { id: 1, name: 'Admin User', …(8) } to not have property 'password'.]]>
+        <![CDATA[Stacktrace: AssertionError: password must not be disclosed: expected { id: 1, name: 'Admin User', …(8) } to not have property 'password'
+   at Object.eval sandbox-script.js:6:41).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="LOGIN-040" id="d0904529-0d42-4ac4-ae57-2ec747cfd504" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Login040"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Login040"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Login040"/>
+  </testsuite>
+  <testsuite name="SLOGIN-001" id="b5264430-0f25-4fc8-9774-f4a216666828" timestamp="2026-08-20T17:32:39.427Z" tests="5" failures="3" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Slogin001"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Slogin001"/>
+    <testcase name="Expected successful login" time="0.001" classname="Slogin001">
+      <failure type="AssertionFailure" message="expected 403 to deeply equal 200">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 7a125844-be7a-48c6-9229-1c6c2cf5deaa.]]>
+        <![CDATA[Collection name: HW06 API 1 - Login Execution.]]>
+        <![CDATA[Request name: SLOGIN-001.]]>
+        <![CDATA[Test description: Expected successful login.]]>
+        <![CDATA[Error message: expected 403 to deeply equal 200.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 403 to deeply equal 200
+   at Object.eval sandbox-script.js:3:43).]]>
+      </failure>
+    </testcase>
+    <testcase name="Success response has JWT" time="0.001" classname="Slogin001">
+      <failure type="AssertionFailure" message="expected undefined to be a string">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 7a125844-be7a-48c6-9229-1c6c2cf5deaa.]]>
+        <![CDATA[Collection name: HW06 API 1 - Login Execution.]]>
+        <![CDATA[Request name: SLOGIN-001.]]>
+        <![CDATA[Test description: Success response has JWT.]]>
+        <![CDATA[Error message: expected undefined to be a string.]]>
+        <![CDATA[Stacktrace: AssertionError: expected undefined to be a string
+   at Object.eval sandbox-script.js:4:43).]]>
+      </failure>
+    </testcase>
+    <testcase name="Success response has user object" time="0.001" classname="Slogin001">
+      <failure type="AssertionFailure" message="expected { Object (error) } to have property 'user'">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 7a125844-be7a-48c6-9229-1c6c2cf5deaa.]]>
+        <![CDATA[Collection name: HW06 API 1 - Login Execution.]]>
+        <![CDATA[Request name: SLOGIN-001.]]>
+        <![CDATA[Test description: Success response has user object.]]>
+        <![CDATA[Error message: expected { Object (error) } to have property 'user'.]]>
+        <![CDATA[Stacktrace: AssertionError: expected { Object (error) } to have property 'user'
+   at Object.eval sandbox-script.js:5:43).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="SLOGIN-002" id="aad7f509-2404-485d-b8b0-3e034ab4a665" timestamp="2026-08-20T17:32:39.427Z" tests="5" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Slogin002"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Slogin002"/>
+    <testcase name="Expected successful login" time="0.001" classname="Slogin002"/>
+    <testcase name="Success response has JWT" time="0.001" classname="Slogin002"/>
+    <testcase name="Success response has user object" time="0.001" classname="Slogin002"/>
+  </testsuite>
+  <testsuite name="SLOGIN-003" id="954de81b-12a1-4668-a8c3-453f83d01281" timestamp="2026-08-20T17:32:39.427Z" tests="6" failures="1" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Slogin003"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Slogin003"/>
+    <testcase name="Expected successful login" time="0.001" classname="Slogin003"/>
+    <testcase name="Success response has JWT" time="0.001" classname="Slogin003"/>
+    <testcase name="Success response has user object" time="0.001" classname="Slogin003"/>
+    <testcase name="No sensitive user fields are disclosed" time="0.001" classname="Slogin003">
+      <failure type="AssertionFailure" message="password must not be disclosed: expected { id: 1, name: 'Admin User', …(8) } to not have property 'password'">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 7a125844-be7a-48c6-9229-1c6c2cf5deaa.]]>
+        <![CDATA[Collection name: HW06 API 1 - Login Execution.]]>
+        <![CDATA[Request name: SLOGIN-003.]]>
+        <![CDATA[Test description: No sensitive user fields are disclosed.]]>
+        <![CDATA[Error message: password must not be disclosed: expected { id: 1, name: 'Admin User', …(8) } to not have property 'password'.]]>
+        <![CDATA[Stacktrace: AssertionError: password must not be disclosed: expected { id: 1, name: 'Admin User', …(8) } to not have property 'password'
+   at Object.eval sandbox-script.js:6:45).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="SLOGIN-004" id="37df2611-67f0-462b-ba6d-fef539563d56" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="1" errors="0" time="0.000">
+    <testcase name="Student-ID header is present" time="0.000" classname="Slogin004"/>
+    <testcase name="Response is not a server crash" time="0.000" classname="Slogin004"/>
+    <testcase name="Locked account is indistinguishable from unknown account" time="0.000" classname="Slogin004">
+      <failure type="AssertionFailure" message="expected 403 to deeply equal 401">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 7a125844-be7a-48c6-9229-1c6c2cf5deaa.]]>
+        <![CDATA[Collection name: HW06 API 1 - Login Execution.]]>
+        <![CDATA[Request name: SLOGIN-004.]]>
+        <![CDATA[Test description: Locked account is indistinguishable from unknown account.]]>
+        <![CDATA[Error message: expected 403 to deeply equal 401.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 403 to deeply equal 401
+   at Object.eval sandbox-script.js:3:46).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="SLOGIN-005" id="9d2d54f0-7de0-476b-8413-506a11448dbb" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Slogin005"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Slogin005"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Slogin005"/>
+  </testsuite>
+  <testsuite name="SLOGIN-006" id="47134ef8-dabc-45fe-8254-bfde20bbee0c" timestamp="2026-08-20T17:32:39.427Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Slogin006"/>
+    <testcase name="Response is not a server crash" time="0.001" classname="Slogin006"/>
+    <testcase name="Negative case returns 4xx" time="0.001" classname="Slogin006"/>
+  </testsuite>
+</testsuites>

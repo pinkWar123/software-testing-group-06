@@ -22,10 +22,10 @@ Use this file to track completion. Record evidence paths, links, counts, and com
 - [x] Correct every INVALID or INCOMPLETE case. (LOGIN-015, LOGIN-029, LOGIN-034 corrected in `artifacts/api1_login_test_cases.csv`)
 - [x] Add at least 5 original student test cases AI missed. (6 added: SLOGIN-001–006)
 - [x] Explain why each missed case was not generated (prompt quality, model limitation, or API characteristic). (reason captured per case in `HumanReview` and report §7.5)
-- [ ] Execute the complete API 1 suite with Postman + Newman, Karate, or RestAssured.
-- [ ] Ensure every request carries `X-Student-Id: {StudentID}`; capture the required console evidence manually.
-- [ ] Produce and attach the Newman/HTML report or equivalent execution report.
-- [ ] Report genuine API 1 bugs in the Markdown report and on GitHub Issues, with a screenshot attached to each issue.
+- [x] Execute the complete API 1 suite with Postman + Newman, Karate, or RestAssured. (Postman Runner: 48 requests, 164 assertions, 155 passed, 9 failed, 0 errors; Newman HTML/JUnit artifacts also produced.)
+- [x] Ensure every request carries `X-Student-Id: {StudentID}`; capture the required console evidence manually. (Evidence saved under `artifacts/evidence/api1/`: pre-request script, post-response assertions, Runner summary, console log, and request-header view.)
+- [x] Produce and attach the Newman/HTML report or equivalent execution report. (`artifacts/api1_newman_report.html` and `.xml`)
+- [x] Report genuine API 1 bugs in the Markdown report and on GitHub Issues, with a screenshot attached to each issue. (Issues #66, #67, #68, and #69 linked in report §7.7.)
 
 ## API 2 — Pool B (30 points)
 

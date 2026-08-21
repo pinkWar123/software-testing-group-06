@@ -7,11 +7,11 @@
 - **SUT:** EShop
 - **Selected test tool:** Postman + Newman (provisional; default assignment tool)
 - **Backend base URL:** `http://localhost:3000`
-- **Backend status:** Started from `../eshop-SUT/backend/server.js`; verified on 20/08/2026.
+- **Backend status:** Started from `../eshop-SUT/backend/server.js`; verified during Newman execution on 21/08/2026.
 
 ## 2. Executive Summary
 
-API 1 (`POST /api/login`) is complete through the **audit and extend** stages. The 40 AI-generated cases were human-reviewed and labeled (**37 VALID / 0 INVALID / 3 INCOMPLETE**); the three incomplete cases were corrected, and **6 student-authored cases (SLOGIN-001–006)** were added with an explanation of why the AI missed each. The audit (grounded by live requests against the running backend) also surfaced 7 candidate implementation bugs (lockout counting/timing, plaintext-password disclosure, account enumeration via lockout, and error-handling crashes), which will be confirmed and filed during the execution phase.
+API 1 (`POST /api/login`) was executed with the Postman Collection Runner and Newman. The Postman Runner evidence shows **48 requests**, **164 assertions**, **155 passed**, **9 failed**, and **0 errors** in one iteration. The failures confirm implementation defects in lockout behavior, sensitive-field disclosure, account enumeration, and unsafe content-type handling. The required Student-ID screenshots were captured; GitHub Issue evidence remains pending.
 
 ## 3. System Under Test and API Specification
 
@@ -136,7 +136,55 @@ These will be confirmed and filed as GitHub Issues during the execution phase.
 
 ### 7.6 Execution Results
 
+The Postman collection [`artifacts/api1_login.postman_collection.json`](../artifacts/api1_login.postman_collection.json) was executed in Postman Collection Runner and with Newman against `http://localhost:3000` on 21/08/2026. The Postman run used the `HW06-local` environment. The collection used environment variables for the base URL, Student ID, credentials, and disposable accounts; credentials were passed at runtime and are not stored in the collection.
+
+| Tool/run | Requests | Assertions | Passed | Failed | Errors |
+|---|---:|---:|---:|---:|---:|
+| Postman Collection Runner | 48 | 164 | 155 | 9 | 0 |
+| Newman CLI artifact | 48 | 162 | 153 | 9 | 0 |
+
+Every request included the `X-Student-Id: 22127345` header through the collection pre-request script, and the automated header assertion passed for all requests. The supplied evidence consists of: (A) the pre-request script that injects and logs the header, (B) the post-response assertions, (C) the Collection Runner summary showing 155 passed and 9 failed, and (D) the failed-case view showing `X-Student-Id: 22127345` in the request headers.
+
+#### API 1 Postman Evidence
+
+The following screenshots are included in [`artifacts/evidence/api1/`](../artifacts/evidence/api1/):
+
+1. **Pre-request script and Student-ID injection**
+
+   ![Postman pre-request script injecting X-Student-Id](../artifacts/evidence/api1/01_pre_request_script.png)
+
+2. **Post-response assertions**
+
+   ![Postman post-response assertions](../artifacts/evidence/api1/02_post_response_assertions.png)
+
+3. **Collection Runner execution summary**
+
+   ![Postman Collection Runner summary showing 155 passed and 9 failed](../artifacts/evidence/api1/03_collection_runner_summary.png)
+
+4. **Failed cases and injected Student-ID header**
+
+   ![Failed cases and X-Student-Id request header](../artifacts/evidence/api1/04_failures_and_student_id_header.png)
+
+Execution failures were:
+
+- `LOGIN-027`: the third failed login returned 403 because the implementation locked the account early; the specification requires the third triggering attempt to return 401 and lock for 30 seconds.
+- `LOGIN-034`: `text/plain` input caused HTTP 500 instead of a controlled 4xx response.
+- `LOGIN-039` and `SLOGIN-003`: the login response exposed plaintext `password` and other sensitive account fields.
+- `SLOGIN-001`: the case requires waiting until lock expiry; the immediate execution correctly observed that the account was still locked. This needs a timed/manual or dedicated reset fixture before treating it as a standalone defect.
+- `SLOGIN-004`: the locked account returned 403 rather than the same generic 401 response as an unknown account, confirming account enumeration through lockout.
+
+The complete HTML and JUnit outputs are [`artifacts/api1_newman_report.html`](../artifacts/api1_newman_report.html) and [`artifacts/api1_newman_report.xml`](../artifacts/api1_newman_report.xml).
+
 ### 7.7 Bugs Found and Links
+
+The Newman/Postman execution confirmed the following defects. All four confirmed API 1 defects listed below have been filed on the group's GitHub Issues page.
+
+| Bug | Evidence | Status |
+|---|---|---|
+| Lockout triggers before the required third failure / wrong lockout behavior | `LOGIN-027` in Newman HTML report | [GitHub Issue #66](https://github.com/pinkWar123/software-testing-group-06/issues/66) |
+| `text/plain` / malformed input produces HTTP 500 | `LOGIN-034` in Newman HTML report | [GitHub Issue #67](https://github.com/pinkWar123/software-testing-group-06/issues/67) |
+| Login response discloses plaintext password and account metadata | `LOGIN-039`, `SLOGIN-003` | [GitHub Issue #68](https://github.com/pinkWar123/software-testing-group-06/issues/68) |
+| Locked and unknown accounts are distinguishable | `SLOGIN-004` | [GitHub Issue #69](https://github.com/pinkWar123/software-testing-group-06/issues/69) |
 
 ## 8. API 2 Full Pipeline
 
@@ -171,6 +219,15 @@ These will be confirmed and filed as GitHub Issues during the execution phase.
 ### 9.7 Bugs Found and Links
 
 ## 10. Postman / Karate / RestAssured Features Used
+
+- Postman collection with one traceable request per test case.
+- Collection pre-request script for automatic `X-Student-Id` injection and console logging.
+- Environment variables for base URL, Student ID, credentials, and disposable test accounts.
+- Newman CLI execution with CLI, HTML, and JUnit reporters.
+- Assertions for status, crash resistance, JWT presence, response shape, and forbidden sensitive fields.
+- Two setup requests for isolated disposable accounts.
+
+The submitted Postman evidence includes the pre-request script, post-response assertions, Collection Runner summary, console logs, and request-header inspection. Additional workspace/monitor/mock-server features were not used because they were not required for this local API execution.
 
 ## 11. Bug Summary
 

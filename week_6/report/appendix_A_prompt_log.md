@@ -49,3 +49,25 @@ For each interaction, record:
 **Human review / changes**: I verified each AI case against the SUT spec (`api_specification.md` + `README.md`, which defines the lockout rule and SEC-01–SEC-07) and the running backend via live requests. I corrected LOGIN-015 (undefined email-length test data), LOGIN-029 (vague no-enumeration oracle), and LOGIN-034 (weak no-500 oracle). I designed and added 6 cases (SLOGIN-001–006) the AI missed and documented why. The audit surfaced 7 candidate bugs (B1–B7: lockout counter +2, lock after 2 failures, 180s lock, plaintext-password disclosure, account enumeration via lockout, 500 crash on text/plain, HTML error-page file-path leak) to be confirmed and filed during the execution phase. I did not generate the execution evidence (Newman report / console screenshots), which remains manual.
 
 ---
+
+## [00:35 21/08/2026] — Codex (GPT-5)
+**Purpose**: Execute API 1 with Postman + Newman and produce the required execution evidence.
+**Prompt**:
+> OK so help me to execute the test cases using Postman + Newman
+
+**Artifacts produced**: `artifacts/build_api1_postman_collection.mjs`, `artifacts/api1_login.postman_collection.json`, `artifacts/api1_newman_report.html`, and `artifacts/api1_newman_report.xml`.
+
+**Execution result**: 48 requests, 162 assertions, 9 failed assertions across 6 requests. The collection pre-request script and Student-ID assertion ran on all 48 requests. Failures confirmed lockout behavior, unsafe `text/plain` handling, sensitive response disclosure, and lockout account enumeration. A manual Postman console screenshot and GitHub Issue screenshots remain outstanding.
+
+---
+
+## [05:40 21/08/2026] — Codex (GPT-5)
+**Purpose**: Incorporate the student's Postman Runner screenshots and console/header evidence into the API 1 report and checklist.
+**Prompt**:
+> Chúng ta đã sử dụng test runner của postman để chạy nguyên collection. Minh chứng của việc chạy hết lên thì có 155 passed và 9 failed: [screenshots]. Giúp tôi fill vào report
+
+**Artifact updated**: `report/report_draft.md`, `hw_requirements.md`, and `ai_compliance/audit_report.md`.
+
+**Human evidence incorporated**: Postman Runner summary — 48 requests, 164 assertions, 155 passed, 9 failed, 0 errors; pre-request script, post-response assertions, console log, and request-header evidence showing `X-Student-Id: 22127345`. GitHub Issue screenshots remain pending.
+
+---
