@@ -64,7 +64,7 @@ Use this file to track completion. Record evidence paths, links, counts, and com
 ## Cross-suite technical requirements
 
 - [ ] Use and document as many available Postman features as reasonably applicable: workspace, collection, variables, environment, data-driven runner, monitors, mock server, or equivalent Karate/RestAssured features.
-- [ ] Add the API tests to a CI/CD pipeline for the SUT.
+- [ ] Add the API tests to a CI/CD pipeline for the SUT. (Workflow prepared at `.github/workflows/api-tests.yml`; pending first GitHub Actions run.)
 - [ ] Write the CI/CD report describing the configuration and both required runs.
 - [ ] Provide one sample commit whose pipeline run has all API tests passing.
 - [ ] Provide one sample commit whose pipeline run has one test case failing.
