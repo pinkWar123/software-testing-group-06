@@ -1,0 +1,115 @@
+name: HW06 API tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  api-tests:
+    name: Newman API suites
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out homework repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Clone the System Under Test
+        run: git clone --depth 1 https://github.com/ttbhanh/eshop-sut.git "$RUNNER_TEMP/eshop-sut"
+
+      - name: Install SUT dependencies
+        working-directory: ${{ runner.temp }}/eshop-sut/backend
+        run: npm ci
+
+      - name: Seed and start the SUT
+        working-directory: ${{ runner.temp }}/eshop-sut/backend
+        run: |
+          node database.js
+          nohup node server.js > "$RUNNER_TEMP/eshop-sut-backend.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/eshop-sut.pid"
+          curl --fail --retry 20 --retry-delay 1 http://127.0.0.1:3000/api/products
+
+      - name: Install Newman and reporters
+        run: npm install --no-save newman newman-reporter-htmlextra
+
+      - name: Regenerate committed collections
+        run: |
+          node week_6/artifacts/build_api1_postman_collection.mjs
+          node week_6/artifacts/build_api2_postman_collection.mjs
+          node week_6/artifacts/build_api3_postman_collection.mjs
+
+      - name: Run API suites
+        env:
+          CI_RUN_ID: ${{ github.run_id }}
+        run: |
+          mkdir -p ci-results
+          set +e
+
+          npx newman run week_6/artifacts/api1_login.postman_collection.json \
+            --environment week_6/artifacts/api3_local.postman_environment.json \
+            --env-var baseUrl=http://127.0.0.1:3000 \
+            --env-var studentId=22127345 \
+            --env-var adminEmail=admin@eshop.com \
+            --env-var adminPassword='Admin123!' \
+            --env-var caseUnknownEmail="api1-unknown-${CI_RUN_ID}@example.invalid" \
+            --env-var disposableEmail="api1-disposable-${CI_RUN_ID}@example.com" \
+            --env-var disposablePassword='Api1Disposable123!' \
+            --env-var successEmail="api1-success-${CI_RUN_ID}@example.com" \
+            --env-var successPassword='Api1Success123!' \
+            --env-var wrongPassword='Wrong123!' \
+            --reporters cli,junit,htmlextra \
+            --reporter-junit-export ci-results/api1.junit.xml \
+            --reporter-htmlextra-export ci-results/api1.html
+          api1_status=$?
+
+          npx newman run week_6/artifacts/api2_checkout.postman_collection.json \
+            --environment week_6/artifacts/api3_local.postman_environment.json \
+            --env-var baseUrl=http://127.0.0.1:3000 \
+            --env-var studentId=22127345 \
+            --env-var email="api2-${CI_RUN_ID}@example.com" \
+            --env-var password='Api2Test123!' \
+            --env-var emptyEmail="api2-empty-${CI_RUN_ID}@example.com" \
+            --reporters cli,junit,htmlextra \
+            --reporter-junit-export ci-results/api2.junit.xml \
+            --reporter-htmlextra-export ci-results/api2.html
+          api2_status=$?
+
+          npx newman run week_6/artifacts/api3_admin_order_status.postman_collection.json \
+            --environment week_6/artifacts/api3_local.postman_environment.json \
+            --env-var baseUrl=http://127.0.0.1:3000 \
+            --env-var studentId=22127345 \
+            --reporters cli,junit,htmlextra \
+            --reporter-junit-export ci-results/api3.junit.xml \
+            --reporter-htmlextra-export ci-results/api3.html
+          api3_status=$?
+
+          printf 'API status codes: API1=%s API2=%s API3=%s\n' "$api1_status" "$api2_status" "$api3_status"
+          test "$api1_status" -eq 0 && test "$api2_status" -eq 0 && test "$api3_status" -eq 0
+
+      - name: Upload Newman reports and SUT log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hw06-api-test-results-${{ github.run_id }}
+          path: |
+            ci-results/
+            ${{ runner.temp }}/eshop-sut-backend.log
+          if-no-files-found: warn
+
+      - name: Stop the SUT
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/eshop-sut.pid" ]; then
+            kill "$(cat "$RUNNER_TEMP/eshop-sut.pid")" || true
+          fi
