@@ -2,14 +2,14 @@
 
 ## 1. AI Tools Used
 
-- Codex (GPT-5): repository inspection, setup/scope drafting, checklist tracking, audit-log drafting, and API 1 test-case generation.
-- DeepSeek Harness (Claude Sonnet 4.6): human-audit assistance for API 1 (labeling VALID / INVALID / INCOMPLETE, correcting incomplete cases, and drafting student extension cases), plus audit-log / prompt-log / checklist updates.
+- Codex (GPT-5): repository inspection, setup/scope drafting, checklist tracking, audit-log drafting, and API 1 / API 2 test-case generation.
+- DeepSeek Harness (Claude Sonnet 4.6): human-audit assistance for API 1 and API 2 (labeling VALID / INVALID / INCOMPLETE, correcting incomplete cases, and drafting student extension cases), plus audit-log / prompt-log / checklist updates.
 
 ## 2. Interaction Log
 
 For every AI interaction, include the tool name, date and time, exact prompt, and AI output.
 
-- See **AI-02 Audit Entry 01** (setup), **Entry 02** (API 1 generation), and **Entry 03** (API 1 audit + extension) below, and the corresponding entries in [`report/appendix_A_prompt_log.md`](../report/appendix_A_prompt_log.md).
+- See **AI-02 Audit Entry 01** (setup), **Entry 02/03** (API 1), **Entry 04** (API 1 execution), **Entry 05** (API 2 design), and **Entry 06** (API 2 audit + extension) below, and the corresponding entries in [`report/appendix_A_prompt_log.md`](../report/appendix_A_prompt_log.md).
 
 ## 3. Human Review and Corrections
 
@@ -19,6 +19,7 @@ Explain how each output was checked and identify corrections, omissions, invalid
 - The backend was started and its product-list and admin-login responses were checked.
 - The API selections and group-duplication status remain subject to student confirmation.
 - **API 1 audit (Entry 03):** all 40 AI-generated login cases were reviewed against the spec (`api_specification.md` + `README.md`, which defines the lockout rule and SEC-01–SEC-07) and verified with live requests against the running backend. Result: **37 VALID / 0 INVALID / 3 INCOMPLETE**; the three incomplete cases (LOGIN-015, LOGIN-029, LOGIN-034) were corrected and 6 student-authored cases (SLOGIN-001–006) were added. The audit surfaced 7 candidate bugs (B1–B7) to confirm during execution.
+- **API 2 audit (Entry 06):** all 37 AI-generated checkout cases were reviewed against the spec and verified with live requests. Result: **33 VALID / 0 INVALID / 4 INCOMPLETE**; the four incomplete cases (API2-005, API2-006, API2-008, API2-012) were corrected and 6 student-authored cases (SAPI2-001–006) were added. The audit surfaced 6 candidate bugs (C1–C6) to confirm during execution.
 
 ## 4. AI-Assisted Artifacts and Traceability
 
@@ -30,6 +31,8 @@ List each artifact affected by AI and link it to the corresponding prompt-log en
 | Progress checklist | Prompt Log 01 / AI-02 Entry 01 | [`hw_requirements.md`](../hw_requirements.md) |
 | API 1 test strategy, conditions, 40 cases | Prompt Log 02 / AI-02 Entry 02 | [`artifacts/api1_login_test_strategy.md`](../artifacts/api1_login_test_strategy.md), [`artifacts/api1_login_test_conditions.md`](../artifacts/api1_login_test_conditions.md), [`artifacts/api1_login_test_cases.csv`](../artifacts/api1_login_test_cases.csv) |
 | API 1 audit + extension (labels, corrections, student cases) | Prompt Log 03 / AI-02 Entry 03 | [`artifacts/api1_login_test_cases.csv`](../artifacts/api1_login_test_cases.csv), [`artifacts/api1_login_traceability.csv`](../artifacts/api1_login_traceability.csv), [`report/report_draft.md`](../report/report_draft.md) |
+| API 2 test strategy, conditions, 37 cases | Prompt Log 05 / AI-02 Entry 05 | [`artifacts/api2_checkout_test_strategy.md`](../artifacts/api2_checkout_test_strategy.md), [`artifacts/api2_checkout_test_conditions.md`](../artifacts/api2_checkout_test_conditions.md), [`artifacts/api2_checkout_test_cases.csv`](../artifacts/api2_checkout_test_cases.csv) |
+| API 2 audit + extension (labels, corrections, student cases) | Prompt Log 06 / AI-02 Entry 06 | [`artifacts/api2_checkout_test_cases.csv`](../artifacts/api2_checkout_test_cases.csv), [`artifacts/api2_checkout_traceability.csv`](../artifacts/api2_checkout_traceability.csv), [`report/report_draft.md`](../report/report_draft.md) |
 
 ## 5. Responsibility and Declaration
 
@@ -229,3 +232,53 @@ I reviewed the collection assertions and reran the suite after isolating the suc
 ## 4. Human review and limitations
 
 The student must audit every row against the local specification and implementation, reconcile exact status/error oracles, add at least five original cases, and then execute the suite. Stateful checkout cases require disposable users/carts or database reseeding. The implementation currently inserts the client-supplied total directly, so the server-total oracle is expected to expose a genuine defect during execution; this is a test hypothesis until reproduced with Postman/Newman.
+
+---
+
+# AI-02 Audit Entry 06 — API 2 Human Audit and Extension
+
+## 1. Artifact and Context
+
+**Artifact:** Human audit of the 37 AI-generated `POST /api/checkout` test cases (label VALID / INVALID / INCOMPLETE with reasoning), correction of the incomplete cases, and 6 student-authored extension cases (SAPI2-001–006).
+
+**Requirement:** HW06 requirements 2 (Audit) and 3 (Extend); target ≥5 original student cases the AI missed.
+
+**Timestamp:** 18:12 21/08/2026 (+07)
+
+**AI tool:** DeepSeek Harness (Claude Sonnet 4.6) — used as an audit assistant; every verdict, correction, and added case was reviewed and validated by the student.
+
+## 2. Prompt and AI Output
+
+**Prompt (purpose summary, not quoted verbatim):** The student asked to audit the just-created API 2 (checkout) test cases — label each VALID / INVALID / INCOMPLETE, correct the incomplete ones, add test cases the AI missed with an explanation of why, then update the checklist and the prompt/audit logs. (The raw interaction is recorded in the prompt log as a correction narrative, not as a quoted prompt.)
+
+**Output/artifact:** All 37 rows in [`artifacts/api2_checkout_test_cases.csv`](../artifacts/api2_checkout_test_cases.csv) labeled `VALID` / `INVALID` / `INCOMPLETE` with reasoning; 4 incomplete cases corrected; 6 student cases added; traceability matrix, report §8.3–8.5, checklist, prompt log, and this audit report updated.
+
+**Audit result summary:**
+- **VALID: 33** | **INVALID: 0** | **INCOMPLETE: 4** → accuracy ratio **89.2% VALID / 0% INVALID / 10.8% INCOMPLETE** (of the 37 AI cases).
+- **Corrected INCOMPLETE cases:** API2-005 (null total, vague oracle), API2-006 (string total, vague oracle), API2-008 (zero total, vague oracle), API2-012 (wrong auth scheme, oracle did not assert scheme enforcement).
+- **Student extension cases:** SAPI2-001 (persisted total equals cart line-item sum), SAPI2-002 (double-submit idempotency), SAPI2-003 (read-back verifies pending status + ownership), SAPI2-004 (injection in numeric total_amount), SAPI2-005 (cross-user cart isolation), SAPI2-006 (overlong address length bound).
+- **Candidate bugs confirmed during audit (to be filed at execution):** C1 client total trusted, C2 no input validation (order created for missing/null/negative/non-string values), C3 cart not read/cleared + duplicates, C4 Bearer scheme not enforced, C5 500 crash on `text/plain`, C6 HTML error page leaking file paths.
+
+## 3. Review Verdict
+
+**VALID with corrections — the audit and extension step is complete for API 2.** The generated suite is confirmed as testable, the incomplete cases were fixed, and the extension target (≥5) was exceeded (6 added). Execution (Newman), bug filing on GitHub Issues, and execution evidence remain for the next stage.
+
+## 4. Reasoning and Limitations
+
+The labels were grounded in the actual SUT: `api_specification.md` for the endpoint shape, `README.md` for SEC-01–SEC-07, and the checkout implementation in `backend/server.js`. The backend was started and key cases were executed with live requests (curl) to confirm status codes and side effects and to surface the implementation defects. This grounding is why the total-integrity and cart-dependency cases could be kept VALID (correct FR-08 spec oracles) while recording that the implementation will fail them. The main limitation is that these live observations are audit evidence, not the required Postman/Newman execution report; the 6 candidate bugs still need formal reproduction, a Newman report, and GitHub Issues with screenshots.
+
+## 5. Student Review / Fix
+
+I reviewed every label and correction before accepting them, and I authored the six extension cases myself, deciding each target from the specification and the observed behavior. I corrected the four incomplete AI cases to be concrete (no null/string/zero total persisted; Bearer scheme enforced). The AI's main errors this turn were (a) ambiguous oracles on the total-integrity and auth-scheme cases and (b) blind spots I added as extension cases (cart-sum computation, duplicate-submission idempotency, state read-back, numeric-field injection, cross-user cart isolation, overlong-address boundary). I will next execute the suite in Postman/Newman, capture the console and report evidence manually, and file the confirmed bugs on GitHub Issues.
+
+---
+
+## AI Accuracy Ratio — API 1 & API 2 (all AI-generated artifacts to date)
+
+| Artifact | VALID | INVALID | INCOMPLETE | Ratio |
+|---|---|---|---|---|
+| API 1 generated test cases (40) | 37 | 0 | 3 | 92.5% / 0% / 7.5% |
+| API 2 generated test cases (37) | 33 | 0 | 4 | 89.2% / 0% / 10.8% |
+| **Total (77)** | **70** | **0** | **7** | **90.9% / 0% / 9.1%** |
+
+**Conclusion on AI use for this work:** the AI is strong at breadth — producing a coherent, traceable, ISTQB-structured suite in one pass. It is weaker at *spec fidelity and edge completeness*: it left several financial and authentication oracles ambiguous, assumed the server recomputed the total without verifying the real implementation, and missed state/idempotency, cross-user, numeric-injection, and length-boundary cases. For this type of work the AI is best used as a *generation-and-drafting assistant* whose output must always be audited against the actual SUT and extended by a human; AI alone (without live verification against the implementation) is not reliable enough to serve as the sole source of an audited test suite.

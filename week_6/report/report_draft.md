@@ -200,11 +200,47 @@ The AI was given the local API specification and the FR-07/FR-08/FR-10 and SEC-0
 
 ### 8.3 AI-Generated Test Cases (Target: at least 35)
 
-The initial generation target is met: **37 cases** (`API2-001`–`API2-037`). Coverage is partitioned across P0/P1/P2 functional, security, state, robustness, protocol, and schema cases. The traceability matrix maps the cases to FR-08, FR-07, and SEC-01–SEC-07. Human review, correction, and student-added cases are the next API 2 actions and remain pending.
+The initial generation target is met: **37 cases** (`API2-001`–`API2-037`). Coverage is partitioned across P0/P1/P2 functional, security, state, robustness, protocol, and schema cases. The traceability matrix maps the cases to FR-08, FR-07, and SEC-01–SEC-07. The human audit (§8.4) and student-added cases (§8.5) are complete; execution is the next API 2 action.
 
 ### 8.4 Human Audit: VALID / INVALID / INCOMPLETE
 
+Every AI-generated API 2 case was reviewed against the spec (`api_specification.md` + `README.md`, which defines FR-08 checkout and SEC-01–SEC-07) and verified with live requests against the running backend. **Result: 33 VALID / 0 INVALID / 4 INCOMPLETE.**
+
+- **VALID (33).** Oracles correctly encode the FR-08 contract (server-calculated total, cart cleared, order owned by the JWT user) and the SEC requirements. This includes the total-integrity and cart-dependency cases, which the implementation does not satisfy (see bugs).
+- **INVALID (0).** No AI case contradicted the specification outright.
+- **INCOMPLETE (4) — corrected:**
+  - **API2-005** — null `total_amount`: vague “4xx or ignore” → corrected to forbid persisting a null total.
+  - **API2-006** — string `total_amount`: vague → corrected to forbid persisting a non-numeric total.
+  - **API2-008** — zero `total_amount`: vague → corrected to forbid a zero-priced persisted order.
+  - **API2-012** — wrong auth scheme: oracle didn't pin scheme enforcement → corrected to require that only `Bearer` is accepted.
+
+The audit confirmed genuine implementation defects (verified via live requests) that the correct spec-based cases will catch at execution:
+
+| # | Bug (verified) | Detected by |
+|---|---|---|
+| C1 | Client-supplied `total_amount` is **trusted** and persisted instead of the server-calculated cart total (order created with 999999 / −100 / 0 / string) | API2-002/003/007/008/006, SAPI2-001 |
+| C2 | **No validation**: missing/null/empty/whitespace/non-string/overlong `shipping_address` and missing/null/negative `total_amount` all still create an order | API2-004/005/016/017/018/019, SAPI2-006 |
+| C3 | **Cart is not read and not cleared** on checkout: empty-cart checkout creates an order; duplicate requests create duplicate orders | API2-020/021/022, SAPI2-002 |
+| C4 | **Bearer scheme not enforced**: a valid JWT sent as `Basic <jwt>` is accepted (200) | API2-012 |
+| C5 | `text/plain` body causes a **500 crash** with a full stack trace | API2-032 |
+| C6 | Malformed JSON returns an **HTML error page leaking absolute file paths** / error paths leak stack+paths | API2-031/037 |
+
+These will be confirmed and filed as GitHub Issues during the execution phase.
+
 ### 8.5 Student-Added Test Cases (At least 5)
+
+6 original student-authored cases (SAPI2-001–006) were added — see [`artifacts/api2_checkout_test_cases.csv`](../artifacts/api2_checkout_test_cases.csv). Each targets a gap the AI missed, with the reason it was missed:
+
+| ID | Focus | Why the AI missed it |
+|---|---|---|
+| SAPI2-001 | Persisted order total equals the **sum of the user's cart line items** (server recompute) | AI stated “server cart total” abstractly but never pinned the computation or a read-back assertion. |
+| SAPI2-002 | **Double-submit idempotency** — two identical requests create exactly one order | AI modelled “repeat after cleared cart” (API2-021) but not true duplicate-submission idempotency. |
+| SAPI2-003 | **Read-back via GET /api/orders/my-orders** to verify `status=pending` and ownership | AI asserted `pending` only in text; it never added the verification action to confirm the created state. |
+| SAPI2-004 | **SQL/string injection in the numeric `total_amount` field** | AI tested injection only on the address field, overlooking the numeric field as a surface. |
+| SAPI2-005 | **Cross-user cart isolation** (A's checkout must not read/consume B's cart) | AI tested ownership via body fields but not actual cart-content isolation between real users. |
+| SAPI2-006 | **Overlong `shipping_address`** length boundary (BVA upper bound) | AI covered empty/whitespace/non-string addresses but no maximum-length case. |
+
+**Why each was missed (categories):** SAPI2-001, SAPI2-003, SAPI2-005 are **model limitations** (abstract oracles, incomplete state/ownership modelling); SAPI2-002 is a **model limitation** (no duplicate-submission reasoning); SAPI2-004 is an **API characteristic** (numeric field overlooked as an injection surface); SAPI2-006 is a **prompt quality** issue (incomplete boundary-value set).
 
 ### 8.6 Execution Results
 

@@ -35,10 +35,10 @@ Use this file to track completion. Record evidence paths, links, counts, and com
 - [x] Cover state transitions, especially order transitions and cancellation rules where applicable. (`artifacts/api2_checkout_test_conditions.md`)
 - [x] Cover security requirements SEC-01–SEC-07, including injection, IDOR, and role escalation where applicable. (`artifacts/api2_checkout_test_conditions.md`)
 - [x] Cover exact response-schema validation. (`artifacts/api2_checkout_test_conditions.md` and traceability CSV)
-- [ ] Human-review and label every AI case VALID / INVALID / INCOMPLETE with reasoning.
-- [ ] Correct every INVALID or INCOMPLETE case.
-- [ ] Add at least 5 original student test cases AI missed.
-- [ ] Explain why each missed case was not generated.
+- [x] Human-review and label every AI case VALID / INVALID / INCOMPLETE with reasoning. (33 VALID / 0 INVALID / 4 INCOMPLETE)
+- [x] Correct every INVALID or INCOMPLETE case. (API2-005, API2-006, API2-008, API2-012 corrected in `artifacts/api2_checkout_test_cases.csv`)
+- [x] Add at least 5 original student test cases AI missed. (6 added: SAPI2-001–006)
+- [x] Explain why each missed case was not generated. (reason captured per case in `HumanReview` and report §8.5)
 - [ ] Execute the complete API 2 suite with the selected test tool.
 - [ ] Ensure every request carries `X-Student-Id: {StudentID}` and capture the required console evidence manually.
 - [ ] Produce and attach the execution report.
