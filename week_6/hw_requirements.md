@@ -30,7 +30,7 @@ Use this file to track completion. Record evidence paths, links, counts, and com
 ## API 2 — Pool B (30 points)
 
 - [x] Document API 2 specification, feature, endpoint, request, response, and expected behavior. (`artifacts/api2_checkout_test_strategy.md` and report §8.1)
-- [x] Use AI step-by-step with the specification to generate at least 35 test cases. (37 generated in `artifacts/api2_checkout_test_cases.csv`; human audit remains pending.)
+- [x] Use AI step-by-step with the specification to generate at least 35 test cases. (37 generated in `artifacts/api2_checkout_test_cases.csv`; human audit completed.)
 - [x] Cover domain partitions for every parameter. (`artifacts/api2_checkout_test_conditions.md`)
 - [x] Cover state transitions, especially order transitions and cancellation rules where applicable. (`artifacts/api2_checkout_test_conditions.md`)
 - [x] Cover security requirements SEC-01–SEC-07, including injection, IDOR, and role escalation where applicable. (`artifacts/api2_checkout_test_conditions.md`)
@@ -40,9 +40,9 @@ Use this file to track completion. Record evidence paths, links, counts, and com
 - [x] Add at least 5 original student test cases AI missed. (6 added: SAPI2-001–006)
 - [x] Explain why each missed case was not generated. (reason captured per case in `HumanReview` and report §8.5)
 - [x] Execute the complete API 2 suite with the selected test tool. (Newman: 48 requests, 121 assertions, 102 passed, 19 failed, 0 script errors; report §8.6.)
-- [x] Ensure every request carries `X-Student-Id: {StudentID}` and capture the required console evidence manually. (Newman console confirms all 48 requests injected `22127345`; manual Postman GUI screenshot remains to be captured.)
+- [x] Ensure every request carries `X-Student-Id: {StudentID}` and capture the required execution evidence. (Newman console confirms all 48 requests injected `22127345`; Postman Runner evidence is attached in `artifacts/evidence/api2/01_postman_runner_api2.png`.)
 - [x] Produce and attach the execution report. (`artifacts/api2_newman_report.html` and `.xml`)
-- [ ] Report genuine API 2 bugs in Markdown and GitHub Issues, with a screenshot attached to each issue.
+- [x] Report genuine API 2 bugs in Markdown and GitHub Issues, with issue links #70–#76 and the issue-list screenshot in `artifacts/evidence/api2/02_github_issues_api2.png`.
 
 ## API 3 — Pool C (30 points)
 

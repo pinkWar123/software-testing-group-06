@@ -90,6 +90,17 @@ For each interaction, record:
 
 **Execution result**: 48 requests (5 setup + 43 API cases), 121 assertions, 102 passed, 19 failed, 0 script errors. All 48 pre-request scripts logged and injected `X-Student-Id: 22127345`. Failures reproduced weak validation, client-total trust, lax Bearer scheme enforcement, empty-cart/duplicate checkout, `text/plain` 500/stack disclosure, numeric-field injection acceptance, and overlong-address acceptance. Manual Postman GUI screenshot and API 2 GitHub issue links remain pending.
 
+### Prompt entry — API 2 Postman and GitHub evidence incorporated
+
+**Date**: 2026-08-22
+**Purpose**: Add the student's Postman Collection Runner result and API 2 GitHub Issue evidence to the report.
+
+**Prompt**: “Màn hình kết quả chạy API 2 bằng postman … kết quả của các github issues … Giúp tôi dựa vào số thứ tự của issue tự construct luôn link tới github issue tương ứng và fill vào report.”
+
+**Artifacts incorporated**: `artifacts/evidence/api2/01_postman_runner_api2.png`, `artifacts/evidence/api2/02_github_issues_api2.png`, and report §8.6–§8.7.
+
+**Human evidence**: Postman Runner shows 121 tests, 102 passed, 19 failed, and 0 errors. The issue-list screenshot shows API 2 issues #70–#76. The report now links each issue using `https://github.com/pinkWar123/software-testing-group-06/issues/{number}`.
+
 ---
 
 ## [18:12 21/08/2026] — DeepSeek Harness (Claude Sonnet 4.6)

@@ -244,19 +244,36 @@ The Newman execution below reproduced the predicted failures. GitHub issue filin
 
 ### 8.6 Execution Results
 
-The audited API 2 suite was executed with Newman against `http://localhost:3000` on 21/08/2026. The collection contains 43 API cases plus five stateful setup requests, for **48 requests** total. Runtime variables supplied disposable credentials; no password was stored in the collection. The pre-request script injected and logged `X-Student-Id: 22127345` for all 48 requests.
+The audited API 2 suite was executed with Newman against `http://localhost:3000` on 21/08/2026 and rerun in the Postman Collection Runner on 22/08/2026. The collection contains 43 API cases plus five stateful setup requests, for **48 requests** total. Runtime variables supplied disposable credentials; no password was stored in the collection. The pre-request script injected and logged `X-Student-Id: 22127345` for all 48 requests.
 
 | Run | Requests | Assertions | Passed | Failed | Script errors | Avg. response |
 |---|---:|---:|---:|---:|---:|---:|
 | Newman CLI | 48 | 121 | 102 | 19 | 0 | 2 ms |
+| Postman Collection Runner (GUI) | 48 | 121 | 102 | 19 | 0 | 3 ms |
 
 The 19 failed assertions are expected defect observations, not tool failures: API2-004–008, API2-012, API2-016–022, API2-032, API2-037, and SAPI2-002/004/006. They reproduce client-total trust and missing validation, acceptance of `Basic <JWT>`, checkout from an empty cart and duplicate checkout, a `text/plain` 500 with stack disclosure, unsafe error handling, numeric-field injection acceptance, and overlong-address acceptance. Authentication cases API2-009–011 and unsupported-method case API2-033 passed. The generated artifacts are [`api2_checkout.postman_collection.json`](../artifacts/api2_checkout.postman_collection.json), [`api2_newman_report.html`](../artifacts/api2_newman_report.html), and [`api2_newman_report.xml`](../artifacts/api2_newman_report.xml).
 
-The Newman report is the automated evidence. The assignment's manual Postman console/header screenshot still needs to be captured in the GUI for the anti-cheating evidence requirement.
+The execution evidence is included below. The Postman Runner screenshot shows **121 tests, 102 passed, 19 failed, 0 errors**, and the GitHub Issues screenshot shows the filed API 2 defects.
+
+![Postman Collection Runner result for API 2: 121 tests, 102 passed, 19 failed](../artifacts/evidence/api2/01_postman_runner_api2.png)
+
+![GitHub Issues filed for API 2 defects #70–#76](../artifacts/evidence/api2/02_github_issues_api2.png)
 
 ### 8.7 Bugs Found and Links
 
-The run confirms the six candidate defects C1–C6 listed in §8.4. They should be filed as separate GitHub Issues with request/response screenshots before submission; no API 2 issue links are claimed yet.
+The run confirms the candidate defects C1–C6 listed in §8.4. The following seven API 2 defects were filed as GitHub Issues and are linked by the issue number shown in the evidence screenshot:
+
+| Test case | Defect | GitHub issue |
+|---|---|---|
+| API2-004 | Unauthorized user is able to checkout | [Issue #70 — API2-004](https://github.com/pinkWar123/software-testing-group-06/issues/70) |
+| API2-005 | Null `total_amount` is accepted | [Issue #71 — API2-005](https://github.com/pinkWar123/software-testing-group-06/issues/71) |
+| API2-006 | Negative `total_amount` is accepted | [Issue #72 — API2-006](https://github.com/pinkWar123/software-testing-group-06/issues/72) |
+| API2-016 | Missing `total_amount` is accepted | [Issue #73 — API2-016](https://github.com/pinkWar123/software-testing-group-06/issues/73) |
+| API2-017 | Empty `shipping_address` is accepted | [Issue #74 — API2-017](https://github.com/pinkWar123/software-testing-group-06/issues/74) |
+| API2-019 | Incorrect `shipping_address` structure is accepted | [Issue #75 — API2-019](https://github.com/pinkWar123/software-testing-group-06/issues/75) |
+| API2-032 | Non-JSON request crashes the server | [Issue #76 — API2-032](https://github.com/pinkWar123/software-testing-group-06/issues/76) |
+
+The remaining failed assertions are retained as execution evidence and are grouped under C1–C6; they were not duplicated into separate issues in this submission.
 
 ## 9. API 3 Full Pipeline
 
