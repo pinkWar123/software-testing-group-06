@@ -120,6 +120,17 @@ For each interaction, record:
 
 **Human review / changes**: The first six design requirements are marked complete in `hw_requirements.md`. The 40 cases remain `AI-GENERATED / PENDING-AUDIT`; human labels, corrections, student extensions, execution, evidence, and GitHub bug filing remain pending.
 
+### Prompt entry — API 3 Postman/Newman execution
+
+**Date**: 2026-08-22
+**Purpose**: Execute the API 3 test cases against the local backend and save the Newman evidence.
+
+**Prompt**: “tương tự giúp tôi execute test cases cho feature này”
+
+**Artifacts produced**: `artifacts/build_api3_postman_collection.mjs`, `artifacts/api3_admin_order_status.postman_collection.json`, `artifacts/api3_local.postman_environment.json`, `artifacts/api3_newman_report.html`, `artifacts/api3_newman_report.xml`, and the supplied Postman Runner evidence `artifacts/evidence/api3/01_postman_runner_api3.png`.
+
+**Execution result**: 74 requests (34 setup/fixture requests plus 40 API cases), 197 assertions, 195 passed, 2 failed, and 0 request/script errors. The supplied Postman Runner screenshot shows the same totals. Automated Student-ID assertions passed on all requests. `API3-035` failed because `text/plain` caused HTTP 500 with stack disclosure and is tracked in [GitHub Issue #77](https://github.com/pinkWar123/software-testing-group-06/issues/77). The separate manual Postman console screenshot remains pending.
+
 ---
 
 ## [00:36 22/08/2026] — DeepSeek Harness (Claude Sonnet 4.6)

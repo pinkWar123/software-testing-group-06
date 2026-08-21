@@ -1,0 +1,4182 @@
+{
+  "info": {
+    "name": "HW06 API 3 - Admin Order Status Execution",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "studentId",
+      "value": "22127345"
+    },
+    {
+      "key": "userToken",
+      "value": ""
+    },
+    {
+      "key": "adminToken",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "SETUP login admin",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"admin@eshop.com\",\"password\":\"Admin123!\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('admin token',()=>pm.expect(body.token).to.be.a('string'));pm.environment.set('adminToken',body.token);pm.environment.set('adminUserId',String(body.user.id));",
+              "pm.test('login 200',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP register API3 order user",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "register"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Newman API3 User\",\"email\":\"hw06.api3.1787334287469@example.com\",\"password\":\"Api3Test123!\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "pm.test('registration controlled',()=>pm.expect(pm.response.code).to.be.oneOf([200,400]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP login API3 order user",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"hw06.api3.1787334287469@example.com\",\"password\":\"Api3Test123!\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('user token',()=>pm.expect(body.token).to.be.a('string'));pm.environment.set('userToken',body.token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP add cart item 1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cart",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cart"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\":1,\"name\":\"API3 fixture item\",\"price\":10000,\"quantity\":1}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "pm.test('cart setup controlled',()=>pm.expect(pm.response.code).to.be.oneOf([200,400]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP create order 1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":10000,\"shipping_address\":\"API3 fixture address 1\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('checkout setup',()=>pm.expect(pm.response.code).to.eql(200));pm.test('order ID captured',()=>pm.expect(body.orderId).to.be.a('number'));pm.environment.set('order1',String(body.orderId));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP add cart item 2",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cart",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cart"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\":1,\"name\":\"API3 fixture item\",\"price\":10000,\"quantity\":1}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "pm.test('cart setup controlled',()=>pm.expect(pm.response.code).to.be.oneOf([200,400]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP create order 2",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":10000,\"shipping_address\":\"API3 fixture address 2\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('checkout setup',()=>pm.expect(pm.response.code).to.eql(200));pm.test('order ID captured',()=>pm.expect(body.orderId).to.be.a('number'));pm.environment.set('order2',String(body.orderId));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP add cart item 3",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cart",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cart"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\":1,\"name\":\"API3 fixture item\",\"price\":10000,\"quantity\":1}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "pm.test('cart setup controlled',()=>pm.expect(pm.response.code).to.be.oneOf([200,400]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP create order 3",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":10000,\"shipping_address\":\"API3 fixture address 3\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('checkout setup',()=>pm.expect(pm.response.code).to.eql(200));pm.test('order ID captured',()=>pm.expect(body.orderId).to.be.a('number'));pm.environment.set('order3',String(body.orderId));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP add cart item 4",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cart",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cart"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\":1,\"name\":\"API3 fixture item\",\"price\":10000,\"quantity\":1}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "pm.test('cart setup controlled',()=>pm.expect(pm.response.code).to.be.oneOf([200,400]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP create order 4",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":10000,\"shipping_address\":\"API3 fixture address 4\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('checkout setup',()=>pm.expect(pm.response.code).to.eql(200));pm.test('order ID captured',()=>pm.expect(body.orderId).to.be.a('number'));pm.environment.set('order4',String(body.orderId));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP add cart item 5",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cart",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cart"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\":1,\"name\":\"API3 fixture item\",\"price\":10000,\"quantity\":1}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "pm.test('cart setup controlled',()=>pm.expect(pm.response.code).to.be.oneOf([200,400]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP create order 5",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":10000,\"shipping_address\":\"API3 fixture address 5\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('checkout setup',()=>pm.expect(pm.response.code).to.eql(200));pm.test('order ID captured',()=>pm.expect(body.orderId).to.be.a('number'));pm.environment.set('order5',String(body.orderId));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP add cart item 6",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cart",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cart"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\":1,\"name\":\"API3 fixture item\",\"price\":10000,\"quantity\":1}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "pm.test('cart setup controlled',()=>pm.expect(pm.response.code).to.be.oneOf([200,400]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP create order 6",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":10000,\"shipping_address\":\"API3 fixture address 6\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('checkout setup',()=>pm.expect(pm.response.code).to.eql(200));pm.test('order ID captured',()=>pm.expect(body.orderId).to.be.a('number'));pm.environment.set('order6',String(body.orderId));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP add cart item 7",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cart",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cart"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\":1,\"name\":\"API3 fixture item\",\"price\":10000,\"quantity\":1}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "pm.test('cart setup controlled',()=>pm.expect(pm.response.code).to.be.oneOf([200,400]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP create order 7",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":10000,\"shipping_address\":\"API3 fixture address 7\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('checkout setup',()=>pm.expect(pm.response.code).to.eql(200));pm.test('order ID captured',()=>pm.expect(body.orderId).to.be.a('number'));pm.environment.set('order7',String(body.orderId));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP add cart item 8",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cart",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cart"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\":1,\"name\":\"API3 fixture item\",\"price\":10000,\"quantity\":1}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "pm.test('cart setup controlled',()=>pm.expect(pm.response.code).to.be.oneOf([200,400]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP create order 8",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":10000,\"shipping_address\":\"API3 fixture address 8\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('checkout setup',()=>pm.expect(pm.response.code).to.eql(200));pm.test('order ID captured',()=>pm.expect(body.orderId).to.be.a('number'));pm.environment.set('order8',String(body.orderId));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP add cart item 9",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cart",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cart"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\":1,\"name\":\"API3 fixture item\",\"price\":10000,\"quantity\":1}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "pm.test('cart setup controlled',()=>pm.expect(pm.response.code).to.be.oneOf([200,400]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP create order 9",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":10000,\"shipping_address\":\"API3 fixture address 9\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('checkout setup',()=>pm.expect(pm.response.code).to.eql(200));pm.test('order ID captured',()=>pm.expect(body.orderId).to.be.a('number'));pm.environment.set('order9',String(body.orderId));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP add cart item 10",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cart",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cart"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\":1,\"name\":\"API3 fixture item\",\"price\":10000,\"quantity\":1}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "pm.test('cart setup controlled',()=>pm.expect(pm.response.code).to.be.oneOf([200,400]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP create order 10",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/checkout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "checkout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"total_amount\":10000,\"shipping_address\":\"API3 fixture address 10\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('checkout setup',()=>pm.expect(pm.response.code).to.eql(200));pm.test('order ID captured',()=>pm.expect(body.orderId).to.be.a('number'));pm.environment.set('order10',String(body.orderId));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP confirm order 3",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order3}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order3}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('fixture transition',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP confirm order 4",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order4}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order4}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('fixture transition',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP confirm order 5",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order5}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order5}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('fixture transition',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP ship order 5",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order5}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order5}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"shipping\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('fixture transition',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP confirm order 6",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order6}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order6}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('fixture transition',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP ship order 6",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order6}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order6}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"shipping\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('fixture transition',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP deliver order 6",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order6}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order6}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"delivered\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('fixture transition',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP confirm order 7",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order7}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order7}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('fixture transition',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP cancel order 7",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order7}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order7}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"canceled\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('fixture transition',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP confirm order 9",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order9}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order9}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('fixture transition',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SETUP ship order 9",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order9}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order9}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"shipping\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('fixture transition',()=>pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-001",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order1}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order1}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body)).to.eql(['message']);pm.expect(body.message).to.eql('Order status updated');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-002",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order2}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order2}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"canceled\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body)).to.eql(['message']);pm.expect(body.message).to.eql('Order status updated');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-003",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order3}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order3}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"shipping\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body)).to.eql(['message']);pm.expect(body.message).to.eql('Order status updated');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-004",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order4}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order4}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"canceled\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body)).to.eql(['message']);pm.expect(body.message).to.eql('Order status updated');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-005",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order5}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order5}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"delivered\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body)).to.eql(['message']);pm.expect(body.message).to.eql('Order status updated');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-006",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/999999/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "999999",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-007",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/8/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "8",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-008",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer malformed"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/8/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "8",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-009",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer forged.invalid.token"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/8/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "8",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-010",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer expired.invalid.token"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/8/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "8",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-011",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/8/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "8",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-012",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Basic {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/8/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "8",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-013",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userToken}}"
+          },
+          {
+            "key": "X-Role",
+            "value": "admin"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/8/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "8",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-014",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/8/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "8",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-015",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/8/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "8",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-016",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/8/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "8",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-017",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/8/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "8",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"   \"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-018",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/8/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "8",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"returned\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-019",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/8/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "8",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"Confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-020",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/8/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "8",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":1}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-021",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/8/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "8",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":[[\"confirmed\"]]}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-022",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/8/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "8",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":{\"value\":\"confirmed\"}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-023",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order10}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order10}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"shipping\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-024",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order10}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order10}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"delivered\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-025",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order8}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order8}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"delivered\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-026",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order9}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order9}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"canceled\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-027",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order6}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order6}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-028",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order7}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order7}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-029",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/0/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "0",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-030",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/-1/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "-1",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-031",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/1.5/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "1.5",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-032",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/1 OR 1=1/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "1 OR 1=1",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-033",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/8/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "8",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed'\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-034",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/8/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "8",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('no server crash',()=>pm.expect(pm.response.code).to.be.below(500));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-035",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "text/plain"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/8/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "8",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "not-json"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('no server crash',()=>pm.expect(pm.response.code).to.be.below(500));",
+              "pm.test('no stack disclosure',()=>{const t=pm.response.text();pm.expect(t.includes('TypeError')||t.includes('server.js')||t.includes(' at ')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-036",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/8/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "8",
+            "status"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "pm.test('unsupported method controlled',()=>pm.expect(pm.response.code).to.be.oneOf([404,405]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-037",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order10}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order10}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body)).to.eql(['message']);pm.expect(body.message).to.eql('Order status updated');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-038",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order8}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order8}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"delivered\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('controlled 4xx',()=>pm.expect(pm.response.code).to.be.within(400,499));",
+              "pm.test('error is safe JSON',()=>{pm.expect(pm.response.headers.get('Content-Type')||'').to.match(/json/i);pm.expect(body).to.be.an('object');pm.expect(body.error).to.be.a('string');const t=pm.response.text().toLowerCase();pm.expect(t.includes('stack')||t.includes('server.js')||t.includes('typeerror')).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-039",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order10}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order10}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"shipping\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body)).to.eql(['message']);pm.expect(body.message).to.eql('Order status updated');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "API3-040",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/orders/{{order10}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "orders",
+            "{{order10}}",
+            "status"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"delivered\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sid = pm.environment.get('studentId');",
+              "pm.request.headers.upsert({key:'X-Student-Id', value:sid});",
+              "console.log('X-Student-Id:', sid, '|', pm.info.requestName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Student-ID header is present',()=>pm.expect(pm.request.headers.get('X-Student-Id')).to.eql(pm.environment.get('studentId')));",
+              "let body=null; try { body=pm.response.json(); } catch(e) { }",
+              "pm.test('HTTP 200',()=>pm.expect(pm.response.code).to.eql(200));",
+              "pm.test('success schema',()=>{pm.expect(body).to.be.an('object');pm.expect(Object.keys(body)).to.eql(['message']);pm.expect(body.message).to.eql('Order status updated');});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

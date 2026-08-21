@@ -1,0 +1,370 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="HW06 API 3 - Admin Order Status Execution" tests="74" time="0.118">
+  <testsuite name="SETUP login admin" id="76a63a3c-e5c2-47f7-837e-67cb2cb7eaad" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.010">
+    <testcase name="Student-ID header is present" time="0.010" classname="SetupLoginAdmin"/>
+    <testcase name="admin token" time="0.010" classname="SetupLoginAdmin"/>
+    <testcase name="login 200" time="0.010" classname="SetupLoginAdmin"/>
+  </testsuite>
+  <testsuite name="SETUP register API3 order user" id="2d62ea3e-2121-4c66-a9b0-a9510b2fba3c" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="SetupRegisterApi3OrderUser"/>
+    <testcase name="registration controlled" time="0.002" classname="SetupRegisterApi3OrderUser"/>
+  </testsuite>
+  <testsuite name="SETUP login API3 order user" id="7611dada-ecc4-498f-a29d-c48786826b7a" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="SetupLoginApi3OrderUser"/>
+    <testcase name="user token" time="0.002" classname="SetupLoginApi3OrderUser"/>
+  </testsuite>
+  <testsuite name="SETUP add cart item 1" id="ad21ac88-3a71-432f-9ee0-5adfb2260838" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="SetupAddCartItem1"/>
+    <testcase name="cart setup controlled" time="0.001" classname="SetupAddCartItem1"/>
+  </testsuite>
+  <testsuite name="SETUP create order 1" id="d461b9eb-95f5-4450-a8a5-405a76791ee3" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="SetupCreateOrder1"/>
+    <testcase name="checkout setup" time="0.002" classname="SetupCreateOrder1"/>
+    <testcase name="order ID captured" time="0.002" classname="SetupCreateOrder1"/>
+  </testsuite>
+  <testsuite name="SETUP add cart item 2" id="8c1debd1-6032-4870-91c7-0dbd9c7ec56f" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="SetupAddCartItem2"/>
+    <testcase name="cart setup controlled" time="0.001" classname="SetupAddCartItem2"/>
+  </testsuite>
+  <testsuite name="SETUP create order 2" id="380d2c78-ce73-4374-a9f7-976b6613b8d6" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="SetupCreateOrder2"/>
+    <testcase name="checkout setup" time="0.002" classname="SetupCreateOrder2"/>
+    <testcase name="order ID captured" time="0.002" classname="SetupCreateOrder2"/>
+  </testsuite>
+  <testsuite name="SETUP add cart item 3" id="f439d96c-9fbb-4c0b-a087-ef3b34dee497" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="SetupAddCartItem3"/>
+    <testcase name="cart setup controlled" time="0.002" classname="SetupAddCartItem3"/>
+  </testsuite>
+  <testsuite name="SETUP create order 3" id="d3983455-2637-498d-ab6e-054bd0e3c57f" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.003">
+    <testcase name="Student-ID header is present" time="0.003" classname="SetupCreateOrder3"/>
+    <testcase name="checkout setup" time="0.003" classname="SetupCreateOrder3"/>
+    <testcase name="order ID captured" time="0.003" classname="SetupCreateOrder3"/>
+  </testsuite>
+  <testsuite name="SETUP add cart item 4" id="8aa90150-d67c-40fb-9d73-37cf6b5e7809" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="SetupAddCartItem4"/>
+    <testcase name="cart setup controlled" time="0.001" classname="SetupAddCartItem4"/>
+  </testsuite>
+  <testsuite name="SETUP create order 4" id="67b7b5d4-ef87-420e-b0c9-c122db017e1d" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="SetupCreateOrder4"/>
+    <testcase name="checkout setup" time="0.002" classname="SetupCreateOrder4"/>
+    <testcase name="order ID captured" time="0.002" classname="SetupCreateOrder4"/>
+  </testsuite>
+  <testsuite name="SETUP add cart item 5" id="9abb5ec7-c6c4-446b-b5d4-d00e4f18fe1f" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="SetupAddCartItem5"/>
+    <testcase name="cart setup controlled" time="0.001" classname="SetupAddCartItem5"/>
+  </testsuite>
+  <testsuite name="SETUP create order 5" id="af5797a1-6b78-4a35-be76-497cf56e68fb" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="SetupCreateOrder5"/>
+    <testcase name="checkout setup" time="0.001" classname="SetupCreateOrder5"/>
+    <testcase name="order ID captured" time="0.001" classname="SetupCreateOrder5"/>
+  </testsuite>
+  <testsuite name="SETUP add cart item 6" id="27bfd817-59df-4bd3-bb80-a0d40bc6b2b6" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="SetupAddCartItem6"/>
+    <testcase name="cart setup controlled" time="0.001" classname="SetupAddCartItem6"/>
+  </testsuite>
+  <testsuite name="SETUP create order 6" id="1c1ece33-b107-4ae4-97b8-67516c51dcb5" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="SetupCreateOrder6"/>
+    <testcase name="checkout setup" time="0.002" classname="SetupCreateOrder6"/>
+    <testcase name="order ID captured" time="0.002" classname="SetupCreateOrder6"/>
+  </testsuite>
+  <testsuite name="SETUP add cart item 7" id="d09efc68-864c-41bc-a540-36848dd48409" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="SetupAddCartItem7"/>
+    <testcase name="cart setup controlled" time="0.001" classname="SetupAddCartItem7"/>
+  </testsuite>
+  <testsuite name="SETUP create order 7" id="5f9983a1-b4ec-4058-b0f5-d8fa7f30d08f" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="SetupCreateOrder7"/>
+    <testcase name="checkout setup" time="0.002" classname="SetupCreateOrder7"/>
+    <testcase name="order ID captured" time="0.002" classname="SetupCreateOrder7"/>
+  </testsuite>
+  <testsuite name="SETUP add cart item 8" id="fd8f3b92-fef6-458c-b057-7aabf068fd56" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="SetupAddCartItem8"/>
+    <testcase name="cart setup controlled" time="0.001" classname="SetupAddCartItem8"/>
+  </testsuite>
+  <testsuite name="SETUP create order 8" id="4614e6a9-29d5-4b57-a84b-460a507da9ac" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="SetupCreateOrder8"/>
+    <testcase name="checkout setup" time="0.001" classname="SetupCreateOrder8"/>
+    <testcase name="order ID captured" time="0.001" classname="SetupCreateOrder8"/>
+  </testsuite>
+  <testsuite name="SETUP add cart item 9" id="4ff01797-00c8-422b-955f-f00f545e290d" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.000">
+    <testcase name="Student-ID header is present" time="0.000" classname="SetupAddCartItem9"/>
+    <testcase name="cart setup controlled" time="0.000" classname="SetupAddCartItem9"/>
+  </testsuite>
+  <testsuite name="SETUP create order 9" id="0ef426d7-bdb4-4ef3-bce6-9f7956704643" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="SetupCreateOrder9"/>
+    <testcase name="checkout setup" time="0.002" classname="SetupCreateOrder9"/>
+    <testcase name="order ID captured" time="0.002" classname="SetupCreateOrder9"/>
+  </testsuite>
+  <testsuite name="SETUP add cart item 10" id="0cf9ae2d-b8f0-48ec-9664-69c18e1368a5" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="SetupAddCartItem10"/>
+    <testcase name="cart setup controlled" time="0.001" classname="SetupAddCartItem10"/>
+  </testsuite>
+  <testsuite name="SETUP create order 10" id="881a8f93-d2d8-4ac6-86e0-766ee9779a79" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="SetupCreateOrder10"/>
+    <testcase name="checkout setup" time="0.002" classname="SetupCreateOrder10"/>
+    <testcase name="order ID captured" time="0.002" classname="SetupCreateOrder10"/>
+  </testsuite>
+  <testsuite name="SETUP confirm order 3" id="3c676c00-568e-4bb7-98a5-52b06853e1b0" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="SetupConfirmOrder3"/>
+    <testcase name="fixture transition" time="0.001" classname="SetupConfirmOrder3"/>
+  </testsuite>
+  <testsuite name="SETUP confirm order 4" id="c6f0d800-8c95-4c55-9650-1e08a4c69a83" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="SetupConfirmOrder4"/>
+    <testcase name="fixture transition" time="0.001" classname="SetupConfirmOrder4"/>
+  </testsuite>
+  <testsuite name="SETUP confirm order 5" id="91ac2148-2e9b-41a4-a2d7-b38375508648" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="SetupConfirmOrder5"/>
+    <testcase name="fixture transition" time="0.002" classname="SetupConfirmOrder5"/>
+  </testsuite>
+  <testsuite name="SETUP ship order 5" id="19737749-116a-4356-ac74-9f7eb7a129fb" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="SetupShipOrder5"/>
+    <testcase name="fixture transition" time="0.002" classname="SetupShipOrder5"/>
+  </testsuite>
+  <testsuite name="SETUP confirm order 6" id="4841f4dd-f065-4ce4-a9e5-9a4210750bed" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="SetupConfirmOrder6"/>
+    <testcase name="fixture transition" time="0.001" classname="SetupConfirmOrder6"/>
+  </testsuite>
+  <testsuite name="SETUP ship order 6" id="6eab8278-25f1-4c97-8a99-fdc986ce7694" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="SetupShipOrder6"/>
+    <testcase name="fixture transition" time="0.002" classname="SetupShipOrder6"/>
+  </testsuite>
+  <testsuite name="SETUP deliver order 6" id="bcbdf011-2650-48c3-8ac7-8ffe3f1b779a" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="SetupDeliverOrder6"/>
+    <testcase name="fixture transition" time="0.001" classname="SetupDeliverOrder6"/>
+  </testsuite>
+  <testsuite name="SETUP confirm order 7" id="13964cb7-0431-415b-a435-4e2b096812e2" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="SetupConfirmOrder7"/>
+    <testcase name="fixture transition" time="0.001" classname="SetupConfirmOrder7"/>
+  </testsuite>
+  <testsuite name="SETUP cancel order 7" id="4bbc5870-eb66-4ddf-b04e-1f18259c8326" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="SetupCancelOrder7"/>
+    <testcase name="fixture transition" time="0.001" classname="SetupCancelOrder7"/>
+  </testsuite>
+  <testsuite name="SETUP confirm order 9" id="b723c1c5-9d94-43b4-9b9d-c23db23c0db2" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="SetupConfirmOrder9"/>
+    <testcase name="fixture transition" time="0.002" classname="SetupConfirmOrder9"/>
+  </testsuite>
+  <testsuite name="SETUP ship order 9" id="2f00c2b0-d846-4bf5-85f5-12029b34aa83" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="SetupShipOrder9"/>
+    <testcase name="fixture transition" time="0.001" classname="SetupShipOrder9"/>
+  </testsuite>
+  <testsuite name="API3-001" id="4e86fdaa-b3f0-4c3d-9814-dce847fddb68" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.010">
+    <testcase name="Student-ID header is present" time="0.010" classname="Api3001"/>
+    <testcase name="HTTP 200" time="0.010" classname="Api3001"/>
+    <testcase name="success schema" time="0.010" classname="Api3001"/>
+  </testsuite>
+  <testsuite name="API3-002" id="60e5edec-e15a-46b0-84af-e255f6df3527" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api3002"/>
+    <testcase name="HTTP 200" time="0.002" classname="Api3002"/>
+    <testcase name="success schema" time="0.002" classname="Api3002"/>
+  </testsuite>
+  <testsuite name="API3-003" id="1e99ff07-bcc6-469f-902c-ccea65f799d4" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api3003"/>
+    <testcase name="HTTP 200" time="0.002" classname="Api3003"/>
+    <testcase name="success schema" time="0.002" classname="Api3003"/>
+  </testsuite>
+  <testsuite name="API3-004" id="1c5eb509-e533-473a-b54e-7c14e372cdaa" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3004"/>
+    <testcase name="HTTP 200" time="0.001" classname="Api3004"/>
+    <testcase name="success schema" time="0.001" classname="Api3004"/>
+  </testsuite>
+  <testsuite name="API3-005" id="58395839-4c7e-49c4-9a06-9be4e7e8cb51" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api3005"/>
+    <testcase name="HTTP 200" time="0.002" classname="Api3005"/>
+    <testcase name="success schema" time="0.002" classname="Api3005"/>
+  </testsuite>
+  <testsuite name="API3-006" id="54c5abb7-2165-453b-bca9-b3c10ad58c31" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3006"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3006"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3006"/>
+  </testsuite>
+  <testsuite name="API3-007" id="884c8e7b-4070-4097-a400-881d8a33ce32" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api3007"/>
+    <testcase name="controlled 4xx" time="0.002" classname="Api3007"/>
+    <testcase name="error is safe JSON" time="0.002" classname="Api3007"/>
+  </testsuite>
+  <testsuite name="API3-008" id="40e73e42-3751-4b1c-9590-0310ef2a49a6" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3008"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3008"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3008"/>
+  </testsuite>
+  <testsuite name="API3-009" id="8ad12b22-deb7-4d79-838f-91088f6e35b8" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3009"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3009"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3009"/>
+  </testsuite>
+  <testsuite name="API3-010" id="27b5da5f-6eb8-4bf5-bf53-bfe377473ddc" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3010"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3010"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3010"/>
+  </testsuite>
+  <testsuite name="API3-011" id="073eca79-7a73-48f2-b517-58b188e465ae" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3011"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3011"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3011"/>
+  </testsuite>
+  <testsuite name="API3-012" id="7b37fbb0-c2e4-43cc-8c8c-9ce5bef1982e" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3012"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3012"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3012"/>
+  </testsuite>
+  <testsuite name="API3-013" id="8c1f23d0-903f-4c1f-8d15-7978b34cab98" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3013"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3013"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3013"/>
+  </testsuite>
+  <testsuite name="API3-014" id="2eaa3bea-df89-4356-99b4-21ae4f60cc35" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3014"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3014"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3014"/>
+  </testsuite>
+  <testsuite name="API3-015" id="a7751f03-3738-40c6-a755-070a50b0196d" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3015"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3015"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3015"/>
+  </testsuite>
+  <testsuite name="API3-016" id="faa19526-6d81-43e5-ba47-23547ba4df05" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3016"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3016"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3016"/>
+  </testsuite>
+  <testsuite name="API3-017" id="50e51f4f-e0fe-4b55-b64f-1b5dd18b1139" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3017"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3017"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3017"/>
+  </testsuite>
+  <testsuite name="API3-018" id="639377b7-bdf7-4b5b-afb3-277744c62abc" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3018"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3018"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3018"/>
+  </testsuite>
+  <testsuite name="API3-019" id="18403492-88f4-4d25-9893-d1a59089d1fc" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3019"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3019"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3019"/>
+  </testsuite>
+  <testsuite name="API3-020" id="38773416-6965-4c86-9232-68bba41c98ad" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3020"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3020"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3020"/>
+  </testsuite>
+  <testsuite name="API3-021" id="d49d09f4-73d3-46e2-bfd6-bc434627c67d" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api3021"/>
+    <testcase name="controlled 4xx" time="0.002" classname="Api3021"/>
+    <testcase name="error is safe JSON" time="0.002" classname="Api3021"/>
+  </testsuite>
+  <testsuite name="API3-022" id="98f521a0-c1cc-4e60-ac8f-399b7147bf14" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3022"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3022"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3022"/>
+  </testsuite>
+  <testsuite name="API3-023" id="ec6992a0-2a47-4730-80d7-f984042ce91a" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3023"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3023"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3023"/>
+  </testsuite>
+  <testsuite name="API3-024" id="cf89f1c0-391e-4f11-bd1f-90f196a3c810" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3024"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3024"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3024"/>
+  </testsuite>
+  <testsuite name="API3-025" id="1afb614c-76a4-441a-a64d-4c800fe3e2c8" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3025"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3025"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3025"/>
+  </testsuite>
+  <testsuite name="API3-026" id="c0d60895-4670-4fbf-8e07-ea1b3e1e012d" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3026"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3026"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3026"/>
+  </testsuite>
+  <testsuite name="API3-027" id="8320ba57-4cab-489e-bcb1-f6abf729acc8" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3027"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3027"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3027"/>
+  </testsuite>
+  <testsuite name="API3-028" id="66833456-270f-4e75-bdc4-f1e9c374984b" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3028"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3028"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3028"/>
+  </testsuite>
+  <testsuite name="API3-029" id="9be513de-d2dd-410a-a81d-3979d79f5600" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3029"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3029"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3029"/>
+  </testsuite>
+  <testsuite name="API3-030" id="b4ec6e0e-f0e9-47f1-b44b-a2b7b1e51780" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3030"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3030"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3030"/>
+  </testsuite>
+  <testsuite name="API3-031" id="dcb34a95-1816-407f-a303-4804dd7ebd79" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3031"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3031"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3031"/>
+  </testsuite>
+  <testsuite name="API3-032" id="85ab279f-1480-481a-b777-0273f2f182c0" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.003">
+    <testcase name="Student-ID header is present" time="0.003" classname="Api3032"/>
+    <testcase name="controlled 4xx" time="0.003" classname="Api3032"/>
+    <testcase name="error is safe JSON" time="0.003" classname="Api3032"/>
+  </testsuite>
+  <testsuite name="API3-033" id="b696ef1b-ec7d-4eb8-8304-4d1a2ea35d5c" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api3033"/>
+    <testcase name="controlled 4xx" time="0.002" classname="Api3033"/>
+    <testcase name="error is safe JSON" time="0.002" classname="Api3033"/>
+  </testsuite>
+  <testsuite name="API3-034" id="333045b7-793f-43c9-b598-0a3496f52caa" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api3034"/>
+    <testcase name="no server crash" time="0.002" classname="Api3034"/>
+  </testsuite>
+  <testsuite name="API3-035" id="8215ef10-887e-4113-825e-ef56b1601456" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="2" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3035"/>
+    <testcase name="no server crash" time="0.001" classname="Api3035">
+      <failure type="AssertionFailure" message="expected 500 to be below 500">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 052cb00f-95ae-409f-856e-2434ebf0a41d.]]>
+        <![CDATA[Collection name: HW06 API 3 - Admin Order Status Execution.]]>
+        <![CDATA[Request name: API3-035.]]>
+        <![CDATA[Test description: no server crash.]]>
+        <![CDATA[Error message: expected 500 to be below 500.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 500 to be below 500
+   at Object.eval sandbox-script.js:2:69).]]>
+      </failure>
+    </testcase>
+    <testcase name="no stack disclosure" time="0.001" classname="Api3035">
+      <failure type="AssertionFailure" message="expected true to deeply equal false">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: 052cb00f-95ae-409f-856e-2434ebf0a41d.]]>
+        <![CDATA[Collection name: HW06 API 3 - Admin Order Status Execution.]]>
+        <![CDATA[Request name: API3-035.]]>
+        <![CDATA[Test description: no stack disclosure.]]>
+        <![CDATA[Error message: expected true to deeply equal false.]]>
+        <![CDATA[Stacktrace: AssertionError: expected true to deeply equal false
+   at Object.eval sandbox-script.js:3:69).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="API3-036" id="aad8d1e7-0687-430c-b118-2d565dba77f1" timestamp="2026-08-21T17:44:47.994Z" tests="2" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3036"/>
+    <testcase name="unsupported method controlled" time="0.001" classname="Api3036"/>
+  </testsuite>
+  <testsuite name="API3-037" id="024f16e8-fd57-42e7-b031-c233835d63eb" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api3037"/>
+    <testcase name="HTTP 200" time="0.002" classname="Api3037"/>
+    <testcase name="success schema" time="0.002" classname="Api3037"/>
+  </testsuite>
+  <testsuite name="API3-038" id="837209da-9fc5-4aa5-8eea-350cdf6a9768" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3038"/>
+    <testcase name="controlled 4xx" time="0.001" classname="Api3038"/>
+    <testcase name="error is safe JSON" time="0.001" classname="Api3038"/>
+  </testsuite>
+  <testsuite name="API3-039" id="193a01f6-f5e0-478e-8cdc-b658ac3ff03e" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.002">
+    <testcase name="Student-ID header is present" time="0.002" classname="Api3039"/>
+    <testcase name="HTTP 200" time="0.002" classname="Api3039"/>
+    <testcase name="success schema" time="0.002" classname="Api3039"/>
+  </testsuite>
+  <testsuite name="API3-040" id="03f2150c-6f09-47f9-8738-ea7b426a0579" timestamp="2026-08-21T17:44:47.994Z" tests="3" failures="0" errors="0" time="0.001">
+    <testcase name="Student-ID header is present" time="0.001" classname="Api3040"/>
+    <testcase name="HTTP 200" time="0.001" classname="Api3040"/>
+    <testcase name="success schema" time="0.001" classname="Api3040"/>
+  </testsuite>
+</testsuites>

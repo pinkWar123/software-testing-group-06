@@ -331,7 +331,25 @@ These will be confirmed and filed as GitHub Issues during the execution phase.
 
 ### 9.6 Execution Results
 
+The API 3 collection [`artifacts/api3_admin_order_status.postman_collection.json`](../artifacts/api3_admin_order_status.postman_collection.json) was executed with Newman against `http://localhost:3000` on 22/08/2026. The run used the generated local environment [`artifacts/api3_local.postman_environment.json`](../artifacts/api3_local.postman_environment.json), an admin login setup, a disposable API 3 order user, and ten order fixtures prepared across the relevant lifecycle states.
+
+| Tool/run | Requests | Assertions | Passed | Failed | Request/script errors | Avg. response |
+|---|---:|---:|---:|---:|---:|---:|
+| Newman CLI | 74 | 197 | 195 | 2 | 0 | 1 ms |
+
+All 74 requests executed the pre-request script and the automated Student-ID assertion passed for every request with `X-Student-Id: 22127345`. The Postman Runner result supplied as human evidence is shown below; it records 197 tests, 195 passed, 2 failed, 0 skipped, and 0 errors. The separate manual console screenshot required by the assignment is still pending and is not claimed complete here.
+
+![Postman Collection Runner result for API 3: 197 tests, 195 passed, 2 failed, 0 errors](../artifacts/evidence/api3/01_postman_runner_api3.png)
+
+*Figure 9.1 — Postman Runner execution result for API 3.*
+
+The only failed test case was `API3-035` and it produced two failed assertions: the `text/plain` request returned HTTP 500 instead of a controlled 4xx response, and the response contained stack-trace disclosure. This is execution evidence of an API robustness/security defect. The defect is tracked as [GitHub Issue #77 — API3-035: Not-JSON payload crashes server when admin checks order status](https://github.com/pinkWar123/software-testing-group-06/issues/77). The generated HTML and JUnit reports are [`artifacts/api3_newman_report.html`](../artifacts/api3_newman_report.html) and [`artifacts/api3_newman_report.xml`](../artifacts/api3_newman_report.xml).
+
 ### 9.7 Bugs Found and Links
+
+| Test case | Defect | Evidence / tracking |
+|---|---|---|
+| API3-035 | A `text/plain` request causes HTTP 500 and stack-trace disclosure instead of a controlled client error. | [GitHub Issue #77](https://github.com/pinkWar123/software-testing-group-06/issues/77); [Postman Runner screenshot](../artifacts/evidence/api3/01_postman_runner_api3.png); [Newman HTML report](../artifacts/api3_newman_report.html) |
 
 ## 10. Postman / Karate / RestAssured Features Used
 

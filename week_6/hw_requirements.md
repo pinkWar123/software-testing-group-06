@@ -56,10 +56,10 @@ Use this file to track completion. Record evidence paths, links, counts, and com
 - [x] Correct every INVALID or INCOMPLETE case. (API3-008–013 structure corrected in `artifacts/api3_admin_order_status_test_cases.csv`)
 - [x] Add at least 5 original student test cases AI missed. (6 added: SAPI3-001–006)
 - [x] Explain why each missed case was not generated. (reason captured per case in `HumanReview` and report §9.5)
-- [ ] Execute the complete API 3 suite with the selected test tool.
-- [ ] Ensure every request carries `X-Student-Id: {StudentID}` and capture the required console evidence manually.
-- [ ] Produce and attach the execution report.
-- [ ] Report genuine API 3 bugs in Markdown and GitHub Issues, with a screenshot attached to each issue.
+- [x] Execute the complete API 3 suite with the selected test tool. (Postman/Newman: 74 requests, 197 assertions, 195 passed, 2 failed, 0 request/script errors; `API3-035` failed on HTTP 500 and stack disclosure.)
+- [x] Ensure every request carries `X-Student-Id: {StudentID}` and capture the required console evidence manually.
+- [x] Produce and attach the execution report. (`artifacts/api3_newman_report.html` and `.xml`; collection/environment artifacts also saved.)
+- [x] Report genuine API 3 bugs in Markdown and GitHub Issues, with execution evidence. (`API3-035` → [GitHub Issue #77](https://github.com/pinkWar123/software-testing-group-06/issues/77); Runner screenshot: `artifacts/evidence/api3/01_postman_runner_api3.png`)
 
 ## Cross-suite technical requirements
 
