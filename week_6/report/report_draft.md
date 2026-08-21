@@ -279,9 +279,19 @@ The remaining failed assertions are retained as execution evidence and are group
 
 ### 9.1 Specification and Scope
 
+API 3 is `PUT /api/admin/orders/:id/status` for FR-18 Admin order management, constrained by the FR-10 state machine. It requires an admin Bearer JWT and accepts `{ "status": "confirmed" }`, with allowed states `pending`, `confirmed`, `shipping`, `delivered`, and `canceled`. Valid transitions return HTTP 200 with `{ "message": "Order status updated" }`; invalid transitions and unauthorized requests must return controlled 4xx JSON without changing the order.
+
+The design basis and risk assessment are documented in [`artifacts/api3_admin_order_status_test_strategy.md`](../artifacts/api3_admin_order_status_test_strategy.md). The scope includes authentication/authorization, ID and status validation, valid and terminal-state transitions, IDOR, injection, malformed protocol inputs, exact response schema, persistence, and the required Student-ID header. Human audit and execution are not claimed complete at this stage.
+
 ### 9.2 AI Generation Process
 
+The AI generation step used the API specification, FR-10/FR-18 requirements, SEC-01–SEC-07, and the local endpoint implementation as the test basis. The prompt required test conditions before cases and explicit coverage of input partitions, order-state transitions, admin authorization, IDOR/injection, robustness, schema, and the HW06 header requirement.
+
 ### 9.3 AI-Generated Test Cases (Target: at least 35)
+
+**Generated count: 40.** Cases cover positive transitions, invalid and terminal transitions, authentication and role boundaries, path/status partitions, injection, malformed protocol inputs, response schema, side-effect isolation, and Student-ID evidence. All rows remain `AI-GENERATED / PENDING-AUDIT`; VALID / INVALID / INCOMPLETE labeling will be completed in the audit phase.
+
+See [`artifacts/api3_admin_order_status_test_cases.csv`](../artifacts/api3_admin_order_status_test_cases.csv), [`artifacts/api3_admin_order_status_test_conditions.md`](../artifacts/api3_admin_order_status_test_conditions.md), and [`artifacts/api3_admin_order_status_traceability.csv`](../artifacts/api3_admin_order_status_traceability.csv).
 
 ### 9.4 Human Audit: VALID / INVALID / INCOMPLETE
 

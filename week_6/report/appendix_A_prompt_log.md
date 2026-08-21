@@ -106,6 +106,18 @@ For each interaction, record:
 ## [18:12 21/08/2026] — DeepSeek Harness (Claude Sonnet 4.6)
 **Purpose**: HW06 API 2 (Pool B / FR-08) — human audit of the 37 AI-generated `POST /api/checkout` test cases (label VALID / INVALID / INCOMPLETE, correct incomplete ones) and extension with student-authored cases the AI missed. Serves HW06 requirements 2 (Audit) and 3 (Extend). The exact request wording is not logged here; this entry records the correction and extension work for the tutor.
 
-**Corrections and additions I made (for the tutor):** I audited all 37 generated checkout cases against the spec (`api_specification.md` + `README.md`, which fixes FR-08 and SEC-01–SEC-07) and the checkout implementation, verifying key behaviors with live requests against the running backend. I labeled them **33 VALID / 0 INVALID / 4 INCOMPLETE** with per-case reasoning. I corrected the four incomplete cases — API2-005 (null total, vague oracle → forbid persisting a null total), API2-006 (string total, vague → forbid persisting a non-numeric total), API2-008 (zero total, vague → forbid a zero-priced persisted order), and API2-012 (wrong auth scheme → require that only `Bearer` is accepted). I then added **6 student-authored cases the AI missed** (SAPI2-001–006) and explained why the AI missed each: SAPI2-001 persisted total equals the cart line-item sum, SAPI2-002 double-submit idempotency, SAPI2-003 state read-back via `GET /api/orders/my-orders`, SAPI2-004 injection in the numeric `total_amount`, SAPI2-005 cross-user cart isolation, SAPI2-006 overlong-address length bound. The audit surfaced 6 candidate bugs (C1–C6: client total trusted, no input validation, cart not read/cleared + duplicates, Bearer scheme not enforced, 500 crash on `text/plain`, HTML error page leaking file paths) to be confirmed during execution.
+**Corrections and additions I made (for the tutor):** I audited all 37 generated checkout cases against the spec (`api_specification.md` + `README.md`, which fixes FR-08 and SEC-01–SEC-07) and the checkout implementation, verifying key behaviors with live requests against the running backend. I labeled them **33 VALID / 0 INVALID / 4 INCOMPLETE** with per-case reasoning. I corrected the four incomplete cases — API2-005 (null total, vague oracle → forbid persisting a null total), API2-006 (string total, vague → forbid persisting a non-numeric total), API2-008 (zero total, vague → forbid a zero-priced persisted order), and API2-012 (wrong auth scheme → require that only `Bearer` is accepted). I then added **6 student-authored cases the AI missed** (SAPI2-001–006) and explained why the AI missed each: SAPI2-001 persisted total equals the cart line-item sum, SAPI2-002 double-submit idempotency, SAPI2-003 state read-back via `GET /api/orders/my-orders`, SAPI2-004 injection in the numeric `total_amount`, SAPI2-005 cross-user cart isolation, SAPI2-006 overlong-address length bound. The audit surfaced 6 candidate bugs (C1–C6) to be confirmed during execution.
+
+### Prompt entry — API 3 design documentation and initial generation
+
+**Date**: 2026-08-22
+**Purpose**: Complete only the first six API 3 / Pool C checklist actions for `PUT /api/admin/orders/:id/status`.
+
+**Prompt**:
+> $qa-test-planner $qa-manual-istqb $breakdown-test Design docs as suggested in API 3 - pool C in week_6/hw_requirements.md . Just do the first 6 actions
+
+**Artifacts produced**: `artifacts/api3_admin_order_status_test_strategy.md`, `artifacts/api3_admin_order_status_test_conditions.md`, `artifacts/api3_admin_order_status_test_cases.csv` (40 generated cases), `artifacts/api3_admin_order_status_traceability.csv`, and report §9.1–§9.3.
+
+**Human review / changes**: The first six design requirements are marked complete in `hw_requirements.md`. The 40 cases remain `AI-GENERATED / PENDING-AUDIT`; human labels, corrections, student extensions, execution, evidence, and GitHub bug filing remain pending.
 
 ---

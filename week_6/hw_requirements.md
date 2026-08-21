@@ -46,12 +46,12 @@ Use this file to track completion. Record evidence paths, links, counts, and com
 
 ## API 3 — Pool C (30 points)
 
-- [ ] Document API 3 specification, feature, endpoint, request, response, and expected behavior.
-- [ ] Use AI step-by-step with the specification to generate at least 35 test cases.
-- [ ] Cover domain partitions for every parameter.
-- [ ] Cover applicable state transitions.
-- [ ] Cover security requirements SEC-01–SEC-07, including injection, IDOR, and role escalation where applicable.
-- [ ] Cover exact response-schema validation.
+- [x] Document API 3 specification, feature, endpoint, request, response, and expected behavior. (`artifacts/api3_admin_order_status_test_strategy.md`)
+- [x] Use AI step-by-step with the specification to generate at least 35 test cases. (40 generated in `artifacts/api3_admin_order_status_test_cases.csv`; human audit pending.)
+- [x] Cover domain partitions for every parameter. (`artifacts/api3_admin_order_status_test_conditions.md`)
+- [x] Cover applicable state transitions. (`artifacts/api3_admin_order_status_test_conditions.md`)
+- [x] Cover security requirements SEC-01–SEC-07, including injection, IDOR, and role escalation where applicable. (`artifacts/api3_admin_order_status_test_conditions.md`)
+- [x] Cover exact response-schema validation. (`artifacts/api3_admin_order_status_test_conditions.md` and traceability CSV)
 - [ ] Human-review and label every AI case VALID / INVALID / INCOMPLETE with reasoning.
 - [ ] Correct every INVALID or INCOMPLETE case.
 - [ ] Add at least 5 original student test cases AI missed.

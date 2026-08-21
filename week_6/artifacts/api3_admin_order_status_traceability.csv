@@ -1,0 +1,11 @@
+Requirement,Test cases,Design technique,Oracle,Audit status
+FR-18 admin order update,API3-001 API3-005 API3-037 API3-039,Use case/schema,200 exact message and only target status changes,Pending human audit
+FR-10 valid transitions,API3-001 API3-002 API3-003 API3-004 API3-005,State transition,Allowed edge accepted and persisted,Pending human audit
+FR-10 invalid/final transitions,API3-023 API3-024 API3-025 API3-026 API3-027 API3-028,State transition/decision table,Controlled 400 and no mutation,Pending human audit
+SEC-02 authentication,API3-007 API3-008 API3-009 API3-010 API3-012,Equivalence partitioning,Unauthorized requests rejected before update,Pending human audit
+SEC-03/SEC-06 authorization,API3-011 API3-013,Decision table/IDOR,User token and body role injection cannot update,Pending human audit
+SEC-04/SEC-07 safe disclosure,API3-037 API3-038,Schema/error guessing,No HTML execution, credentials, JWT, OTP or reset data,Pending human audit
+SEC-05 parameterized access,API3-032 API3-033,Error guessing,Injection cannot alter query or state,Pending human audit
+Input domain,API3-006 API3-014 API3-015 API3-016 API3-017 API3-018 API3-019 API3-020 API3-021 API3-022 API3-029 API3-030 API3-031,EP/BVA,Controlled validation and no side effects,Pending human audit
+Robustness,API3-034 API3-035 API3-036,Error guessing,No 500, stack trace or partial update,Pending human audit
+HW06 header,API3-040,Checklist,Every request carries X-Student-Id 22127345,Pending manual evidence
