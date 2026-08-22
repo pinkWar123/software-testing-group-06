@@ -63,12 +63,12 @@ Use this file to track completion. Record evidence paths, links, counts, and com
 
 ## Cross-suite technical requirements
 
-- [ ] Use and document as many available Postman features as reasonably applicable: workspace, collection, variables, environment, data-driven runner, monitors, mock server, or equivalent Karate/RestAssured features.
-- [x] Add the API tests to a CI/CD pipeline for the SUT. (Workflow: `.github/workflows/api-tests.yml`; first baseline run: [GitHub Actions run 32512927751](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32512927751); artifacts: [9457705183](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32512927751/artifacts/9457705183).)
+- [x] Use and document as many available Postman features as reasonably applicable: workspace, collection, variables, environment, data-driven runner, monitors, mock server, or equivalent Karate/RestAssured features. (Used and documented: Postman collections, collection pre-request scripts, environment/runtime variables, Postman Collection Runner, and Newman CLI with CLI/JUnit/HTML reporters; monitors and mock servers were not applicable to the local SUT.)
+- [x] Add the API tests to a CI/CD pipeline for the SUT. (Workflow: `.github/workflows/api-tests.yml`; latest full-regression baseline: [GitHub Actions run 32545864505](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545864505); artifacts: [9468468288](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545864505/artifacts/9468468288).)
 - [ ] Write the CI/CD report describing the configuration and both required runs.
-- [ ] Provide one sample commit whose pipeline run has all API tests passing.
-- [ ] Provide one sample commit whose pipeline run has one test case failing.
-- [ ] Add screenshots and links for both CI/CD runs.
+- [x] Provide one sample commit whose pipeline run has all API tests passing. ([Commit `c48d732`](https://github.com/pinkWar123/software-testing-group-06/commit/c48d73237836f14c63c25d537b5d0af80564feee), manual smoke run: [32545873635](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545873635), artifacts: [9468468947](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545873635/artifacts/9468468947); 10 requests, 16 assertions, 0 failures.)
+- [x] Provide one sample commit whose pipeline run has one test case failing. ([Commit `c48d732`](https://github.com/pinkWar123/software-testing-group-06/commit/c48d73237836f14c63c25d537b5d0af80564feee), manual controlled-failure run: [32545875356](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545875356), artifacts: [9468469149](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545875356/artifacts/9468469149); 10 requests, 17 assertions, exactly 1 intentional failure in `API1 smoke - successful login`.)
+- [ ] Add screenshots and links for both CI/CD runs. (Links are recorded above; capture the two GitHub Actions run-summary screenshots manually before submission.)
 
 ## Agent Skill / Create level (10 points)
 
