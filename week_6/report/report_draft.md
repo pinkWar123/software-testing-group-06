@@ -383,7 +383,15 @@ The same commit was dispatched in smoke mode with `intentional_failure=true`. Ru
 
 ### 12.4 Screenshots and Links
 
-The latest automatic full-regression baseline is [run 32545864505](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545864505). It correctly failed the quality gate on the documented SUT defects while still uploading [artifact 9468468288](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545864505/artifacts/9468468288). The all-passing and controlled-failure run links are recorded in §§12.2–12.3. Two GitHub Actions run-summary screenshots must still be captured manually before submission; this report does not claim that screenshots were AI-generated or otherwise fabricated.
+The latest automatic full-regression baseline is [run 32545864505](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545864505). It correctly failed the quality gate on the documented SUT defects while still uploading [artifact 9468468288](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545864505/artifacts/9468468288). The all-passing and controlled-failure run links are recorded in §§12.2–12.3. The following screenshots were captured manually from GitHub Actions and are preserved as submission evidence.
+
+![GitHub Actions smoke run 32545873635 succeeded; all workflow steps completed](../artifacts/evidence/ci/01_ci_smoke_pass.png)
+
+*Figure 12.1 — Successful GitHub Actions smoke run 32545873635. The Newman API suites job and every pipeline step completed successfully.*
+
+![GitHub Actions controlled-failure run 32545875356 showing exactly one intentional Newman assertion failure](../artifacts/evidence/ci/02_ci_controlled_failure.png)
+
+*Figure 12.2 — Controlled one-failure GitHub Actions run 32545875356. Newman executed 10 requests and 17 assertions; only `Intentional CI failure demonstration` failed, and the log identifies it as not an SUT defect.*
 
 ## 13. AI-Driven API Test Generator
 
