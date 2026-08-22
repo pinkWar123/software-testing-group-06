@@ -3,3 +3,25 @@ SKILL.md
 .github
 .claude
 .agents
+.codex
+.idea
+week_2
+
+# Local Week 3 browser-check helper; retain only report/evidence artefacts.
+week_3/automation/
+week_3/
+week_4/
+week_4
+week_5/HW05
+week_5/artifacts/data/auth-users.csv
+week_5/artifacts/data/transactional-orders.csv
+
+# Newman reporter dependencies installed locally for API execution.
+node_modules/
+week_6/node_modules
+
+# Commit the CI workflow while keeping local .github skill files untracked.
+!.github/
+.github/*
+!.github/workflows/
+!.github/workflows/api-tests.yml

@@ -1,0 +1,159 @@
+{
+  "info": {
+    "name": "HW06 CI Smoke - APIs 1 to 3",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "A compact, deterministic happy-path suite for CI health-check demonstrations. Full API regressions stay in the three API-specific collections. Set intentionalFailure=true only to demonstrate one controlled failing assertion."
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const studentId = pm.environment.get('studentId');",
+          "pm.request.headers.upsert({ key: 'X-Student-Id', value: studentId });",
+          "console.log('X-Student-Id:', studentId, '|', pm.info.requestName);"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "API1 smoke - register login user",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"name\":\"HW06 CI API1 User\",\"email\":\"{{smokeApi1Email}}\",\"password\":\"{{smokePassword}}\"}" },
+        "url": "{{baseUrl}}/api/register"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('API1 user registered', () => pm.expect(pm.response.code).to.eql(200));"
+      ]}}]
+    },
+    {
+      "name": "API1 smoke - successful login",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"email\":\"{{smokeApi1Email}}\",\"password\":\"{{smokePassword}}\"}" },
+        "url": "{{baseUrl}}/api/login"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "const body = pm.response.json();",
+        "pm.test('API1 login returns HTTP 200', () => pm.expect(pm.response.code).to.eql(200));",
+        "pm.test('API1 login returns a JWT', () => pm.expect(body.token).to.be.a('string').and.not.empty);",
+        "pm.environment.set('api1Token', body.token);",
+        "if (pm.environment.get('intentionalFailure') === 'true') pm.test('Intentional CI failure demonstration', () => pm.expect.fail('Controlled demonstration failure; not an SUT defect.'));"
+      ]}}]
+    },
+    {
+      "name": "API2 smoke - add item to cart",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{api1Token}}" }],
+        "body": { "mode": "raw", "raw": "{\"id\":1,\"name\":\"HW06 CI item\",\"price\":50000,\"quantity\":2}" },
+        "url": "{{baseUrl}}/api/cart"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('API2 cart setup returns HTTP 200', () => pm.expect(pm.response.code).to.eql(200));"
+      ]}}]
+    },
+    {
+      "name": "API2 smoke - checkout",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{api1Token}}" }],
+        "body": { "mode": "raw", "raw": "{\"total_amount\":100000,\"shipping_address\":\"123 Le Loi, Ho Chi Minh City\"}" },
+        "url": "{{baseUrl}}/api/checkout"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "const body = pm.response.json();",
+        "pm.test('API2 checkout returns HTTP 200', () => pm.expect(pm.response.code).to.eql(200));",
+        "pm.test('API2 checkout returns an order ID', () => pm.expect(body.orderId).to.be.a('number').and.above(0));"
+      ]}}]
+    },
+    {
+      "name": "API3 smoke - register order user",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"name\":\"HW06 CI API3 User\",\"email\":\"{{smokeApi3Email}}\",\"password\":\"{{smokePassword}}\"}" },
+        "url": "{{baseUrl}}/api/register"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('API3 user registered', () => pm.expect(pm.response.code).to.eql(200));"
+      ]}}]
+    },
+    {
+      "name": "API3 smoke - login order user",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"email\":\"{{smokeApi3Email}}\",\"password\":\"{{smokePassword}}\"}" },
+        "url": "{{baseUrl}}/api/login"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "const body = pm.response.json();",
+        "pm.test('API3 user login returns HTTP 200', () => pm.expect(pm.response.code).to.eql(200));",
+        "pm.test('API3 user token is present', () => pm.expect(body.token).to.be.a('string').and.not.empty);",
+        "pm.environment.set('api3UserToken', body.token);"
+      ]}}]
+    },
+    {
+      "name": "API3 smoke - add order item",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{api3UserToken}}" }],
+        "body": { "mode": "raw", "raw": "{\"id\":1,\"name\":\"HW06 CI API3 item\",\"price\":10000,\"quantity\":1}" },
+        "url": "{{baseUrl}}/api/cart"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('API3 cart setup returns HTTP 200', () => pm.expect(pm.response.code).to.eql(200));"
+      ]}}]
+    },
+    {
+      "name": "API3 smoke - create order",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{api3UserToken}}" }],
+        "body": { "mode": "raw", "raw": "{\"total_amount\":10000,\"shipping_address\":\"HW06 CI API3 smoke address\"}" },
+        "url": "{{baseUrl}}/api/checkout"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "const body = pm.response.json();",
+        "pm.test('API3 fixture checkout returns HTTP 200', () => pm.expect(pm.response.code).to.eql(200));",
+        "pm.test('API3 fixture order ID is present', () => pm.expect(body.orderId).to.be.a('number').and.above(0));",
+        "pm.environment.set('api3OrderId', String(body.orderId));"
+      ]}}]
+    },
+    {
+      "name": "API3 smoke - login admin",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"email\":\"{{adminEmail}}\",\"password\":\"{{adminPassword}}\"}" },
+        "url": "{{baseUrl}}/api/login"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "const body = pm.response.json();",
+        "pm.test('API3 admin login returns HTTP 200', () => pm.expect(pm.response.code).to.eql(200));",
+        "pm.test('API3 admin token is present', () => pm.expect(body.token).to.be.a('string').and.not.empty);",
+        "pm.environment.set('adminToken', body.token);"
+      ]}}]
+    },
+    {
+      "name": "API3 smoke - update order status",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+        "body": { "mode": "raw", "raw": "{\"status\":\"confirmed\"}" },
+        "url": "{{baseUrl}}/api/admin/orders/{{api3OrderId}}/status"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "const body = pm.response.json();",
+        "pm.test('API3 status update returns HTTP 200', () => pm.expect(pm.response.code).to.eql(200));",
+        "pm.test('API3 status update has expected message', () => pm.expect(body.message).to.eql('Order status updated'));"
+      ]}}]
+    }
+  ]
+}

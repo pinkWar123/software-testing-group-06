@@ -2,10 +2,24 @@ name: HW06 API tests
 
 on:
   push:
-    branches: [main]
+    branches: ["**"]
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      suite:
+        description: "Suite to execute"
+        required: true
+        default: regression
+        type: choice
+        options:
+          - regression
+          - smoke
+      intentional_failure:
+        description: "Add exactly one controlled failing assertion to the smoke suite"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -60,9 +74,31 @@ jobs:
       - name: Run API suites
         env:
           CI_RUN_ID: ${{ github.run_id }}
+          CI_SUITE: ${{ inputs.suite || 'regression' }}
+          INTENTIONAL_FAILURE: ${{ inputs.intentional_failure || 'false' }}
         run: |
           mkdir -p ci-results
           set +e
+
+          if [ "$CI_SUITE" = "smoke" ]; then
+            npx newman run week_6/artifacts/ci_smoke.postman_collection.json \
+              --environment week_6/artifacts/api3_local.postman_environment.json \
+              --env-var baseUrl=http://127.0.0.1:3000 \
+              --env-var studentId=22127345 \
+              --env-var adminEmail=admin@eshop.com \
+              --env-var adminPassword='Admin123!' \
+              --env-var smokePassword='Hw06Smoke123!' \
+              --env-var smokeApi1Email="api1-smoke-${CI_RUN_ID}@example.com" \
+              --env-var smokeApi3Email="api3-smoke-${CI_RUN_ID}@example.com" \
+              --env-var intentionalFailure="$INTENTIONAL_FAILURE" \
+              --reporters cli,junit,htmlextra \
+              --reporter-junit-export ci-results/smoke.junit.xml \
+              --reporter-htmlextra-export ci-results/smoke.html
+            smoke_status=$?
+            printf 'API status codes: smoke=%s intentional_failure=%s\n' "$smoke_status" "$INTENTIONAL_FAILURE"
+            test "$smoke_status" -eq 0
+            exit $?
+          fi
 
           npx newman run week_6/artifacts/api1_login.postman_collection.json \
             --environment week_6/artifacts/api3_local.postman_environment.json \
