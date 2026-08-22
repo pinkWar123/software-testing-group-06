@@ -367,19 +367,23 @@ The submitted Postman evidence includes the pre-request script, post-response as
 
 ## 12. CI/CD Integration
 
-The CI workflow is defined in [`.github/workflows/api-tests.yml`](../../.github/workflows/api-tests.yml). On pushes and pull requests to `main`, GitHub Actions checks out this homework repository, clones the public SUT repository [`ttbhanh/eshop-sut`](https://github.com/ttbhanh/eshop-sut), installs the backend dependencies, initializes the SQLite database through `server.js`, starts the backend, and executes the three committed Postman collections with Newman. The workflow uploads JUnit/XML-compatible results, HTML-extra reports, and the backend log as artifacts. Newman exit codes are combined so all three suites run even when an earlier suite exposes a known defect.
+The CI workflow is defined in [`.github/workflows/api-tests.yml`](../../.github/workflows/api-tests.yml). It runs the full regression suite on every branch push and on pull requests to `main`; it can also be dispatched manually in either `regression` or `smoke` mode. GitHub Actions checks out this homework repository, clones the public SUT repository [`ttbhanh/eshop-sut`](https://github.com/ttbhanh/eshop-sut), installs the backend dependencies, initializes the SQLite database through `server.js`, starts the backend, and executes the committed Postman collections with Newman. The workflow uploads JUnit/XML-compatible results, HTML-extra reports, and the backend log as artifacts. Newman exit codes are combined so all three regression suites run even when an earlier suite exposes a known defect.
 
 ### 12.1 Pipeline Configuration
 
-The workflow intentionally treats failed assertions as a failed quality gate; the current SUT contains documented defects, so the initial baseline is expected to fail while still producing reports for diagnosis.
+The full-regression workflow intentionally treats failed assertions as a failed quality gate; the current SUT contains documented defects, so its baseline is expected to fail while still producing reports for diagnosis. The compact [`ci_smoke.postman_collection.json`](../artifacts/ci_smoke.postman_collection.json) is a separate deterministic health check covering the successful paths of API 1 login, API 2 checkout, and API 3 admin order-status update. It does not replace the full regression suite. Manual dispatch additionally accepts `intentional_failure=true`, which adds one clearly labelled synthetic assertion failure for a quality-gate demonstration.
 
 ### 12.2 All-Passing Sample Run
 
+Commit [`c48d732`](https://github.com/pinkWar123/software-testing-group-06/commit/c48d73237836f14c63c25d537b5d0af80564feee) introduced the smoke collection and manual workflow inputs. Manual smoke run [32545873635](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545873635) passed: **10 requests, 16 assertions, and 0 failures**. The uploaded Newman HTML/JUnit reports and backend log are available in [artifact 9468468947](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545873635/artifacts/9468468947).
+
 ### 12.3 Intentionally Failing Sample Run
+
+The same commit was dispatched in smoke mode with `intentional_failure=true`. Run [32545875356](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545875356) executed **10 requests and 17 assertions**, with exactly **one failure**: `Intentional CI failure demonstration` in `API1 smoke - successful login`. The failure text states that it is a controlled demonstration and **not an SUT defect**. Its HTML/JUnit reports and backend log are available in [artifact 9468469149](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545875356/artifacts/9468469149).
 
 ### 12.4 Screenshots and Links
 
-The first baseline CI execution is [run 32512927751](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32512927751). It completed SUT startup and all three Newman suites, then failed the quality gate because API 1, API 2, and API 3 contained assertion failures. Newman HTML/JUnit outputs and the backend log are available in [artifact 9457705183](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32512927751/artifacts/9457705183). The all-passing sample, intentionally failing sample, and CI screenshots remain pending.
+The latest automatic full-regression baseline is [run 32545864505](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545864505). It correctly failed the quality gate on the documented SUT defects while still uploading [artifact 9468468288](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545864505/artifacts/9468468288). The all-passing and controlled-failure run links are recorded in §§12.2–12.3. Two GitHub Actions run-summary screenshots must still be captured manually before submission; this report does not claim that screenshots were AI-generated or otherwise fabricated.
 
 ## 13. AI-Driven API Test Generator
 

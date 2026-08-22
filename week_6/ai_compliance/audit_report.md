@@ -379,3 +379,38 @@ I reviewed every label and correction before accepting them, and I authored the 
 | **Total (117)** | **104** | **0** | **13** | **88.9% / 0% / 11.1%** |
 
 **Conclusion on AI use for this work:** the AI is strong at breadth — producing a coherent, traceable, ISTQB-structured suite in one pass. It is weaker at *output quality and spec fidelity*: it emitted malformed CSV records (ExpectedResult merged into TestData) and left authorization/terminal-state coverage implicit, and it assumed the implementation enforced `role=admin` when it did not. For this type of work the AI is best used as a *generation-and-drafting assistant* whose output must always be audited against the actual SUT and extended by a human; AI alone (without live verification against the implementation) is not reliable enough to serve as the sole source of an audited test suite.
+
+---
+
+# AI-02 Audit Entry 10 — CI/CD API Test Pipeline
+
+## 1. Artifact and Context
+
+**Artifact:** GitHub Actions workflow, compact Postman/Newman smoke collection, CI checklist evidence, and report §12 for the three selected APIs.
+
+**Requirement:** HW06 cross-suite CI/CD requirements: add the API tests to a pipeline; preserve an all-passing sample and a one-test-case failing sample with links and artifacts.
+
+**Timestamp:** 09:26 22/08/2026 (+07)
+
+**AI tool:** Codex (GPT-5), using the CI/CD automation workflow. GitHub Actions and local Newman execution were used to verify the configuration.
+
+## 2. Prompt and AI Output
+
+**Prompt:**
+> $ci-cd-and-automation Help me to prepare for Add the API tests to a CI/CD pipeline for the SUT.
+
+**Output:** `.github/workflows/api-tests.yml` clones the public SUT, installs its dependencies, starts `server.js`, waits for `/api/products`, runs Newman with CLI/JUnit/HTML-extra reporters, uploads reports/backend log, and stops the SUT. The workflow runs the full three-collection regression suite on push/PR and supports manual `smoke` plus `intentional_failure` inputs. `artifacts/ci_smoke.postman_collection.json` contains the deterministic positive-path checks for API 1 login, API 2 checkout, and API 3 admin order-status update.
+
+**Verified evidence:** Commit [`c48d732`](https://github.com/pinkWar123/software-testing-group-06/commit/c48d73237836f14c63c25d537b5d0af80564feee) produced smoke run [32545873635](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545873635) (**10 requests, 16 assertions, 0 failures**) and controlled-failure run [32545875356](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545875356) (**10 requests, 17 assertions, exactly 1 labelled failure**). Both runs uploaded Newman reports and backend logs as artifacts.
+
+## 3. Review Verdict
+
+**VALID WITH ONE MANUAL-EVIDENCE ITEM PENDING.** The local smoke suite passed before push, and GitHub Actions reproduced both expected demonstration outcomes. The full regression suite remains a failing quality gate because it detects the documented SUT defects; this is expected behavior, not pipeline failure. Two GitHub Actions run-summary screenshots are still required for the final submission.
+
+## 4. Reasoning and Limitations
+
+The smoke collection is intentionally separate from full regression so an all-passing CI health check does not hide or disable real defect-detection cases. It covers a successful request path in each selected API and retains the collection-level `X-Student-Id` injection. The one-failure mode is limited to a conditional assertion labelled `Intentional CI failure demonstration`; it does not mutate the SUT or misrepresent a defect. The automatic full-regression run [32545864505](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545864505) continues to fail when genuine test assertions detect SUT defects and uploads diagnostic artifacts. AI could not independently create genuine GUI screenshots; those must be manually captured from GitHub Actions.
+
+## 5. Student Review / Fix
+
+I reviewed the local Newman outcomes and the final GitHub Actions statuses and artifact links. I will keep the full regression quality gate enabled because its failures are evidence of genuine SUT defects, while using the compact smoke suite only to prove a healthy CI execution path. I will manually capture the run-summary screenshots for runs 32545873635 and 32545875356 before submission and verify that the links remain accessible. I understand that the controlled one-failure assertion is CI evidence, not a bug report, so it must not be filed as an SUT defect.

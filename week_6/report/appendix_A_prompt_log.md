@@ -139,3 +139,14 @@ For each interaction, record:
 **Corrections and additions I made (for the tutor):** I audited all 40 generated admin-order-status cases against the spec (`api_specification.md` + `README.md`, which fixes FR-18, the FR-10 state machine and SEC-01–SEC-07) and the implementation, verifying key behaviors with live requests against the running backend. I labeled them **34 VALID / 0 INVALID / 6 INCOMPLETE** with per-case reasoning. I corrected the six incomplete records — API3-008 through API3-013 were malformed (the AI had merged the expected result into the `TestData` field, leaving `ExpectedResult` empty), so I split each into proper `TestData` / `ExpectedResult` columns. I then added **6 student-authored cases the AI missed** (SAPI3-001–006) and explained why the AI missed each: SAPI3-001 canceled→delivered terminal-state edge, SAPI3-002 explicit SEC-03 role enforcement on another user's order, SAPI3-003 read-back verification of the persisted status, SAPI3-004 repeated-transition (confirmed→confirmed) idempotency, SAPI3-005 huge order-ID boundary, SAPI3-006 status carrying embedded/trailing characters. The audit surfaced 6 candidate bugs (D1–D6: no `role=admin` check, `canceled→delivered` wrongly allowed, Bearer scheme not enforced, 500 crash on `text/plain`, HTML error page leaking file paths, error disclosing current status) to be confirmed during execution.
 
 ---
+
+## [09:26 22/08/2026] — Codex (GPT-5)
+**Purpose**: HW06 cross-suite CI/CD requirement — configure GitHub Actions for the Newman API suites; provide one all-passing and one controlled one-failure CI demonstration; record the evidence in the checklist and report.
+**Prompt**:
+> $ci-cd-and-automation Help me to prepare for Add the API tests to a CI/CD pipeline for the SUT.
+
+**Artifact produced**: `.github/workflows/api-tests.yml`, `artifacts/ci_smoke.postman_collection.json`, `hw_requirements.md`, and report §12. The workflow clones and starts the public SUT, runs full regression on push/PR, and exposes manual `smoke` / `intentional_failure` inputs. Commit `c48d732` produced a passing smoke run ([32545873635](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545873635), 10 requests / 16 assertions / 0 failures) and a controlled one-failure run ([32545875356](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545875356), 10 requests / 17 assertions / 1 intentional failure). The full regression baseline [32545864505](https://github.com/pinkWar123/software-testing-group-06/actions/runs/32545864505) correctly remains failing due to documented SUT defects.
+
+**Human verification required**: Capture two GitHub Actions run-summary screenshots manually. The CI run URLs, artifacts, and Newman output were verified; no screenshot was fabricated by AI.
+
+---
